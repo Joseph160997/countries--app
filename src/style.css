@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@variant dark 
+(&:where(.dark, .dark *));
+
+:root { /* Estilos globales */
+    color-scheme: light;
+}
+
+.dark {
+    color-scheme: dark;
+}
