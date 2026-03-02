@@ -26,6 +26,17 @@
         <div class="max-w-xl mx-auto relative">
           <input type="text" id="search-input" placeholder="Search for a country or region...." class="w-full p-4 pl-12 rounded-2xl border-none  ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-800 shadow-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"/>
           <span class="absolte left-4 top-1/2 -translate-y-1/2 opacity-40">🔎</span>
+          <div class="flex flex-wrap justify-center gap-4 mt-6">
+            <button id="sort-pop" class="px-4 py-6 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-blue-500 hover:text-white transition-all cursor-pointer text-sm font-black uppercase tracking-widest shadow-sm active:scale-95">Sort By Population</button>
+            <button id="sort-name" class="px-4 py-6 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-blue-500 hover:text-white transition-all cursor-pointer text-sm font-black uppercase tracking-widest shadow-sm active:scale-95">Sort By A-Z</button>
+            <select id="filter-region" class="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-700 outline-none cursor-pointer text-sm font-black uppercase tracking-widest shadow-sm active:scale-95">
+              <option value="Africa">Africa</option>
+              <option value="Americas">Americas</option>
+              <option value="Asia">Asia</option>
+              <option value="Europe">Europe</option>
+              <option value="Oceania">Oceania</option>
+            </select>
+          </div>
         </div>
       </section>
 
