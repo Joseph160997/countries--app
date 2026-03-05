@@ -19,17 +19,24 @@ let countries: Country[] = []; //Arreglo de los paises que se muestran en pantal
 let favoriteCodes: string[] = JSON.parse(localStorage.getItem("favs") || "[]"); //Arreglo de los paises favoritos json.parse es para convertir el string en un arreglo
 let isLoading: boolean = false; //Bandera para saber si estamos cargando los paises
 let searchTimer: number; //El cronometro de la busqueda
+let isShowingFavs: boolean = false; //Bandera para saber si estamos mostrando los favoritos
 
 // 3. DOM ELEMENTS
 //Aqui guardamos los elementos del DOM('HTML)
 const resultsContainer =
-  document.querySelector<HTMLElement>("#result-container");
+  document.querySelector<HTMLDivElement>("#result-container");
 const inputSearch = document.querySelector<HTMLInputElement>("#search-input");
 const themeToggle = document.querySelector<HTMLButtonElement>("#theme-toggle");
 const modalContainer =
   document.querySelector<HTMLDivElement>("#modal-container");
 //const modalClose = document.querySelector<HTMLButtonElement>("#modal-close");
 const modalContent = document.querySelector<HTMLDivElement>("#modal-content");
+const btnShowFavorites = document.querySelector<HTMLButtonElement>(
+  "#btn-show-favorites",
+);
+const favsCounter = document.querySelector<HTMLSpanElement>(
+  "#favs-count-display",
+);
 
 // 4. Core funtion
 //Aqui va la funcion de pintar en el DOM
@@ -225,6 +232,45 @@ const filterByRegion = (region: string) => {
   render();
 };
 
+//Funcion para el boton de mostrar solo los paises favoritos ("show-favorites")
+const handleFilterFavorites = () => {
+  // 1. Cambiamos el estado del interrupotor, si es true, pasa a false y viceversa.
+  isShowingFavs = !isShowingFavs;
+
+  // 2. filtramos el almacen original buscando los favoritos.
+  if (isShowingFavs) {
+    countries = allCountries.filter((country) => country.isFavorite);
+
+    // 3. Cambiamos el estilo del boton para indicar que esta activo.
+    btnShowFavorites?.classList.add("bg-red-500", "text-white");
+
+    // 4. Si apagamos el filtro devolvemos todos los paises a vitrina original.
+  } else {
+    countries = [...allCountries];
+
+    // 5. Quitanmos el estilo activo.
+    btnShowFavorites?.classList.remove("bg-red-500", "text-white");
+  }
+
+  // 6. Actializamo la intefaz
+  render();
+};
+
+// Funcion para el contador de favoritos (Fav-counter)
+const updateFavCounter = () => {
+  // 1. Verificamos que el contador exista en el Dom.
+  if (favsCounter) {
+    // 2. Si existe actualizamos el cintador con la cantidad de favoritos.
+    favsCounter.textContent = favoriteCodes.length.toString();
+
+    if (favoriteCodes.length === 0) {
+      favsCounter.classList.add("hidden");
+    } else {
+      favsCounter.classList.remove("hidden");
+    }
+  }
+};
+
 //Funcion para el boton de favoritos
 const toggleFavorites = (code: string) => {
   // 1. Buscamos el pais por su cca3
@@ -257,6 +303,9 @@ const toggleFavorites = (code: string) => {
     if (c.cca3 === code) return { ...c, isFavorite: !c.isFavorite }; //creamos una copia del pais y le cambiamos el switch isFavorite
     return c;
   });
+
+  // 7. Actualizamos el contador de favoritos
+  updateFavCounter();
 
   // 5. PINTAR: Actualizamos la interfaz para que se vean los cambios
   render();
@@ -308,8 +357,14 @@ document.querySelector("#filter-region")?.addEventListener("change", (e) => {
   filterByRegion(select.value);
 });
 
+// Evento para el botron de mostrar favoritos ("btn-show-favorites")
+btnShowFavorites?.addEventListener("click", handleFilterFavorites);
+
 //6. init
 fetchCountries();
 
 // inicializamos theme-toggle
 initTheme();
+
+// inicializamos el contador de favoritos
+updateFavCounter();
