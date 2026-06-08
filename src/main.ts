@@ -1,18 +1,6 @@
 import "./style.css";
 
-// ========================================================
-// 1. DATA CONTRACT (INTERFASE)
-// ========================================================
-// Define la "forma" que deben tener nuestros objetos para que TS nos proteja.
-interface Country {
-  name: string;
-  flag: string;
-  population: number;
-  region: string;
-  capital: string;
-  cca3: string; // El ID único de 3 letras (ej: "COL", "ESP")
-  isFavorite: boolean;
-}
+import type { Country } from "./types/Country";
 
 // ========================================================
 // 2. GLOBAL STATE (El cerebro de la App)
