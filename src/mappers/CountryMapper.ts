@@ -22,3 +22,25 @@ export const mapCountry = (
     isFavorite: favoriteCodes.includes(country.cca3),
   };
 };
+
+/**
+ * Validador manual (Type Guard) para la respuesta de la API.
+ * Verifica la existencia de campos críticos antes de procesar los datos [4].
+ */
+export const isRestCountryResponse = (
+  data: unknown,
+): data is RestCountryAPIResponse[] => {
+  return (
+    Array.isArray(data) &&
+    data.every(
+      (item) =>
+        item !== null &&
+        typeof item === "object" &&
+        typeof item.name?.common === "string" &&
+        typeof item.flags?.png === "string" &&
+        typeof item.cca3 === "string" &&
+        typeof item.population === "number" &&
+        typeof item.region === "string",
+    )
+  );
+};
