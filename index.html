@@ -1,60 +1,23 @@
 <!DOCTYPE html>
-<html lang="en"> 
+<html lang="en" class="scroll-smooth"> 
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worl Explorer v2 - Senior Frontend</title>
+    <title>World Explorer v2 - Senior Frontend</title>
   </head>
-  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300">
-    <header class="sticky top-0 w-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700">
-      <div class="container mx-auto px-4 h-20 flex justify-between items-center">
-        <h1 class="text-2xl font-bold tracking-tighter italic">🌍World Explorer</h1>
-
-      <div class="flex gap-4">
-        <button id="btn-show-favorites" class="px-4 py-2 rounded-xl bg-rose-100 drak:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:scale-105 transition-transform cursor-pointer">❤️ Favs
-          <span id="favs-count-display" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
-        </button>
-        <button id="theme-toggle" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"><span class="dark:hidden">🌛</span>
-            <span class="hidden dark:inline">🌞</span> 
-        </button>
-      </div>
-      </div>
-    </header>
+  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col">
     
-    <main class="container mx-auto px-4 py-8">
+    <!-- Punto de Anclaje Principal donde el Layout Dinámico construirá la App -->
+    <div id="app" class="flex flex-col grow"></div>
 
-      <section class="mb-12">
-        <div class="max-w-xl mx-auto relative">
-          <input type="text" id="search-input" placeholder="Search for a country or region...." class="w-full p-4 pl-12 rounded-2xl border-none  ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-800 shadow-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"/>
-          <span class="absolte left-4 top-1/2 -translate-y-1/2 opacity-40">🔎</span>
-          <div class="flex flex-wrap justify-center gap-4 mt-6">
-            <button id="sort-pop" class="px-4 py-6 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-blue-500 hover:text-white transition-all cursor-pointer text-sm font-black uppercase tracking-widest shadow-sm active:scale-95">Sort By Population</button>
-            <button id="sort-name" class="px-4 py-6 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-blue-500 hover:text-white transition-all cursor-pointer text-sm font-black uppercase tracking-widest shadow-sm active:scale-95">Sort By A-Z</button>
-            <select id="filter-region" class="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-700 outline-none cursor-pointer text-sm font-black uppercase tracking-widest shadow-sm active:scale-95">
-              <option value="Africa">Africa</option>
-              <option value="Americas">Americas</option>
-              <option value="Asia">Asia</option>
-              <option value="Europe">Europe</option>
-              <option value="Oceania">Oceania</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      <div id="result-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl-grid-cols-4 gap-8">
-
-      </div>
-    </main>
-
+    <!-- Contenedor Global para Ventanas Modales -->
     <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
       <div class="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative">
-        <!-- <button id="btn-close-modal" class="absolute top-4 right-4 text-2xl hover:scale-110 transition-transform cursor-pointer">❌</button> -->
         <div id="modal-content"></div>
       </div>
     </div>
 
-    <script type="module" src="./src/main.ts"></script>
-
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
