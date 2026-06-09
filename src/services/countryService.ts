@@ -1,45 +1,54 @@
 import type { Country, RestCountryAPIResponse } from "../types/Country";
-import { mapCountry } from "../mappers/CountryMapper";
+import { mapCountry, isRestCountryResponse } from "../mappers/CountryMapper";
+import { httpClient } from "../utils/http";
+import { storage } from "../utils/db";
 
-// URL Base de la API (Ej: https://restcountries.com/v3.1/all?fields=name,flags,population,region,capital,cca3)
 const BASE_URL = import.meta.env.VITE_API_COUNTRIES_BASE_URL;
-const options = { method: "GET" };
 
 /**
- * Obtiene todos los países de la API y los retorna mapeados con su estado de favoritos.
- * @param favoriteCodes - Array de IDs de favoritos para calcular el estado inicial.
- * @returns Promise<Country[]> - Una promesa que se resuelve con un arreglo de países mapeados de forma síncrona.
+ * Obtiene países con estrategia "Network First": Intenta API, si falla busca en Storage.
+ * @param favoriteCodes - Array de códigos (cca3) guardados en LocalStorage.
+ * @return Promise<Country[]> - Lista de países formateados para la UI, ya sea desde la red o desde el almacenamiento local.
+ * Implementa validación manual de la respuesta de la API y persistencia en IndexedDB para uso offline.
  */
 export const getAllCountries = async (
   favoriteCodes: string[],
 ): Promise<Country[]> => {
-  if (!BASE_URL) {
-    throw new Error(
-      "Error de configuración: VITE_API_COUNTRIES_BASE_URL no está definida.",
-    );
-  }
+  if (!BASE_URL) throw new Error("VITE_API_COUNTRIES_BASE_URL no definida.");
 
   try {
-    const response = await fetch(BASE_URL, options);
+    // 1. Uso de httpClient: Reemplaza fetch, añade timeout y validación automática
+    const rawData = await httpClient<RestCountryAPIResponse[]>(BASE_URL, {
+      method: "GET",
+      validator: isRestCountryResponse, // Validación en tiempo de ejecución (Narrowing)
+    });
 
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
-    }
-
-    // Tipamos la respuesta cruda directamente aquí
-    const data = (await response.json()) as RestCountryAPIResponse[];
-
-    // Validación defensiva del tipo de dato de entrada
-    if (!Array.isArray(data)) {
-      throw new Error("La API no retornó una colección (Array) esperada.");
-    }
-
-    // 🚀 OPTIMIZACIÓN: Mapeo síncrono instantáneo en memoria lineal O(n)
-    return data.map((rawCountry: RestCountryAPIResponse) =>
-      mapCountry(rawCountry, favoriteCodes),
+    // 2. Mapeo síncrono a la interfaz de la UI
+    const mappedCountries = rawData.map((raw) =>
+      mapCountry(raw, favoriteCodes),
     );
+
+    // 3. Persistencia en IndexedDB: Guardamos los datos frescos para uso offline
+    // Usamos el almacenamiento genérico que definimos anteriormente
+    storage.saveAll<Country>("countries", mappedCountries).catch(console.error);
+
+    return mappedCountries;
   } catch (error) {
-    console.error("Fallo crítico en el servicio getAllCountries:", error);
-    throw error; // Re-lanzamos el error para que la UI lo gestione con un estado visual de error
+    console.warn("Fallo la red, intentando recuperar de IndexedDB...", error);
+
+    // 4. Estrategia de Respaldo (Fallback): Si la red falla, consultamos el Storage local
+    const cachedCountries = (await storage.get<Country>(
+      "countries",
+    )) as Country[];
+
+    if (cachedCountries.length > 0) {
+      // Si hay datos locales, los devolvemos (aunque podrían estar desactualizados)
+      return cachedCountries;
+    }
+
+    // Si no hay nada en caché, relanzamos el error crítico
+    throw new Error(
+      "No se pudo obtener datos ni de la red ni del almacenamiento local.",
+    );
   }
 };

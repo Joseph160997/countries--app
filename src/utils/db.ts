@@ -1,6 +1,9 @@
 /**
  * Servicio de persistencia utilizando la Web API nativa IndexedDB.
  * Implementa el Patrón Singleton y Genéricos para máxima reutilización.
+ * Proporciona métodos CRUD para manejar datos de países y ajustes de la aplicación.
+ * Incluye validación de tipos y manejo robusto de errores para garantizar la integridad de los datos.
+ * Este módulo es independiente de cualquier framework o biblioteca externa, lo que facilita su mantenimiento y escalabilidad.
  */
 
 // 1. Configuración y Tipado Inicial
@@ -80,6 +83,21 @@ export const storage = {
     const store = transaction.objectStore(storeName);
 
     store.put(item); // 'put' inserta o sobrescribe si la llave ya existe [5]
+    return transactionToPromise(transaction);
+  },
+
+  /**
+   * Guarda múltiples países en una sola transacción (Muy eficiente)
+   */
+  async saveAll<T>(storeName: StoreName, items: T[]): Promise<void> {
+    const db = await initDB();
+    const transaction = db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
+
+    items.forEach((item) => {
+      store.put(item);
+    });
+
     return transactionToPromise(transaction);
   },
 
