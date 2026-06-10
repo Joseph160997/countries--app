@@ -86,8 +86,9 @@ export const subscribe = (callback: () => void): (() => void) => {
  * SELECTOR: Entrega los países filtrados.
  * Usa el operador spread [...] para asegurar inmutabilidad [8].
  */
-export const getCountries = (): Country[] => {
-  return [...filteredCountries];
+export const getCountries = (limit?: number): Country[] => {
+  const countries = [...filteredCountries];
+  return limit !== undefined ? countries.slice(0, limit) : countries;
 };
 
 /**
