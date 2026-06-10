@@ -54,13 +54,15 @@ const applyFilters = (): void => {
 // 3. SISTEMA DE REACTIVIDAD (Observer)
 // ========================================================
 
-/** Ejecuta todas las funciones suscritas cuando el estado cambia [6] */
+/**
+ * Notifica a todos los componentes suscriptos de cambios en el estado.
+ */
 const notify = (): void => {
   listeners.forEach((listener) => listener());
 };
 
 /**
- * Conecta un componente al estado.
+ * Permite a los componentes suscribirse a cambios en el estado.
  * @param callback - Función que el componente usará para re-renderizarse.
  * @returns Función de desuscripción para liberar memoria.
  */

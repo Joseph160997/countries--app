@@ -68,3 +68,26 @@ const renderUI = (): void => {
 const unsubscribe = subscribe(() => {
   renderUI();
 });
+
+// ========================================================
+// 5. ASIGNACIÓN DE EVENTOS CON DEBOUNCE
+// ========================================================
+
+/**
+ * Creaos una version optimizada de la accion de busqueda.
+ * Retrasala ejecución hasta que el usuario deje de escribir por 355ms.
+ */
+/**
+ * Creamos una versión optimizada de la acción de búsqueda.
+ * Retrasa la ejecución 350ms para proteger el rendimiento de la app.
+ */
+const optimizedSearch = debounce((text: string) => {
+  setSearchQuery(text);
+}, 350);
+
+// Escuchamos el evento de teclado en el input de búsqueda
+inputSearch?.addEventListener("input", (e) => {
+  const target = e.target as HTMLInputElement;
+  // Invocamos nuestra función con debounce en lugar de cambiar el estado directamente
+  optimizedSearch(target.value);
+});
