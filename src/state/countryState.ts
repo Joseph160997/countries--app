@@ -5,8 +5,10 @@
  * Implementa el Patrón Observador para notificar a la UI y técnicas de
  * inmutabilidad para proteger los datos [3, 4].
  */
-import type { Country } from "../types/Country";
+import type { Country, Region } from "../types/Country";
 import { getAllCountries } from "../services/countryService";
+import { getFavoriteCodes } from "../services/favoriteService";
+import { toggleFavoritePersistence } from "../services/favoriteService";
 
 // ========================================================
 // 1. ESTADO PRIVADO (Encapsulamiento)
@@ -25,28 +27,39 @@ let selectedRegion = "";
 /** Lista de suscriptores (componentes que escuchan cambios) */
 let listeners: (() => void)[] = [];
 
+/** Interruptor para inicializar favoritos */
+let isShowingFavorites: boolean = false;
+
 // ========================================================
 // 2. MOTOR DE CÓMPUTO (Filtrado)
 // ========================================================
 
 /**
- * Procesa la lista maestra basándose en los filtros actuales.
- * Sigue un flujo unidireccional: Datos -> Filtro -> Notificación.
+ * Aplica los filtros actuales a la base de datos principal.
  */
 const applyFilters = (): void => {
   const query = searchQuery.trim().toLowerCase();
 
-  // Aplicamos el estrechamiento de datos (Narrowing) mediante filtros [5]
+  // Aplicamos el estrechamiento de datos (Narrowing) mediante filtros [2]
   filteredCountries = countries.filter((country) => {
+    // 1. Filtro de búsqueda (Basado en el nombre) [2]
     const matchesSearch = country.name.toLowerCase().includes(query);
+
+    // 2. Filtro de región (Usa el tipo Region que definimos) [2, 3]
+    // Aunque ahora sea un tipo específico, comparar contra "" sigue siendo válido.
     const matchesRegion =
       selectedRegion === "" || country.region === selectedRegion;
 
-    // Solo sobrevive si cumple ambas condiciones
-    return matchesSearch && matchesRegion;
+    // 3. Filtro de favoritos (La nueva pieza clave)
+    // Si isShowingFavorites es false, deja pasar a todos.
+    // Si es true, solo deja pasar a los que tienen isFavorite: true.
+    const matchesFavorites = !isShowingFavorites || country.isFavorite;
+
+    // El país solo se muestra si cumple las TRES condiciones a la vez [2]
+    return matchesSearch && matchesRegion && matchesFavorites;
   });
 
-  // Notificamos a la UI que hay nuevos datos para mostrar
+  // ¡IMPORTANTE! Notificamos a la UI para que se redibuje [2, 4]
   notify();
 };
 
@@ -120,7 +133,23 @@ export const setSearchQuery = (text: string): void => {
 /**
  * ACCIÓN: Actualiza la región seleccionada.
  */
-export const setRegionFilter = (region: string): void => {
+export const setRegionFilter = (region: Region): void => {
   selectedRegion = region;
+  applyFilters();
+};
+
+/**
+ *  ACCIÓN: Cambia el estado de favorito de un país.
+ * @param cca3 - Código (cca3) del país.
+ */
+export const toggleCountryFavorite = (cca3: string): void => {
+  const nowIsFavorite = toggleFavoritePersistence(cca3);
+
+  // 1. Mutación inmutable de la base de datos principal
+  countries = countries.map((c) =>
+    c.cca3 === cca3 ? { ...c, isFavorite: nowIsFavorite } : c,
+  );
+
+  // 2. Disparamos la reactividad (esto llama a notify() internamente)
   applyFilters();
 };

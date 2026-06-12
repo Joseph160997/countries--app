@@ -1,9 +1,11 @@
+export type Region = "Africa" | "Americas" | "Asia" | "Europe" | "Oceania" | "";
+
 // Contrato para la UI (Limpio)
 export interface Country {
   name: string;
   flag: string;
   population: number;
-  region: string;
+  region: Region;
   capital: string;
   cca3: string;
   isFavorite: boolean;

@@ -10,6 +10,7 @@ export const renderCountryCard = (country: Country): string => {
   // 1. Dimensiones/Forma (rounded-2xl overflow-hidden flex flex-col)
   // 2. Colores (bg-white dark:bg-slate-850 border border-slate-200/60)
   // 3. Interacción (hover:shadow-xl hover:-translate-y-1 transition-all duration-300)
+
   return `
     <article data-id="${country.cca3}" class="bg-white dark:bg-slate-850 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col group">
       

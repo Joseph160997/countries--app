@@ -11,6 +11,9 @@ import { debounce } from "./utils/debouce";
 import type { Country } from "./types/Country";
 import { renderCountryCard } from "./components/countryCards";
 import { showToast } from "./utils/toast";
+import { storageService } from "./utils/localStorage";
+import { getFavoriteCodes } from "./services/favoriteService";
+import { toggleCountryFavorite } from "./state/countryState";
 
 // ========================================================
 // 1. INICIALIZACIÓN DE LA INTERFAZ (DOM Dinámico)
@@ -27,6 +30,9 @@ const resultsContainer =
 const inputSearch = document.querySelector<HTMLInputElement>("#search-input");
 const filterRegion =
   document.querySelector<HTMLSelectElement>("#filter-region");
+const favsCounter = document.querySelector<HTMLSpanElement>(
+  "#favs-count-display",
+);
 
 // ========================================================
 // 3. CAPA DE RENDERIZADO (La Impresora Pura)
@@ -66,7 +72,14 @@ const renderUI = (): void => {
 // Nos enganchamos al cerebro central. Cada vez que el estado cambie (al buscar o filtrar),
 // este callback se ejecutará automáticamente de inmediato, redibujando la pantalla.
 const unsubscribe = subscribe(() => {
+  // 1. Redibujamos las tarjetas en la pantalla principal
   renderUI();
+
+  // 2. Actualizamos el Header de forma independiente y eficiente
+  if (favsCounter) {
+    const totalFavorites = getFavoriteCodes().length;
+    favsCounter.textContent = totalFavorites.toString();
+  }
 });
 
 // ========================================================
@@ -91,3 +104,70 @@ inputSearch?.addEventListener("input", (e) => {
   // Invocamos nuestra función con debounce en lugar de cambiar el estado directamente
   optimizedSearch(target.value);
 });
+
+// ========================================================
+// 5. ASIGNACIÓN DE EVENTOS (Delegación)
+// ========================================================
+
+/**
+ * Escuchamos el evento de teclado en el input de búsqueda
+ */
+resultsContainer?.addEventListener("click", (e) => {
+  const target = e.target as HTMLElement;
+
+  // CASO A: Hizo clic en el botón de favoritos
+  const btnFav = target.closest(".btn-fav");
+  if (btnFav) {
+    const id = (btnFav as HTMLElement).dataset.id;
+    if (id) toggleCountryFavorite(id); // Llamamos a tu función del estado
+    return; // 🛑 IMPORTANTE: Detenemos la ejecución aquí para no abrir el modal
+  }
+
+  // CASO B: Hizo clic en la tarjeta (pero no en el botón)
+  const card = target.closest(".country-card");
+  if (card) {
+    const id = (card as HTMLElement).dataset.id;
+    if (id) {
+      console.log(`Abrir modal para el país: ${id}`);
+      // openModal(id); -> Lo activaremos cuando refactoricemos el modal
+    }
+  }
+});
+
+// ========================================================
+// 6. ARRANQUE INICIAL (Bootstrapping)
+// ========================================================
+
+/**
+ * Orquesta la carga de configuración inicial y arranca el flujo de datos.
+ */
+const startApp = async (): Promise<void> => {
+  // 1. Buscamos el selector del contador de favoritos que está en el Header
+  const favsCounter = document.querySelector<HTMLSpanElement>(
+    "#favs-count-display",
+  );
+
+  // 2. Usamos TU nuevo storageService para recuperar los favoritos de forma segura
+  // Le indicamos a TypeScript que esperamos un array de strings <string[]>
+  const savedFavorites = storageService.get<string[]>("favs") || [];
+
+  // 3. Si el elemento existe en el DOM, actualizamos su número inicial
+  if (favsCounter) {
+    favsCounter.textContent = savedFavorites.length.toString();
+  }
+
+  try {
+    // 4. Disparamos la carga inicial del estado pasándole los favoritos del LocalStorage.
+    // Esto ejecutará internamente applyFilters() dentro del estado, lo cual llamará
+    // a notify() y tu vigilante finalmente imprimirá los países en la pantalla.
+    await loadCountries(savedFavorites);
+  } catch (error) {
+    console.error(
+      "[Main] Error crítico durante el arranque de la aplicación:",
+      error,
+    );
+  }
+};
+
+// ¡Encendemos el motor de la aplicación!
+startApp();

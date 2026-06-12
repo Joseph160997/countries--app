@@ -1,4 +1,4 @@
-import type { Country, RestCountryAPIResponse } from "../types/Country";
+import type { Country, Region, RestCountryAPIResponse } from "../types/Country";
 
 /**
  * Transforma un objeto crudo de la API de países en un objeto estructurado para la UI.
@@ -14,7 +14,7 @@ export const mapCountry = (
     // Usamos SVG para mantener la resolución escalable en pantallas de alta densidad
     flag: country.flags.svg || country.flags.png,
     population: country.population,
-    region: country.region,
+    region: (country.region as Region) || "",
     // Evaluación de cortocircuito (Short-circuit evaluation) para campos opcionales
     capital: country.capital?.[0] || "No Capital",
     cca3: country.cca3,
