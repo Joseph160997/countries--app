@@ -5,15 +5,14 @@ import {
   getCountries,
   loadCountries,
   setSearchQuery,
-  setRegionFilter,
 } from "./state/countryState";
 import { debounce } from "./utils/debouce";
-import type { Country } from "./types/Country";
 import { renderCountryCard } from "./components/countryCards";
-import { showToast } from "./utils/toast";
-import { storageService } from "./utils/localStorage";
 import { getFavoriteCodes } from "./services/favoriteService";
-import { toggleCountryFavorite } from "./state/countryState";
+import {
+  toggleCountryFavorite,
+  toggleShowFavorites,
+} from "./state/countryState";
 
 // ========================================================
 // 1. INICIALIZACIÓN DE LA INTERFAZ (DOM Dinámico)
@@ -28,10 +27,11 @@ initializeLayout("app");
 const resultsContainer =
   document.querySelector<HTMLDivElement>("#result-container");
 const inputSearch = document.querySelector<HTMLInputElement>("#search-input");
-const filterRegion =
-  document.querySelector<HTMLSelectElement>("#filter-region");
 const favsCounter = document.querySelector<HTMLSpanElement>(
   "#favs-count-display",
+);
+const btnShowFavorites = document.querySelector<HTMLButtonElement>(
+  "#btn-show-favorites",
 );
 
 // ========================================================
@@ -48,7 +48,7 @@ const renderUI = (): void => {
   }
 
   // 1. Pedimos la copia de los paises filtrados al estado GOBAL.
-  const countriesToRender = getCountries(20); // Limite de 20 para evitar saturar la UI
+  const countriesToRender = getCountries(); // Limite de 20 para evitar saturar la UI
 
   // 2. Sino hay coincidencias ene l filtro mostramos un mensaje amigable
   if (countriesToRender.length === 0) {
@@ -134,6 +134,67 @@ resultsContainer?.addEventListener("click", (e) => {
   }
 });
 
+// Evento para el botón del Header "❤️ Favs"
+btnShowFavorites?.addEventListener("click", () => {
+  // 1. Cambiamos la lógica matemática del estado global
+  toggleShowFavorites();
+
+  // 2. Recuperamos el estado actual para saber si quedó activado o desactivado
+  // Supongamos que tienes una función en tu estado que te dice si el filtro está activo (ej. IsFilterActive())
+  // O si la función toggleShowFavorites() te devuelve el nuevo estado booleano.
+  // Si no te lo devuelve, podemos verificar si el botón ya tiene una clase o usar una variable.
+  const isFilterActive = btnShowFavorites.classList.toggle("is-active");
+
+  // 3. Modificación quirúrgica de clases basada en el estado real
+  if (isFilterActive) {
+    // === ESTADO ACTIVO: El usuario está viendo solo sus favoritos ===
+    // Removemos los colores suaves del estado inactivo
+    btnShowFavorites.classList.remove(
+      "bg-rose-50",
+      "dark:bg-rose-950/30",
+      "text-rose-600",
+      "dark:text-rose-400",
+      "border-rose-100",
+      "dark:border-rose-900/40",
+    );
+
+    // Añadimos los colores sólidos del estado activo (Fondo rosa, texto blanco)
+    btnShowFavorites.classList.add(
+      "bg-rose-600",
+      "dark:bg-rose-700",
+      "text-white",
+      "dark:text-white",
+      "border-rose-600",
+      "dark:border-rose-700",
+    );
+  } else {
+    // === ESTADO INACTIVO: El usuario volvió a ver todos los países ===
+    // Removemos los colores sólidos
+    btnShowFavorites.classList.remove(
+      "bg-rose-600",
+      "dark:bg-rose-700",
+      "text-white",
+      "dark:text-white",
+      "border-rose-600",
+      "dark:border-rose-700",
+    );
+
+    // Restauramos los colores suaves originales
+    btnShowFavorites.classList.add(
+      "bg-rose-50",
+      "dark:bg-rose-950/30",
+      "text-rose-600",
+      "dark:text-rose-400",
+      "border-rose-100",
+      "dark:border-rose-900/40",
+    );
+  }
+
+  // 4. Forzamos el re-renderizado de la UI para aplicar el filtro en la pantalla
+  // Llama aquí a tu función encargada de pintar los países (ej. ApplyFilters() o renderUI())
+  renderUI();
+});
+
 // ========================================================
 // 6. ARRANQUE INICIAL (Bootstrapping)
 // ========================================================
@@ -141,25 +202,22 @@ resultsContainer?.addEventListener("click", (e) => {
 /**
  * Orquesta la carga de configuración inicial y arranca el flujo de datos.
  */
+
 const startApp = async (): Promise<void> => {
-  // 1. Buscamos el selector del contador de favoritos que está en el Header
   const favsCounter = document.querySelector<HTMLSpanElement>(
     "#favs-count-display",
   );
 
-  // 2. Usamos TU nuevo storageService para recuperar los favoritos de forma segura
-  // Le indicamos a TypeScript que esperamos un array de strings <string[]>
-  const savedFavorites = storageService.get<string[]>("favs") || [];
+  // 1. ELIMINAMOS el uso directo de storageService.
+  // 2. Usamos la ÚNICA FUENTE DE VERDAD de nuestro servicio.
+  const savedFavorites = getFavoriteCodes();
 
-  // 3. Si el elemento existe en el DOM, actualizamos su número inicial
   if (favsCounter) {
     favsCounter.textContent = savedFavorites.length.toString();
   }
 
   try {
-    // 4. Disparamos la carga inicial del estado pasándole los favoritos del LocalStorage.
-    // Esto ejecutará internamente applyFilters() dentro del estado, lo cual llamará
-    // a notify() y tu vigilante finalmente imprimirá los países en la pantalla.
+    // 3. Pasamos la lista real y unificada a la carga del estado
     await loadCountries(savedFavorites);
   } catch (error) {
     console.error(

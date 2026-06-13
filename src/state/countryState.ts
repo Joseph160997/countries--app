@@ -7,7 +7,6 @@
  */
 import type { Country, Region } from "../types/Country";
 import { getAllCountries } from "../services/countryService";
-import { getFavoriteCodes } from "../services/favoriteService";
 import { toggleFavoritePersistence } from "../services/favoriteService";
 
 // ========================================================
@@ -152,4 +151,12 @@ export const toggleCountryFavorite = (cca3: string): void => {
 
   // 2. Disparamos la reactividad (esto llama a notify() internamente)
   applyFilters();
+};
+
+/**
+ * ACCIÓN: Activa o desactiva el modo de vista "Solo Favoritos".
+ */
+export const toggleShowFavorites = (): void => {
+  isShowingFavorites = !isShowingFavorites;
+  applyFilters(); // Re-calculamos la vitrina con el nuevo filtro
 };
