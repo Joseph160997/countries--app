@@ -13,6 +13,7 @@ import {
   toggleCountryFavorite,
   toggleShowFavorites,
 } from "./state/countryState";
+import { renderEmptyStateCard } from "./components/EmptyState";
 
 // ========================================================
 // 1. INICIALIZACIÓN DE LA INTERFAZ (DOM Dinámico)
@@ -52,11 +53,7 @@ const renderUI = (): void => {
 
   // 2. Sino hay coincidencias ene l filtro mostramos un mensaje amigable
   if (countriesToRender.length === 0) {
-    resultsContainer.innerHTML = `
-      <div class="col-span-full text-center py-12 opacity-50 font-medium">
-        No countries found matching your criteria.
-      </div>
-    `;
+    resultsContainer.innerHTML = renderEmptyStateCard();
     return;
   }
 
@@ -115,15 +112,53 @@ inputSearch?.addEventListener("input", (e) => {
 resultsContainer?.addEventListener("click", (e) => {
   const target = e.target as HTMLElement;
 
-  // CASO A: Hizo clic en el botón de favoritos
+  // =========================================================
+  // CASO A: Hizo clic en el botón de favoritos de una tarjeta
+  // =========================================================
   const btnFav = target.closest(".btn-fav");
   if (btnFav) {
     const id = (btnFav as HTMLElement).dataset.id;
     if (id) toggleCountryFavorite(id); // Llamamos a tu función del estado
-    return; // 🛑 IMPORTANTE: Detenemos la ejecución aquí para no abrir el modal
+    return; // 🛑 IMPORTANTE: Detenemos la ejecución aquí
   }
 
-  // CASO B: Hizo clic en la tarjeta (pero no en el botón)
+  // =========================================================
+  // CASO B: Hizo clic en el botón del Empty State (Go Back)
+  // =========================================================
+  const btnEmptyState = target.closest("#btn-empty-state-explore");
+  if (btnEmptyState) {
+    // 1. Apagamos el filtro en el estado global
+    toggleShowFavorites();
+
+    // 2. Sincronizamos el UI del botón del Header
+    const btnHeaderFavs = document.getElementById("btn-show-favorites");
+    if (btnHeaderFavs) {
+      btnHeaderFavs.classList.remove(
+        "bg-rose-600",
+        "dark:bg-rose-700",
+        "text-white",
+        "border-rose-600",
+        "dark:border-rose-700",
+        "is-active",
+      );
+      btnHeaderFavs.classList.add(
+        "bg-rose-50",
+        "dark:bg-rose-950/30",
+        "text-rose-600",
+        "dark:text-rose-400",
+        "border-rose-100",
+        "dark:border-rose-900/40",
+      );
+    }
+
+    // 3. Volvemos a pintar toda la interfaz
+    renderUI();
+    return; // 🛑 Detenemos la ejecución aquí
+  }
+
+  // =========================================================
+  // CASO C: Hizo clic en cualquier otra parte de la tarjeta
+  // =========================================================
   const card = target.closest(".country-card");
   if (card) {
     const id = (card as HTMLElement).dataset.id;
