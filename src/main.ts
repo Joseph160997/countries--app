@@ -6,14 +6,14 @@ import {
   loadCountries,
   setSearchQuery,
 } from "./state/countryState";
-import { debounce } from "./utils/debouce";
+import { debounce } from "./utils/debounce";
 import { renderCountryCard } from "./components/countryCards";
 import { getFavoriteCodes } from "./services/favoriteService";
 import {
   toggleCountryFavorite,
   toggleShowFavorites,
 } from "./state/countryState";
-import { renderEmptyStateCard } from "./components/EmptyState";
+import { renderEmptyStateCard } from "./components/emptyState";
 
 // ========================================================
 // 1. INICIALIZACIÓN DE LA INTERFAZ (DOM Dinámico)
