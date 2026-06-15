@@ -1,0 +1,45 @@
+import { storageService } from "../utils/localStorage";
+
+/**
+ * Clave única para World Explorer
+ */
+const THEME_KEY = "app_theme";
+
+/**
+ * @description Función que cambia el tema de la app
+ * @param isDark
+ * @returns boolean
+ */
+export const toggleTheme = (): boolean => {
+  const htmlElement = document.documentElement;
+  const isDark = htmlElement.classList.toggle("dark");
+
+  // GUARDAMOS: Guardamos 'dark' o 'light' en el disco local del usuario
+  storageService.save(THEME_KEY, isDark ? "dark" : "light");
+
+  return isDark;
+};
+
+/**
+ * @description Función que inicializa el tema de la app
+ */
+export const initTheme = (): void => {
+  const htmlElement = document.documentElement;
+
+  // 1. Intentamos recuperar lo que el usuario guardó
+  const savedTheme = storageService.get<string>(THEME_KEY);
+
+  // 2. Lógica de Decisión:
+  // - Si hay algo guardado, usamos eso.
+  // - Si NO hay nada (null), preguntamos al navegador por su preferencia de sistema.
+  const isDarkPreferred =
+    savedTheme === "dark" ||
+    (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  // 3. Aplicación estricta de la clase
+  if (isDarkPreferred) {
+    htmlElement.classList.add("dark");
+  } else {
+    htmlElement.classList.remove("dark");
+  }
+};

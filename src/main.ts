@@ -14,6 +14,7 @@ import {
   toggleShowFavorites,
 } from "./state/countryState";
 import { renderEmptyStateCard } from "./components/emptyState";
+import { toggleTheme, initTheme } from "./services/themeService";
 
 // ========================================================
 // 1. INICIALIZACIÓN DE LA INTERFAZ (DOM Dinámico)
@@ -34,6 +35,7 @@ const favsCounter = document.querySelector<HTMLSpanElement>(
 const btnShowFavorites = document.querySelector<HTMLButtonElement>(
   "#btn-show-favorites",
 );
+const btnTheme = document.querySelector<HTMLButtonElement>("#theme-toggle");
 
 // ========================================================
 // 3. CAPA DE RENDERIZADO (La Impresora Pura)
@@ -169,7 +171,9 @@ resultsContainer?.addEventListener("click", (e) => {
   }
 });
 
-// Evento para el botón del Header "❤️ Favs"
+/**
+ * Evento para el botón del Header "❤️ Favs"
+ */
 btnShowFavorites?.addEventListener("click", () => {
   // 1. Cambiamos la lógica matemática del estado global
   toggleShowFavorites();
@@ -230,6 +234,16 @@ btnShowFavorites?.addEventListener("click", () => {
   renderUI();
 });
 
+/**
+ * Evento Para El Theme Toggle
+ */
+btnTheme?.addEventListener("click", () => {
+  // Ejecutamos la lógica que creamos en el paso anterior
+  const isDark = toggleTheme();
+
+  // Opcional: Aquí podrías cambiar el icono del botón (sol/luna)
+  console.log(`Modo oscuro: ${isDark}`);
+});
 // ========================================================
 // 6. ARRANQUE INICIAL (Bootstrapping)
 // ========================================================
@@ -242,6 +256,8 @@ const startApp = async (): Promise<void> => {
   const favsCounter = document.querySelector<HTMLSpanElement>(
     "#favs-count-display",
   );
+
+  initTheme();
 
   // 1. ELIMINAMOS el uso directo de storageService.
   // 2. Usamos la ÚNICA FUENTE DE VERDAD de nuestro servicio.
