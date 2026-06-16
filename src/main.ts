@@ -6,6 +6,8 @@ import {
   loadCountries,
   setSearchQuery,
   isShowingFavoritesActive,
+  setRegionFilter,
+  setSort,
 } from "./state/countryState";
 import { debounce } from "./utils/debounce";
 import { renderCountryCard } from "./components/countryCards";
@@ -13,9 +15,12 @@ import { getFavoriteCodes } from "./services/favoriteService";
 import {
   toggleCountryFavorite,
   toggleShowFavorites,
+  initSort,
+  getSort,
 } from "./state/countryState";
 import { renderEmptyStateCard } from "./components/emptyState";
 import { toggleTheme, initTheme } from "./services/themeService";
+import type { Region } from "./types/Country";
 
 // ========================================================
 // 1. INICIALIZACIÓN DE LA INTERFAZ (DOM Dinámico)
@@ -37,7 +42,10 @@ const btnShowFavorites = document.querySelector<HTMLButtonElement>(
   "#btn-show-favorites",
 );
 const btnTheme = document.querySelector<HTMLButtonElement>("#theme-toggle");
-
+const btnSortPop = document.querySelector<HTMLButtonElement>("#sort-pop");
+const btnSortName = document.querySelector<HTMLButtonElement>("#sort-name");
+const selectRegion =
+  document.querySelector<HTMLSelectElement>("#filter-region");
 // ========================================================
 // 3. CAPA DE RENDERIZADO (La Impresora Pura)
 // ========================================================
@@ -249,6 +257,33 @@ btnShowFavorites?.addEventListener("click", () => {
 });
 
 /**
+ * Actualiza el UI de los botones de orden
+ * @param activeBtn
+ */
+const updateSortButtonsUI = (activeBtn: HTMLButtonElement) => {
+  // 1. Seleccionamos todos los botones de la sección de orden
+  const buttons = [btnSortPop, btnSortName].filter(
+    (btn): btn is HTMLButtonElement => Boolean(btn),
+  );
+
+  buttons.forEach((btn) => {
+    if (btn === activeBtn) {
+      // ESTADO ACTIVO: Colores sólidos y llamativos [4]
+      btn.classList.add("bg-blue-600", "text-white", "border-blue-600");
+      btn.classList.remove(
+        "bg-slate-100",
+        "dark:bg-slate-800",
+        "text-slate-700",
+      );
+    } else {
+      // ESTADO INACTIVO: Colores suaves y neutros [6]
+      btn.classList.remove("bg-blue-600", "text-white", "border-blue-600");
+      btn.classList.add("bg-slate-100", "dark:bg-slate-800", "text-slate-700");
+    }
+  });
+};
+
+/**
  * Evento Para El Theme Toggle
  */
 btnTheme?.addEventListener("click", () => {
@@ -258,6 +293,35 @@ btnTheme?.addEventListener("click", () => {
   // Opcional: Aquí podrías cambiar el icono del botón (sol/luna)
   console.log(`Modo oscuro: ${isDark}`);
 });
+
+// 2. Evento para Ordenar por Población
+btnSortPop?.addEventListener("click", () => {
+  // Simplemente le pedimos al estado que aplique este criterio
+  setSort("population-desc");
+
+  // 3. Actualizamos el UI de los botones
+  if (btnSortPop) {
+    updateSortButtonsUI(btnSortPop);
+  }
+});
+
+// 3. Evento para Ordenar por Nombre (A-Z)
+btnSortName?.addEventListener("click", () => {
+  setSort("name-asc");
+
+  // 3. Actualizamos el UI de los botones
+  if (btnSortName) {
+    updateSortButtonsUI(btnSortName);
+  }
+});
+
+// 4. Evento para el Select de Regiones
+selectRegion?.addEventListener("change", (e) => {
+  const target = e.target as HTMLSelectElement;
+  // Usamos la función que ya tenías para regiones [6]
+  setRegionFilter(target.value as Region);
+});
+
 // ========================================================
 // 6. ARRANQUE INICIAL (Bootstrapping)
 // ========================================================
@@ -270,7 +334,7 @@ const startApp = async (): Promise<void> => {
   const favsCounter = document.querySelector<HTMLSpanElement>(
     "#favs-count-display",
   );
-
+  initSort();
   initTheme();
 
   // 1. ELIMINAMOS el uso directo de storageService.
@@ -290,6 +354,11 @@ const startApp = async (): Promise<void> => {
       error,
     );
   }
+
+  // si al iniciar hay un orden guardado, lo aplicamos
+  const currentSort = getSort();
+  if (currentSort === "population-desc") updateSortButtonsUI(btnSortPop!);
+  if (currentSort === "name-asc") updateSortButtonsUI(btnSortName!);
 };
 
 // ¡Encendemos el motor de la aplicación!

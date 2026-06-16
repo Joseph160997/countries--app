@@ -8,6 +8,7 @@
 import type { Country, Region } from "../types/Country";
 import { getAllCountries } from "../services/countryService";
 import { toggleFavoritePersistence } from "../services/favoriteService";
+import { storageService } from "../utils/localStorage";
 
 // ========================================================
 // 1. ESTADO PRIVADO (Encapsulamiento)
@@ -21,6 +22,8 @@ let filteredCountries: Country[] = [];
 
 /** Criterios actuales de filtrado */
 let searchQuery = "";
+/**
+ */
 let selectedRegion = "";
 
 /** Lista de suscriptores (componentes que escuchan cambios) */
@@ -28,6 +31,16 @@ let listeners: (() => void)[] = [];
 
 /** Interruptor para inicializar favoritos */
 let isShowingFavorites: boolean = false;
+
+//** Definimos el rango de población */
+let minPopulation: number = 0;
+
+// Definimos los tipos de orden posibles
+type SortCriteria = "none" | "population-desc" | "name-asc";
+let currentSort: SortCriteria = "none";
+
+// Definimos la clave para almacenar el criterio de ordenamiento
+const SORT_KEY = "World_Explorer_Sort";
 
 // ========================================================
 // 2. MOTOR DE CÓMPUTO (Filtrado)
@@ -39,26 +52,38 @@ let isShowingFavorites: boolean = false;
 const applyFilters = (): void => {
   const query = searchQuery.trim().toLowerCase();
 
-  // Aplicamos el estrechamiento de datos (Narrowing) mediante filtros [2]
-  filteredCountries = countries.filter((country) => {
-    // 1. Filtro de búsqueda (Basado en el nombre) [2]
+  // 1. FILTRADO: Creamos el subconjunto de datos [1]
+  let result = countries.filter((country) => {
     const matchesSearch = country.name.toLowerCase().includes(query);
-
-    // 2. Filtro de región (Usa el tipo Region que definimos) [2, 3]
-    // Aunque ahora sea un tipo específico, comparar contra "" sigue siendo válido.
     const matchesRegion =
       selectedRegion === "" || country.region === selectedRegion;
-
-    // 3. Filtro de favoritos (La nueva pieza clave)
-    // Si isShowingFavorites es false, deja pasar a todos.
-    // Si es true, solo deja pasar a los que tienen isFavorite: true.
     const matchesFavorites = !isShowingFavorites || country.isFavorite;
+    const matchesPopulation =
+      minPopulation === 0 || country.population >= minPopulation;
 
-    // El país solo se muestra si cumple las TRES condiciones a la vez [2]
-    return matchesSearch && matchesRegion && matchesFavorites;
+    return (
+      matchesSearch && matchesRegion && matchesFavorites && matchesPopulation
+    );
   });
 
-  // ¡IMPORTANTE! Notificamos a la UI para que se redibuje [2, 4]
+  // 2. ORDENAMIENTO: Se ejecuta UNA SOLA VEZ fuera del bucle
+  if (currentSort !== "none") {
+    result.sort((a, b) => {
+      if (currentSort === "population-desc") {
+        return b.population - a.population; // Orden descendente
+      }
+      if (currentSort === "name-asc") {
+        // localeCompare es el estándar para comparar textos con acentos/eñes [2]
+        return a.name.localeCompare(b.name);
+      }
+      return 0; // Caso por defecto
+    });
+  }
+
+  // 3. ASIGNACIÓN FINAL [3]
+  filteredCountries = result;
+
+  // 4. NOTIFICACIÓN: Disparamos la reactividad para la UI [4]
   notify();
 };
 
@@ -167,3 +192,35 @@ export const toggleShowFavorites = (): void => {
 export const isShowingFavoritesActive = (): boolean => {
   return isShowingFavorites;
 };
+
+/**
+ * ACCIÓN: Cambia el criterio de ordenamiento.
+ */
+export const setSort = (criteria: SortCriteria) => {
+  currentSort = criteria;
+
+  // Guardamos el criterio de ordenaniebto en el almacenammiento storageServices
+  storageService.save(SORT_KEY, criteria);
+
+  applyFilters();
+};
+
+/**
+ * ACCIÓN: Inicializa el criterio de ordenamiento.
+ */
+export const initSort = (): void => {
+  // 1. Leemos el valor guardado [7, 8]
+  const savedSort = storageService.get<SortCriteria>(SORT_KEY);
+
+  // 2. Si existe, lo aplicamos al estado interno
+  if (savedSort) {
+    currentSort = savedSort;
+    // applyFilters() se llamará después en el loadCountries
+  }
+};
+
+/**
+ * SELECTOR: Devuelve el criterio de ordenamiento actual.
+ * @returns Criterio de ordenamiento actual.
+ */
+export const getSort = (): SortCriteria => currentSort;
