@@ -157,6 +157,13 @@ export const toggleCountryFavorite = (cca3: string): void => {
  * ACCIÓN: Activa o desactiva el modo de vista "Solo Favoritos".
  */
 export const toggleShowFavorites = (): void => {
-  isShowingFavorites = !isShowingFavorites;
+  isShowingFavorites = !isShowingFavorites; // Cambiamos el estado del interruptor Ahora es true
   applyFilters(); // Re-calculamos la vitrina con el nuevo filtro
+};
+
+/**
+ * SELECTOR: Devuelve el estado actual del interruptor de favoritos.
+ */
+export const isShowingFavoritesActive = (): boolean => {
+  return isShowingFavorites;
 };

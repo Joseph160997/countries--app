@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Contratos de tipos para la UI y la API.
+ */
+
 export type Region = "Africa" | "Americas" | "Asia" | "Europe" | "Oceania" | "";
 
 // Contrato para la UI (Limpio)

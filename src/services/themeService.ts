@@ -11,6 +11,7 @@ const THEME_KEY = "app_theme";
  * @returns boolean
  */
 export const toggleTheme = (): boolean => {
+  // 1.
   const htmlElement = document.documentElement;
   const isDark = htmlElement.classList.toggle("dark");
 

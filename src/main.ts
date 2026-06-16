@@ -5,6 +5,7 @@ import {
   getCountries,
   loadCountries,
   setSearchQuery,
+  isShowingFavoritesActive,
 } from "./state/countryState";
 import { debounce } from "./utils/debounce";
 import { renderCountryCard } from "./components/countryCards";
@@ -44,24 +45,37 @@ const btnTheme = document.querySelector<HTMLButtonElement>("#theme-toggle");
  * Solicita los paises al gestor de estado y los muestra en pantalla.
  */
 const renderUI = (): void => {
-  // Verificamos que el contenedor exista antes de intentar renderizar
-  if (!resultsContainer) {
-    console.error("Contenedor de resultados no encontrado en el DOM.");
-    return;
-  }
+  if (!resultsContainer) return;
 
-  // 1. Pedimos la copia de los paises filtrados al estado GOBAL.
-  const countriesToRender = getCountries(); // Limite de 20 para evitar saturar la UI
+  const countriesToRender = getCountries();
 
-  // 2. Sino hay coincidencias ene l filtro mostramos un mensaje amigable
   if (countriesToRender.length === 0) {
-    resultsContainer.innerHTML = renderEmptyStateCard();
+    // 1. Detectamos el contexto del estado global
+    // Asumimos que tienes acceso a saber si se están filtrando favoritos
+    const isFavsView = isShowingFavoritesActive();
+
+    // 2. Definimos el mensaje según el caso
+    const config = isFavsView
+      ? {
+          title: "Your favorites list is empty",
+          description:
+            "You haven't marked any countries yet. Click the heart icon!",
+        }
+      : {
+          title: "No countries found",
+          description:
+            "We couldn't find any country matching your search. Try another name.",
+          showButton: false, // No mostramos el botón si es solo una búsqueda fallida
+        };
+
+    // 3. Inyectamos con la configuración adecuada
+    resultsContainer.innerHTML = renderEmptyStateCard(config);
     return;
   }
 
-  // 3. Generamos el HTML de cada tarjeta y lo inyectamos en el contenedor
+  // Renderizado normal de tarjetas...
   resultsContainer.innerHTML = countriesToRender
-    .map((country) => renderCountryCard(country))
+    .map(renderCountryCard)
     .join("");
 };
 
