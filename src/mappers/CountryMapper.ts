@@ -18,29 +18,35 @@ export const mapCountry = (
     // Evaluación de cortocircuito (Short-circuit evaluation) para campos opcionales
     capital: country.capital?.[0] || "No Capital",
     cca3: country.cca3,
+    borders: country.borders || [],
     // Verificación posicional indexada de alta velocidad
     isFavorite: favoriteCodes.includes(country.cca3),
   };
 };
 
-/**
- * Validador manual (Type Guard) para la respuesta de la API.
- * Verifica la existencia de campos críticos antes de procesar los datos [4].
- */
 export const isRestCountryResponse = (
   data: unknown,
 ): data is RestCountryAPIResponse[] => {
-  return (
-    Array.isArray(data) &&
-    data.every(
-      (item) =>
-        item !== null &&
-        typeof item === "object" &&
-        typeof item.name?.common === "string" &&
-        typeof item.flags?.png === "string" &&
-        typeof item.cca3 === "string" &&
-        typeof item.population === "number" &&
-        typeof item.region === "string",
-    )
-  );
+  if (!Array.isArray(data)) return false;
+
+  return data.every((item) => {
+    // 1. Verificación básica de objeto
+    if (!item || typeof item !== "object") return false;
+
+    // 2. Verificación de propiedades requeridas con tipos estrictos
+    const hasBaseProps =
+      typeof item.name?.common === "string" &&
+      typeof item.flags?.png === "string" &&
+      typeof item.cca3 === "string" &&
+      typeof item.population === "number" &&
+      typeof item.region === "string";
+
+    // 3. Verificación de arrays (Borders y Capital son opcionales o arrays)
+    // Usamos Array.isArray porque es la forma correcta de validar si son listas
+    const hasValidLists =
+      (item.borders === undefined || Array.isArray(item.borders)) &&
+      (item.capital === undefined || Array.isArray(item.capital));
+
+    return hasBaseProps && hasValidLists;
+  });
 };

@@ -12,6 +12,7 @@ export interface Country {
   region: Region;
   capital: string;
   cca3: string;
+  borders: string[];
   isFavorite: boolean;
 }
 
@@ -28,5 +29,6 @@ export interface RestCountryAPIResponse {
   population: number;
   region: string;
   capital?: string[];
+  borders?: string[];
   cca3: string;
 }

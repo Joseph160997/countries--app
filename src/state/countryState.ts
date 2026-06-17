@@ -39,6 +39,9 @@ let minPopulation: number = 0;
 type SortCriteria = "none" | "population-desc" | "name-asc";
 let currentSort: SortCriteria = "none";
 
+/* Definimos el paquete de datos seleccionado para el modal */
+let selectedCountry: Country | null = null;
+
 // Definimos la clave para almacenar el criterio de ordenamiento
 const SORT_KEY = "World_Explorer_Sort";
 
@@ -224,3 +227,56 @@ export const initSort = (): void => {
  * @returns Criterio de ordenamiento actual.
  */
 export const getSort = (): SortCriteria => currentSort;
+
+/**
+ * ACCIÓN: Abre el modal con los detalles de un país.
+ * @param cca3
+ */
+export const openCountryModal = (cca3: string): void => {
+  const country = countries.find((c) => c.cca3 === cca3);
+
+  if (country) {
+    selectedCountry = country;
+    notify();
+  }
+};
+
+/**
+ * ACCIÓN: Cierra el modal con los detalles de un país.
+ */
+export const closeCountryModal = (): void => {
+  selectedCountry = null;
+  notify();
+};
+
+/**
+ * SELECTOR: Devuelve el paquete de datos seleccionado para el modal.
+ * @returns Paquete de datos seleccionado para el modal.
+ */
+export const getSelectedCountry = (): Country | null => selectedCountry;
+
+/**
+ * SELECTOR: Entrega la totalidad de los países cargados en memoria.
+ * Se usa para buscar datos de referencia como los nombres de las fronteras.
+ */
+const getFullCountryList = (): Country[] => {
+  return [...countries]; // Retornamos la copia del catálogo original [1, 2]
+};
+
+/**
+ * Traduce una lista de codigos de países a nombres de países.
+ * @param codes - Lista de códigos de países.
+ * @returns Lista de nombres de países. ej: ['Colombia', 'Perú', 'Argentina']
+ */
+export const getBorderNames = (codes: string[]): string[] => {
+  // 1.Obetenemos Todo los paises que ya estan en la memoria
+  const allCountries = getFullCountryList();
+
+  // 2. Mapeamos los paises buscando nuestr "cahce" local.
+  return codes.map((code) => {
+    const found = allCountries.find((c) => c.cca3 === code);
+
+    // 3. Si lo encontramos, lo retornamos, sino deja el codigoorigina.
+    return found ? found.name : code;
+  });
+};

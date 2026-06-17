@@ -8,9 +8,16 @@ import {
   isShowingFavoritesActive,
   setRegionFilter,
   setSort,
+  closeCountryModal,
+  openCountryModal,
+  getBorderNames,
+  getSelectedCountry,
 } from "./state/countryState";
 import { debounce } from "./utils/debounce";
-import { renderCountryCard } from "./components/countryCards";
+import {
+  renderCountryCard,
+  renderCountryDetailModal,
+} from "./components/countryCards";
 import { getFavoriteCodes } from "./services/favoriteService";
 import {
   toggleCountryFavorite,
@@ -46,23 +53,24 @@ const btnSortPop = document.querySelector<HTMLButtonElement>("#sort-pop");
 const btnSortName = document.querySelector<HTMLButtonElement>("#sort-name");
 const selectRegion =
   document.querySelector<HTMLSelectElement>("#filter-region");
+const modalContainer =
+  document.querySelector<HTMLDivElement>("#modal-container");
 // ========================================================
 // 3. CAPA DE RENDERIZADO (La Impresora Pura)
 // ========================================================
 /**
- * Solicita los paises al gestor de estado y los muestra en pantalla.
+ * Solicita los países al gestor de estado y sincroniza toda la interfaz (Grilla + Modal).
  */
 const renderUI = (): void => {
   if (!resultsContainer) return;
 
+  // ==========================================
+  // 1. RENDERIZADO DE LA GRILLA (EXISTENTE)
+  // ==========================================
   const countriesToRender = getCountries();
 
   if (countriesToRender.length === 0) {
-    // 1. Detectamos el contexto del estado global
-    // Asumimos que tienes acceso a saber si se están filtrando favoritos
     const isFavsView = isShowingFavoritesActive();
-
-    // 2. Definimos el mensaje según el caso
     const config = isFavsView
       ? {
           title: "Your favorites list is empty",
@@ -73,18 +81,44 @@ const renderUI = (): void => {
           title: "No countries found",
           description:
             "We couldn't find any country matching your search. Try another name.",
-          showButton: false, // No mostramos el botón si es solo una búsqueda fallida
+          showButton: false,
         };
 
-    // 3. Inyectamos con la configuración adecuada
     resultsContainer.innerHTML = renderEmptyStateCard(config);
-    return;
+    // Quitamos el 'return' para que la lógica del modal se ejecute siempre
+  } else {
+    resultsContainer.innerHTML = countriesToRender
+      .map(renderCountryCard)
+      .join("");
   }
 
-  // Renderizado normal de tarjetas...
-  resultsContainer.innerHTML = countriesToRender
-    .map(renderCountryCard)
-    .join("");
+  // ==========================================
+  // 2. LÓGICA DEL MODAL (NUEVA - PASO 4)
+  // ==========================================
+  const selected = getSelectedCountry();
+
+  if (selected && modalContainer) {
+    // Traducimos los códigos de fronteras a nombres legibles [2]
+    // Usamos el nuevo selector 'getFullCountryList' internamente en getBorderNames
+    const borderNames = getBorderNames(selected.borders || []);
+
+    // Inyectamos el HTML del componente Modal
+    modalContainer.innerHTML = renderCountryDetailModal(selected, borderNames);
+
+    // Cambiamos la visibilidad usando clases de Tailwind [3, 4]
+    modalContainer.classList.remove("hidden");
+    modalContainer.classList.add("flex");
+
+    // BLOQUEO DE SCROLL: Evita que el usuario mueva el fondo mientras ve el detalle
+    document.body.style.overflow = "hidden";
+  } else if (modalContainer) {
+    // Si no hay país seleccionado, nos aseguramos de que el modal esté oculto
+    modalContainer.classList.add("hidden");
+    modalContainer.classList.remove("flex");
+
+    // RESTAURACIÓN DE SCROLL: El usuario vuelve a navegar la lista normalmente
+    document.body.style.overflow = "auto";
+  }
 };
 
 // ========================================================
@@ -187,9 +221,12 @@ resultsContainer?.addEventListener("click", (e) => {
   if (card) {
     const id = (card as HTMLElement).dataset.id;
     if (id) {
+      // 1. Abrimos el modal
+      openCountryModal(id);
       console.log(`Abrir modal para el país: ${id}`);
       // openModal(id); -> Lo activaremos cuando refactoricemos el modal
     }
+    renderUI();
   }
 });
 
@@ -320,6 +357,27 @@ selectRegion?.addEventListener("change", (e) => {
   const target = e.target as HTMLSelectElement;
   // Usamos la función que ya tenías para regiones [6]
   setRegionFilter(target.value as Region);
+});
+
+modalContainer?.addEventListener("click", (e) => {
+  const target = e.target as HTMLElement;
+
+  // Caso 1: Clic en una frontera
+  const btnBorder = target.closest(".btn-border");
+  if (btnBorder) {
+    const nextCca3 = (btnBorder as HTMLElement).dataset.cca3;
+    if (nextCca3) {
+      // Re-utilizamos la función de apertura: esto cambiará el selectedCountry
+      // y renderUI se encargará de actualizar el modal con los nuevos datos [6]
+      openCountryModal(nextCca3);
+    }
+    return;
+  }
+
+  // Caso 2: Clic en el botón X
+  if (target.closest("#close-modal")) {
+    closeCountryModal();
+  }
 });
 
 // ========================================================
