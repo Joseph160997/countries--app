@@ -101,6 +101,8 @@ const renderUI = (): void => {
     // Traducimos los códigos de fronteras a nombres legibles [2]
     // Usamos el nuevo selector 'getFullCountryList' internamente en getBorderNames
     const borderNames = getBorderNames(selected.borders || []);
+    console.log("Borders:", selected.borders);
+    console.log("Border Names:", borderNames);
 
     // Inyectamos el HTML del componente Modal
     modalContainer.innerHTML = renderCountryDetailModal(selected, borderNames);
@@ -161,12 +163,10 @@ inputSearch?.addEventListener("input", (e) => {
 });
 
 // ========================================================
-// 5. ASIGNACIÓN DE EVENTOS (Delegación)
+// 5. ASIGNACIÓN DE EVENTOS (Delegación en la Grilla Principal)
 // ========================================================
 
-/**
- * Escuchamos el evento de teclado en el input de búsqueda
- */
+// 1. Transformamos el callback a una función asíncrona 'async'
 resultsContainer?.addEventListener("click", (e) => {
   const target = e.target as HTMLElement;
 
@@ -176,8 +176,8 @@ resultsContainer?.addEventListener("click", (e) => {
   const btnFav = target.closest(".btn-fav");
   if (btnFav) {
     const id = (btnFav as HTMLElement).dataset.id;
-    if (id) toggleCountryFavorite(id); // Llamamos a tu función del estado
-    return; // 🛑 IMPORTANTE: Detenemos la ejecución aquí
+    if (id) toggleCountryFavorite(id);
+    return; // 🛑 Detenemos la ejecución
   }
 
   // =========================================================
@@ -185,10 +185,7 @@ resultsContainer?.addEventListener("click", (e) => {
   // =========================================================
   const btnEmptyState = target.closest("#btn-empty-state-explore");
   if (btnEmptyState) {
-    // 1. Apagamos el filtro en el estado global
     toggleShowFavorites();
-
-    // 2. Sincronizamos el UI del botón del Header
     const btnHeaderFavs = document.getElementById("btn-show-favorites");
     if (btnHeaderFavs) {
       btnHeaderFavs.classList.remove(
@@ -208,25 +205,34 @@ resultsContainer?.addEventListener("click", (e) => {
         "dark:border-rose-900/40",
       );
     }
-
-    // 3. Volvemos a pintar toda la interfaz
     renderUI();
-    return; // 🛑 Detenemos la ejecución aquí
+    return; // 🛑 Detenemos la ejecución
   }
 
   // =========================================================
-  // CASO C: Hizo clic en cualquier otra parte de la tarjeta
+  // CASO C: Hizo clic en cualquier otra parte de la tarjeta (ABRIR MODAL)
   // =========================================================
   const card = target.closest(".country-card");
   if (card) {
     const id = (card as HTMLElement).dataset.id;
     if (id) {
-      // 1. Abrimos el modal
-      openCountryModal(id);
-      console.log(`Abrir modal para el país: ${id}`);
-      // openModal(id); -> Lo activaremos cuando refactoricemos el modal
+      try {
+        // En una UI real, aquí podrías activar un spinner o loader visual
+        console.log(`Iniciando carga asíncrona para: ${id}`);
+
+        openCountryModal(id);
+
+        console.log(`Carga completada con éxito para: ${id}`);
+      } catch (error) {
+        console.error(
+          "Error al cargar los detalles extendidos del país en el modal:",
+          error,
+        );
+        return; // Si la API falla estrepitosamente, cancelamos el flujo para no romper el render
+      }
     }
-    renderUI();
+
+    // Ahora sí: se ejecuta SOLAMENTE cuando el estado ya contiene el país con sus fronteras
   }
 });
 
@@ -359,22 +365,33 @@ selectRegion?.addEventListener("change", (e) => {
   setRegionFilter(target.value as Region);
 });
 
+/** 5. Evento para el Modal
+ * Delegamos el evento al contenedor principal
+ * 1. Clic en el fondo (Backdrop)
+ * 2. Clic en una frontera (Botonera) [3]
+ * 3. Clic en el botón X
+ */
 modalContainer?.addEventListener("click", (e) => {
   const target = e.target as HTMLElement;
 
-  // Caso 1: Clic en una frontera
+  // CASO 1: Clic en el fondo (Backdrop)
+  // Comparamos si el lugar exacto del clic es el contenedor y no sus hijos
+  if (e.target === modalContainer) {
+    closeCountryModal();
+    return; // Detenemos aquí para no evaluar el resto
+  }
+
+  // CASO 2: Clic en una frontera (Botonera) [3]
   const btnBorder = target.closest(".btn-border");
   if (btnBorder) {
     const nextCca3 = (btnBorder as HTMLElement).dataset.cca3;
     if (nextCca3) {
-      // Re-utilizamos la función de apertura: esto cambiará el selectedCountry
-      // y renderUI se encargará de actualizar el modal con los nuevos datos [6]
       openCountryModal(nextCca3);
     }
     return;
   }
 
-  // Caso 2: Clic en el botón X
+  // CASO 3: Clic en el botón X
   if (target.closest("#close-modal")) {
     closeCountryModal();
   }

@@ -52,6 +52,23 @@ export const renderCountryDetailModal = (
   country: Country,
   borderNames: string[],
 ): string => {
+  // Generamos el HTML de las fronteras de forma limpia
+  const bordersHTML =
+    borderNames.length > 0
+      ? borderNames
+          .map(
+            (name, index) => `
+        <button 
+          class="btn-border px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-600 hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium transition-all cursor-pointer" 
+          data-cca3="${country.borders[index]}"
+        >
+          ${name}
+        </button>
+      `,
+          )
+          .join("")
+      : '<span class="text-slate-400 italic text-sm">No border countries</span>';
+
   return `
     <div class="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-modal-in">
       <!-- Botón de Cerrar -->
@@ -61,7 +78,7 @@ export const renderCountryDetailModal = (
         </svg>
       </button>
 
-      <!-- Imagen con Lazy Loading [1, 2] -->
+      <!-- Imagen con Lazy Loading -->
       <div class="md:w-1/2 h-64 md:h-auto overflow-hidden">
         <img src="${country.flag}" 
              alt="Flag of ${country.name}" 
@@ -73,29 +90,18 @@ export const renderCountryDetailModal = (
       <div class="md:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
         <h2 class="text-3xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">${country.name}</h2>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 mb-8 text-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 mb-8 text-sm text-slate-700 dark:text-slate-300">
           <p><span class="font-bold text-slate-500 dark:text-slate-400">Capital:</span> ${country.capital}</p>
           <p><span class="font-bold text-slate-500 dark:text-slate-400">Region:</span> ${country.region}</p>
           <p><span class="font-bold text-slate-500 dark:text-slate-400">Population:</span> ${country.population.toLocaleString()}</p>
+          <p><span class="font-bold text-slate-500 dark:text-slate-400">Code:</span> ${country.cca3}</p>
         </div>
 
         <!-- Sección de Fronteras -->
         <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
           <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Border Countries</h4>
           <div class="flex flex-wrap gap-2">
-            ${
-              borderNames.length > 0
-                ? borderNames
-                    .map(
-                      (name, index) => `
-                <button class="btn-border px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-600 hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium transition-all cursor-pointer" 
-                        data-cca3="${country.borders[index]}">
-                  ${name}
-                </button>`,
-                    )
-                    .join("")
-                : '<span class="text-slate-400 italic text-sm">No border countries</span>'
-            }
+            ${bordersHTML}
           </div>
         </div>
       </div>

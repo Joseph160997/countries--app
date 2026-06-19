@@ -229,14 +229,13 @@ export const initSort = (): void => {
 export const getSort = (): SortCriteria => currentSort;
 
 /**
- * ACCIÓN: Abre el modal con los detalles de un país.
- * @param cca3
+ * ACCIÓN: Abre el modal con los detalles completos de un país (usa /alpha para bordes).
+ * @param cca3 - Código (cca3) del país.
  */
 export const openCountryModal = (cca3: string): void => {
   const country = countries.find((c) => c.cca3 === cca3);
-
   if (country) {
-    selectedCountry = country;
+    selectedCountry = country; // Ya tiene sus .borders
     notify();
   }
 };
@@ -269,14 +268,11 @@ const getFullCountryList = (): Country[] => {
  * @returns Lista de nombres de países. ej: ['Colombia', 'Perú', 'Argentina']
  */
 export const getBorderNames = (codes: string[]): string[] => {
-  // 1.Obetenemos Todo los paises que ya estan en la memoria
-  const allCountries = getFullCountryList();
+  const allCountries = getFullCountryList(); // Obtiene la copia del catálogo [2]
 
-  // 2. Mapeamos los paises buscando nuestr "cahce" local.
   return codes.map((code) => {
     const found = allCountries.find((c) => c.cca3 === code);
-
-    // 3. Si lo encontramos, lo retornamos, sino deja el codigoorigina.
+    // IMPORTANTE: Retornar el nombre si se encuentra, o el código como respaldo
     return found ? found.name : code;
   });
 };

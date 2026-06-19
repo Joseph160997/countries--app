@@ -15,14 +15,15 @@ export const getAllCountries = async (
   favoriteCodes: string[],
 ): Promise<Country[]> => {
   if (!BASE_URL) throw new Error("VITE_API_COUNTRIES_BASE_URL no definida.");
-
   try {
     // 1. Uso de httpClient: Reemplaza fetch, añade timeout y validación automática
-    const rawData = await httpClient<RestCountryAPIResponse[]>(BASE_URL, {
+    const url = `${BASE_URL}/all?fields=name,flags,population,region,capital,cca3`;
+    console.log("URL FINAL:", url);
+    const rawData = await httpClient<RestCountryAPIResponse[]>(url, {
       method: "GET",
       validator: isRestCountryResponse, // Validación en tiempo de ejecución (Narrowing)
     });
-
+    console.log("aqui dentro ahy", rawData);
     // 2. Mapeo síncrono a la interfaz de la UI
     const mappedCountries = rawData.map((raw) =>
       mapCountry(raw, favoriteCodes),
@@ -34,7 +35,7 @@ export const getAllCountries = async (
 
     return mappedCountries;
   } catch (error) {
-    console.warn("Fallo la red, intentando recuperar de IndexedDB...", error);
+    console.error("ERROR COMPLETO", error);
 
     // 4. Estrategia de Respaldo (Fallback): Si la red falla, consultamos el Storage local
     const cachedCountries = (await storage.get<Country>(

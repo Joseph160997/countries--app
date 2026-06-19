@@ -1,36 +1,37 @@
 # World Explorer - Explorador Mundial
 
-**World Explorer** es una aplicación web construida con Vanilla TypeScript, Vite y Tailwind CSS para explorar países de todo el mundo.
+**World Explorer** es una aplicación web moderna construida con Vanilla TypeScript, Vite y Tailwind CSS para descubrir países del mundo.
 
 ## Descripción
 
-Esta app no usa React ni librerías de UI externas. Está diseñada como una SPA ligera que:
+Esta app es una SPA ligera sin frameworks UI como React. Usa DOM dinámico para renderizar la interfaz y ofrece:
 
-- consume la API de países,
-- renderiza la interfaz mediante DOM dinámico,
-- aplica filtros en tiempo real,
-- permite marcar países como favoritos,
-- persiste favoritos en LocalStorage,
-- usa IndexedDB como caché de respaldo para soporte offline.
+- búsqueda inmediata con debounce,
+- filtrado por región,
+- favoritos persistentes en `localStorage`,
+- almacenamiento en caché con IndexedDB,
+- modo claro/oscuro y diseño responsive.
 
-## Características reales
+## Características
 
-- Búsqueda de países por nombre con debounce para mejorar el rendimiento.
-- Filtro de región con select desplegable.
-- Guardado de favoritos y contador dinámico.
-- Vista de estado vacío cuando no hay resultados o favoritos.
+- Búsqueda de países por nombre con retraso optimizado (`debounce`).
+- Filtrado por región mediante un select.
+- Ordenación por población y por nombre.
+- Selección y renderizado de detalles de país en modal.
+- Modo de solo favoritos con contador dinámico.
 - Persistencia de favoritos en `localStorage`.
-- Estrategia de red `Network First` con fallback a `IndexedDB`.
-- Maquetación responsive usando Tailwind CSS.
-- Motor de estado propio basado en el patrón observador.
+- Estrategia de datos `Network First` con fallback a `IndexedDB`.
+- Tema claro/oscuro guardado en el navegador.
+- Arquitectura basada en un gestor de estado propio y patrón observador.
 
-## Tecnologías y dependencias
+## Tecnología
 
-- **Vite** como bundler y entorno de desarrollo.
-- **TypeScript** para tipado estricto.
-- **Tailwind CSS** para estilos utilitarios.
-- **IndexedDB** para caché local de datos.
-- **LocalStorage** para persistencia de favoritos.
+- Vite
+- TypeScript
+- Tailwind CSS
+- IndexedDB
+- LocalStorage
+- API REST de países
 
 ## Requisitos
 
@@ -43,50 +44,51 @@ Esta app no usa React ni librerías de UI externas. Está diseñada como una SPA
 npm install
 ```
 
-## Variables de entorno
+## Configuración de entorno
 
-La aplicación requiere una URL base para la API de países. Define el archivo `.env` o agrega esta variable a tu entorno:
+Crea un archivo `.env` en la raíz del proyecto con la URL base de la API de países:
 
 ```env
-VITE_API_COUNTRIES_BASE_URL=https://restcountries.com/v3.1/all
+VITE_API_COUNTRIES_BASE_URL=https://restcountries.com/v3.1
 ```
 
-> Ajusta el valor según el endpoint real de la API que uses.
+> La aplicación añade internamente la ruta `/all?fields=...` al valor de esta variable.
 
 ## Scripts disponibles
 
-- `npm run dev` - iniciar el servidor de desarrollo.
-- `npm run build` - compilar el proyecto para producción.
-- `npm run preview` - previsualizar la versión build.
+- `npm run dev` - iniciar servidor de desarrollo.
+- `npm run build` - compilar para producción.
+- `npm run preview` - previsualizar la build.
 
-## Estructura principal del proyecto
+## Estructura principal
 
-- `src/main.ts` - punto de entrada de la app y orquestador de eventos.
-- `src/components/layout.ts` - genera el layout principal y el HTML del DOM.
-- `src/components/countryCards.ts` - renderiza las tarjetas de país.
-- `src/components/EmptyState.ts` - renderiza el estado vacío.
-- `src/state/countryState.ts` - gestor de estado y filtros.
-- `src/services/countryService.ts` - obtiene datos de la API y cachea en IndexedDB.
-- `src/services/favoriteService.ts` - maneja favoritos y LocalStorage.
+- `src/main.ts` - entrada principal y controlador de eventos.
+- `src/components/layout.ts` - renderiza header, contenido y footer.
+- `src/components/countryCards.ts` - genera tarjetas y modal de país.
+- `src/components/emptyState.ts` - muestra mensajes cuando no hay resultados.
+- `src/state/countryState.ts` - lógica de estado, filtros y suscripciones.
+- `src/services/countryService.ts` - obtiene datos, valida respuesta y cachea.
+- `src/services/favoriteService.ts` - guarda favoritos en `localStorage`.
+- `src/services/themeService.ts` - gestiona el tema claro/oscuro.
 - `src/utils/http.ts` - cliente HTTP con timeout y validación.
-- `src/utils/localStorage.ts` - capa de abstracción para `localStorage`.
-- `src/utils/db.ts` - implementación de IndexedDB.
-- `src/utils/debouce.ts` - función de debounce.
-- `src/types/Country.ts` - tipos y contratos de datos.
+- `src/utils/localStorage.ts` - wrapper para `localStorage`.
+- `src/utils/db.ts` - abstracción para IndexedDB.
+- `src/utils/debounce.ts` - helper de debounce.
+- `src/types/Country.ts` - tipos y modelos de país.
 
-## Cómo usar
+## Uso
 
 1. Ejecuta `npm run dev`.
-2. Abre el navegador en `http://localhost:5173`.
+2. Abre `http://localhost:5173`.
 3. Busca países por nombre.
 4. Filtra por región.
-5. Marca y desmarca favoritos.
-6. Explora la lista y observa el contador de favoritos.
+5. Marca favoritos con el botón de corazón.
+6. Cambia el tema con el botón del header.
 
-## Notas adicionales
+## Notas
 
-- El botón `theme-toggle` está presente en la UI, pero su lógica aún no está implementada en el código actual.
-- La app está pensada como un proyecto limpio de frontend sin frameworks de UI.
+- El componente de `feedback-form` está incluido en el layout, pero no está conectado a un backend.
+- El proyecto está diseñado como una aplicación de frontend sin frameworks pesados.
 
 ## Licencia
 
