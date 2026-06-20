@@ -276,3 +276,18 @@ export const getBorderNames = (codes: string[]): string[] => {
     return found ? found.name : code;
   });
 };
+
+/**
+ * ACCIÓN: De uso solo para testeo
+ */
+export const resetState = () => {
+  countries = [];
+  filteredCountries = [];
+  searchQuery = "";
+  selectedRegion = "";
+  isShowingFavorites = false;
+  minPopulation = 0;
+  currentSort = "none";
+  selectedCountry = null;
+  listeners = [];
+};
