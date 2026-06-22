@@ -2,13 +2,13 @@ import { storageService } from "../utils/localStorage";
 import { showToast } from "../utils/toast";
 
 /** Clave única para World Explorer */
-const FAVS_KEY = "world_explorer_favs";
+export const FAVS_KEY = "world_explorer_favs";
 
 /**
  * Type Guard: Valida que el dato recuperado sea un array de strings (códigos CCA3).
  * Esto previene errores si el LocalStorage es manipulado externamente. [2]
  */
-const isValidFavList = (data: unknown): data is string[] => {
+export const isValidFavList = (data: unknown): data is string[] => {
   return Array.isArray(data) && data.every((item) => typeof item === "string");
 };
 

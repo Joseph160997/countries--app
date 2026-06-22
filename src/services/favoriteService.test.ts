@@ -1,28 +1,212 @@
-import { describe, it, expect } from "vitest";
-// Nota: Para este ejemplo asumimos que exportas isValidFavList o pruebas una lógica similar
-const isValidFavList = (data: any) =>
-  Array.isArray(data) && data.every((i) => typeof i === "string");
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-describe("favoriteService - isValidFavList", () => {
-  it("debería retornar true si recibe un array de strings", () => {
-    // 1. Arrange (Organizar)
-    const dataPrueba = ["COL", "ARG", "MEX"];
+import {
+  FAVS_KEY,
+  getFavoriteCodes,
+  isCountryFavorite,
+  isValidFavList,
+  toggleFavoritePersistence,
+} from "./favoriteService";
 
-    // 2. Act (Actuar)
-    const resultado = isValidFavList(dataPrueba);
+import { storageService } from "../utils/localStorage";
+import { showToast } from "../utils/toast";
 
-    // 3. Assert (Asegurar)
-    expect(resultado).toBe(true);
+// ======================================================
+// MOCKS
+// ======================================================
+
+// Reemplaza completamente el módulo real por funciones falsas.
+// Así NO usamos el localStorage real.
+vi.mock("../utils/localStorage", () => ({
+  storageService: {
+    get: vi.fn(),
+    save: vi.fn(),
+  },
+}));
+
+// Evita mostrar toasts reales durante las pruebas.
+vi.mock("../utils/toast", () => ({
+  showToast: vi.fn(),
+}));
+
+// ======================================================
+// HELPERS
+// ======================================================
+
+// Simula lo que devuelve localStorage.
+const mockFavorites = (favorites: unknown) => {
+  vi.mocked(storageService.get).mockReturnValue(favorites as never);
+};
+
+// Verifica qué terminó guardándose.
+const expectSavedFavorites = (favorites: string[]) => {
+  expect(storageService.save).toHaveBeenCalledWith(FAVS_KEY, favorites);
+};
+
+// ======================================================
+// TESTS
+// ======================================================
+
+describe("favoriteService", () => {
+  beforeEach(() => {
+    // Limpia todos los mocks antes de cada prueba.
+    vi.clearAllMocks();
   });
 
-  it("debería retornar false si el array contiene números", () => {
-    // Arrange
-    const dataInvalida = ["COL", 123];
+  // ====================================================
+  // isValidFavList
+  // ====================================================
 
-    // Act
-    const resultado = isValidFavList(dataInvalida);
+  describe("isValidFavList", () => {
+    it("should return true when receiving an array of strings", () => {
+      // Arrange
+      const input = ["COL", "ARG"];
 
-    // Assert
-    expect(resultado).toBe(false);
+      // Act
+      const result = isValidFavList(input);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it("should return true for an empty array", () => {
+      // Arrange
+      const input: string[] = [];
+
+      // Act
+      const result = isValidFavList(input);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it("should return false for null or undefined", () => {
+      // Act + Assert
+      expect(isValidFavList(null)).toBe(false);
+      expect(isValidFavList(undefined)).toBe(false);
+    });
+
+    it("should return false when array contains invalid values", () => {
+      // Act + Assert
+      expect(isValidFavList(["COL", 123])).toBe(false);
+
+      expect(isValidFavList([{ code: "COL" }])).toBe(false);
+    });
+  });
+
+  // ====================================================
+  // getFavoriteCodes
+  // ====================================================
+
+  describe("getFavoriteCodes", () => {
+    it("should return favorites when storage data is valid", () => {
+      // Arrange
+      mockFavorites(["COL", "MEX"]);
+
+      // Act
+      const result = getFavoriteCodes();
+
+      // Assert
+      expect(result).toEqual(["COL", "MEX"]);
+
+      expect(storageService.get).toHaveBeenCalledWith(FAVS_KEY);
+    });
+
+    it("should return an empty array when storage data is invalid", () => {
+      // Arrange
+      mockFavorites("corrupted data");
+
+      // Act
+      const result = getFavoriteCodes();
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it("should return an empty array when storage is empty", () => {
+      // Arrange
+      mockFavorites(null);
+
+      // Act
+      const result = getFavoriteCodes();
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
+  // ====================================================
+  // isCountryFavorite
+  // ====================================================
+
+  describe("isCountryFavorite", () => {
+    it("should return true when country exists in favorites", () => {
+      // Arrange
+      mockFavorites(["COL", "ARG"]);
+
+      // Act
+      const result = isCountryFavorite("COL");
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it("should return false when country does not exist", () => {
+      // Arrange
+      mockFavorites(["COL", "ARG"]);
+
+      // Act
+      const result = isCountryFavorite("MEX");
+
+      // Assert
+      expect(result).toBe(false);
+    });
+  });
+
+  // ====================================================
+  // toggleFavoritePersistence
+  // ====================================================
+
+  describe("toggleFavoritePersistence", () => {
+    it("should add a country when it is not already favorite", () => {
+      // Arrange
+      mockFavorites(["ARG"]);
+
+      // Act
+      const result = toggleFavoritePersistence("COL");
+
+      // Assert
+      expect(result).toBe(true);
+
+      expectSavedFavorites(["ARG", "COL"]);
+
+      expect(showToast).toHaveBeenCalledWith("Agregado a favoritos", "success");
+    });
+
+    it("should remove a country when it already exists", () => {
+      // Arrange
+      mockFavorites(["COL", "ARG"]);
+
+      // Act
+      const result = toggleFavoritePersistence("COL");
+
+      // Assert
+      expect(result).toBe(false);
+
+      expectSavedFavorites(["ARG"]);
+
+      expect(showToast).toHaveBeenCalledWith("Eliminado de favoritos", "info");
+    });
+
+    it("should recover from corrupted storage data", () => {
+      // Arrange
+      mockFavorites("broken data");
+
+      // Act
+      toggleFavoritePersistence("COL");
+
+      // Assert
+      expectSavedFavorites(["COL"]);
+    });
   });
 });

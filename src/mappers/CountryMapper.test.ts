@@ -1,108 +1,326 @@
-import { describe, it, expect } from "vitest";
-import { mapCountry } from "./CountryMapper";
+import { describe, expect, it } from "vitest";
 
-describe("CountryMapper - mapCountry", () => {
-  it("debería transformar un pais de la API en un objeto de UI correctamente", () => {
-    // 1. Arrange (Organizar): Definir los datos de entrada
-    const mockApi = {
-      name: { common: "spain" },
-      flags: { svg: "spain.svg", png: "spain.png" },
-      population: 47000000,
-      region: "Europe",
-      cca3: "ESP",
-      capital: ["Madrid"],
-      borders: ["PRT", "FRA"],
-    };
-    const favorites = ["ESP"];
+import { mapCountry, isRestCountryResponse } from "./CountryMapper";
+import type { RestCountryAPIResponse } from "../types/Country";
 
-    // 2. Act (Actuar): Ejecutar la función
-    const result = mapCountry(mockApi as any, favorites);
+// ======================================================
+// FACTORY
+// ======================================================
 
-    // 3. Assert (Asegurar): Verificar el resultado
-    expect(result.name).toBe("spain");
-    expect(result.flag).toBe("spain.svg");
-    expect(result.population).toBe(47000000);
-    expect(result.region).toBe("Europe");
-    expect(result.capital).toBe("Madrid");
-    expect(result.cca3).toBe("ESP");
-    expect(result.borders).toEqual(["PRT", "FRA"]);
-    expect(result.isFavorite).toBe(true);
-  });
+const createApiCountry = (
+  overrides: Partial<RestCountryAPIResponse> = {},
+): RestCountryAPIResponse => ({
+  name: {
+    common: "Colombia",
+  },
 
-  it("debería maraca isfavporite como false si el pais no esta en la lista de favoritos", () => {
-    // 1. Arrange (Organizar): Definir los datos de entrada
-    const mockApi = {
-      name: { common: "Japan" },
-      cca3: "JPN",
-      flags: { svg: "japan.svg", png: "japan.png" },
-      population: 0,
-      region: "Asia",
-      capital: ["Tokyo"],
-      borders: ["KOR", "CHN", "RUS"],
-    };
+  flags: {
+    svg: "https://flagcdn.com/w320/co.svg",
+    png: "https://flagcdn.com/w320/co.png",
+  },
 
-    const favorites = ["ESP", "COL", "MEX"];
+  cca3: "COL",
 
-    // 2. Act (Actuar): Ejecutar la función
-    const result = mapCountry(mockApi as any, favorites);
+  population: 51_049_498,
 
-    // 3. Assert (Asegurar): Verificar el resultado
-    expect(result.isFavorite).toBe(false);
-    expect(result.borders).toEqual(["KOR", "CHN", "RUS"]);
-    expect(result.capital).toBe("Tokyo");
-  });
+  region: "Americas",
 
-  it('debería manejar países sin capital devolviendo "No Capital"', () => {
+  capital: ["Bogotá"],
+
+  borders: ["BRA", "ECU", "PAN", "PER", "VEN"],
+
+  ...overrides, // <=== Overrides nos permite pasar parámetros adicionales, o sobreescribirlos.
+});
+
+// ======================================================
+// mapCountry
+// ======================================================
+
+describe("mapCountry", () => {
+  it("should transform API data into UI model correctly", () => {
     // Arrange
-    const mockApi = {
-      name: { common: "Antarctica" },
-      cca3: "ATA",
-      flags: {}, // Objeto vacío
-      population: 0,
-      capital: [], // Array vacío
-    };
+    const apiData = createApiCountry();
+    const favoriteCodes = ["COL", "MEX"];
 
     // Act
-    const result = mapCountry(mockApi as any, []);
+    const result = mapCountry(apiData, favoriteCodes);
 
     // Assert
-    // Probamos lógica de cortocircuito: country.capital?. || "No Capital" [1]
-    expect(result.capital).toBe("No Capital");
+    // We use toEqual (not toMatchObject) because we know the exact shape
+    // of the expected object: it also catches unwanted extra properties.
+    expect(result).toEqual({
+      name: "Colombia",
+      flag: "https://flagcdn.com/w320/co.svg",
+      population: 51_049_498,
+      region: "Americas",
+      capital: "Bogotá",
+      cca3: "COL",
+      borders: ["BRA", "ECU", "PAN", "PER", "VEN"],
+      isFavorite: true,
+    });
+  });
+
+  it("should return isFavorite false when country is not in favorites", () => {
+    // Arrange
+    const apiData = createApiCountry();
+
+    // Act
+    const result = mapCountry(apiData, ["MEX", "ARG"]);
+
+    // Assert
     expect(result.isFavorite).toBe(false);
+  });
+
+  it("should return isFavorite false when favorites list is empty", () => {
+    // Arrange
+    const apiData = createApiCountry();
+
+    // Act
+    const result = mapCountry(apiData, []);
+
+    // Assert
+    expect(result.isFavorite).toBe(false);
+  });
+
+  it("should return 'No Capital' when country has no capital", () => {
+    // Arrange
+    const apiData = createApiCountry({ capital: undefined });
+
+    // Act
+    const result = mapCountry(apiData, []);
+
+    // Assert
+    expect(result.capital).toBe("No Capital");
+  });
+
+  it("should return 'No Capital' when capital array is empty", () => {
+    // Arrange: capital: [] is a different case from capital: undefined,
+    // and country.capital?.[0] also returns undefined here -> "No Capital"
+    const apiData = createApiCountry({ capital: [] });
+
+    // Act
+    const result = mapCountry(apiData, []);
+
+    // Assert
+    expect(result.capital).toBe("No Capital");
+  });
+
+  it("should use png flag when svg is unavailable (empty string)", () => {
+    // Arrange
+    const apiData = createApiCountry({
+      flags: {
+        svg: "",
+        png: "https://flagcdn.com/w320/co.png",
+      },
+    });
+
+    // Act
+    const result = mapCountry(apiData, []);
+
+    // Assert
+    expect(result.flag).toBe("https://flagcdn.com/w320/co.png");
+  });
+
+  it("should return empty string as flag when both svg and png are empty", () => {
+    // Arrange: documents the current fallback chain behavior
+    // (country.flags.svg || country.flags.png), which has no third
+    // fallback if both come back empty.
+    const apiData = createApiCountry({
+      flags: { svg: "", png: "" },
+    });
+
+    // Act
+    const result = mapCountry(apiData, []);
+
+    // Assert
+    expect(result.flag).toBe("");
+  });
+
+  it("should return empty borders array when borders are missing", () => {
+    // Arrange
+    const apiData = createApiCountry({ borders: undefined });
+
+    // Act
+    const result = mapCountry(apiData, []);
+
+    // Assert
     expect(result.borders).toEqual([]);
   });
 
-  it("debería usar la bandera PNG si la SVG no está disponible", () => {
+  it("should return empty string as region when region is missing", () => {
     // Arrange
-    const mockApi = {
-      name: { common: "Brazil" },
-      flags: { png: "brazil.png" }, // No hay campo 'svg'
-      population: 211000000,
-      cca3: "BRA",
-    };
+    const apiData = createApiCountry({
+      region: undefined as unknown as RestCountryAPIResponse["region"],
+    });
 
     // Act
-    const result = mapCountry(mockApi as any, []);
+    const result = mapCountry(apiData, []);
 
     // Assert
-    expect(result.flag).toBe("brazil.png"); // Verifica el respaldo
+    expect(result.region).toBe("");
+  });
+});
+
+// ======================================================
+// isRestCountryResponse
+// ======================================================
+
+describe("isRestCountryResponse", () => {
+  it("should return true for valid API response", () => {
+    // Arrange
+    const validData = [createApiCountry()];
+
+    // Act
+    const result = isRestCountryResponse(validData);
+
+    // Assert
+    expect(result).toBe(true);
   });
 
-  it("debería retornar un array vacío si la propiedad borders no existe en la respuesta", () => {
+  it("should return false for an empty array", () => {
+    // Arrange / Act
+    // An empty array is treated as an invalid response on purpose:
+    // without this check, [].every() would resolve to true by default
+    // in JS, silently letting an empty/broken API response through.
+    const result = isRestCountryResponse([]);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it("should return false for null", () => {
+    expect(isRestCountryResponse(null)).toBe(false);
+  });
+
+  it("should return false for undefined", () => {
+    expect(isRestCountryResponse(undefined)).toBe(false);
+  });
+
+  it("should return false for objects (non-arrays)", () => {
+    expect(isRestCountryResponse({})).toBe(false);
+  });
+
+  it("should return false for strings", () => {
+    expect(isRestCountryResponse("hello")).toBe(false);
+  });
+
+  it("should return false when array contains null values", () => {
     // Arrange
-    const mockApi = {
-      name: { common: "Iceland" },
-      flags: { svg: "iceland.svg" },
-      population: 366000,
-      cca3: "ISL",
-      // Nota: No incluimos la propiedad 'borders'
+    const invalidData = [createApiCountry(), null];
+
+    // Act
+    const result = isRestCountryResponse(invalidData);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it("should return false when name.common is missing", () => {
+    // Arrange
+    const invalidCountry = { ...createApiCountry(), name: undefined };
+
+    // Act
+    const result = isRestCountryResponse([invalidCountry]);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it("should return false when cca3 is missing", () => {
+    // Arrange
+    const invalidCountry = { ...createApiCountry(), cca3: undefined };
+
+    // Act
+    const result = isRestCountryResponse([invalidCountry]);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it("should return false when flags.png is missing", () => {
+    // Arrange: the actual validation depends on flags.png, not flags.svg
+    const invalidCountry = {
+      ...createApiCountry(),
+      flags: { svg: "https://flagcdn.com/w320/co.svg" },
     };
 
     // Act
-    const result = mapCountry(mockApi as any, []);
+    const result = isRestCountryResponse([invalidCountry]);
 
     // Assert
-    expect(result.borders).toEqual([]); // Verifica que el fallback funcione [3]
-    expect(Array.isArray(result.borders)).toBe(true);
+    expect(result).toBe(false);
+  });
+
+  it("should return true even when flags.svg is missing (only png is validated)", () => {
+    // Arrange: documents that the type guard does NOT require svg, only png.
+    const dataWithoutSvg = {
+      ...createApiCountry(),
+      flags: { png: "https://flagcdn.com/w320/co.png" },
+    };
+
+    // Act
+    const result = isRestCountryResponse([dataWithoutSvg]);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it("should return false when population is not a number", () => {
+    // Arrange
+    const invalidCountry = { ...createApiCountry(), population: "50 million" };
+
+    // Act
+    const result = isRestCountryResponse([invalidCountry]);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it("should return false when region is not a string", () => {
+    // Arrange
+    const invalidCountry = { ...createApiCountry(), region: 123 };
+
+    // Act
+    const result = isRestCountryResponse([invalidCountry]);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it("should return false when borders is not an array", () => {
+    // Arrange
+    const invalidCountry = { ...createApiCountry(), borders: "BRA,PER" };
+
+    // Act
+    const result = isRestCountryResponse([invalidCountry]);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it("should return false when capital is not an array", () => {
+    // Arrange
+    const invalidCountry = { ...createApiCountry(), capital: "Bogotá" };
+
+    // Act
+    const result = isRestCountryResponse([invalidCountry]);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it("should return true when borders and capital are missing (they are optional)", () => {
+    // Arrange
+    const dataWithoutOptionals = {
+      ...createApiCountry(),
+      borders: undefined,
+      capital: undefined,
+    };
+
+    // Act
+    const result = isRestCountryResponse([dataWithoutOptionals]);
+
+    // Assert
+    expect(result).toBe(true);
   });
 });

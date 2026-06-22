@@ -27,7 +27,11 @@ export const mapCountry = (
 export const isRestCountryResponse = (
   data: unknown,
 ): data is RestCountryAPIResponse[] => {
-  if (!Array.isArray(data)) return false;
+  // Un array vacío no se considera una respuesta válida: si la API
+  // devuelve [] (por ejemplo, ante un error de red mal manejado o un
+  // filtro inesperado), queremos que esto se trate como inválido en
+  // vez de pasar silenciosamente como "true" y dejar la UI vacía sin aviso.
+  if (!Array.isArray(data) || data.length === 0) return false;
 
   return data.every((item) => {
     // 1. Verificación básica de objeto
