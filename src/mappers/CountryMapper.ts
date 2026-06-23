@@ -1,56 +1,91 @@
-import type { Country, Region, RestCountryAPIResponse } from "../types/Country";
+import type { Country, Region } from "../types/Country";
+import type {
+  RestCountryDTO,
+  RestCountriesResponse,
+} from "../types/RestCountryDTO";
+
+const VALID_REGIONS: readonly Region[] = [
+  "Africa",
+  "Americas",
+  "Asia",
+  "Europe",
+  "Oceania",
+];
 
 /**
- * Transforma un objeto crudo de la API de países en un objeto estructurado para la UI.
- * @param country - Objeto crudo que cumple con la interfaz de la API.
- * @param favoriteCodes - Array de códigos (cca3) guardados en LocalStorage.
+ * Extrae el array de países desde la respuesta de la API.
  */
-export const mapCountry = (
-  country: RestCountryAPIResponse,
-  favoriteCodes: string[],
+export const unwrapResponse = (
+  raw: RestCountriesResponse,
+): RestCountryDTO[] => {
+  return raw.data.objects;
+};
+
+/**
+ * Convierte un DTO de la API en el modelo que consume la UI.
+ */
+export const mapToCountry = (
+  dto: RestCountryDTO,
+  favoriteCodes: readonly string[],
 ): Country => {
   return {
-    name: country.name.common,
-    // Usamos SVG para mantener la resolución escalable en pantallas de alta densidad
-    flag: country.flags.svg || country.flags.png,
-    population: country.population,
-    region: (country.region as Region) || "",
-    // Evaluación de cortocircuito (Short-circuit evaluation) para campos opcionales
-    capital: country.capital?.[0] || "No Capital",
-    cca3: country.cca3,
-    borders: country.borders || [],
-    // Verificación posicional indexada de alta velocidad
-    isFavorite: favoriteCodes.includes(country.cca3),
+    cca3: dto.codes.alpha_3,
+    name: dto.names.common,
+    flag: pickFlag(dto),
+    flagAlt: dto.flag.description ?? `Bandera de ${dto.names.common}`,
+    population: dto.population,
+    region: normalizeRegion(dto.region),
+    capital: pickCapital(dto),
+    isFavorite: favoriteCodes.includes(dto.codes.alpha_3),
+    subregion: dto.subregion ?? "",
+    borders: dto.borders ?? [],
+    languages: mapLanguages(dto.languages),
+    currencies: mapCurrencies(dto.currencies),
+    tld: dto.tlds ?? [],
   };
 };
 
-export const isRestCountryResponse = (
-  data: unknown,
-): data is RestCountryAPIResponse[] => {
-  // Un array vacío no se considera una respuesta válida: si la API
-  // devuelve [] (por ejemplo, ante un error de red mal manejado o un
-  // filtro inesperado), queremos que esto se trate como inválido en
-  // vez de pasar silenciosamente como "true" y dejar la UI vacía sin aviso.
-  if (!Array.isArray(data) || data.length === 0) return false;
+/**
+ * Prioridad: SVG → PNG.
+ */
+function pickFlag(dto: RestCountryDTO): string {
+  return dto.flag.url_svg || dto.flag.url_png;
+}
 
-  return data.every((item) => {
-    // 1. Verificación básica de objeto
-    if (!item || typeof item !== "object") return false;
+/**
+ * Devuelve la capital principal o un fallback si no existe.
+ */
+function pickCapital(dto: RestCountryDTO): string {
+  if (!dto.capitals || dto.capitals.length === 0) {
+    return "No Capital";
+  }
 
-    // 2. Verificación de propiedades requeridas con tipos estrictos
-    const hasBaseProps =
-      typeof item.name?.common === "string" &&
-      typeof item.flags?.png === "string" &&
-      typeof item.cca3 === "string" &&
-      typeof item.population === "number" &&
-      typeof item.region === "string";
+  const primary = dto.capitals.find((c) => c.primary);
 
-    // 3. Verificación de arrays (Borders y Capital son opcionales o arrays)
-    // Usamos Array.isArray porque es la forma correcta de validar si son listas
-    const hasValidLists =
-      (item.borders === undefined || Array.isArray(item.borders)) &&
-      (item.capital === undefined || Array.isArray(item.capital));
+  return (primary ?? dto.capitals[0]).name;
+}
 
-    return hasBaseProps && hasValidLists;
-  });
-};
+/**
+ * Garantiza que la región pertenezca al dominio de la aplicación.
+ */
+function normalizeRegion(region: string): Region {
+  return VALID_REGIONS.includes(region as Region) ? (region as Region) : "";
+}
+
+/**
+ * Extrae únicamente los nombres de los idiomas.
+ */
+function mapLanguages(languages: RestCountryDTO["languages"]): string[] {
+  if (!languages) return [];
+
+  return languages.map((l) => l.name).filter(Boolean);
+}
+
+/**
+ * Formatea las monedas para mostrarlas en la UI.
+ */
+function mapCurrencies(currencies: RestCountryDTO["currencies"]): string[] {
+  if (!currencies) return [];
+
+  return currencies.map((c) => `${c.name} (${c.symbol})`).filter(Boolean);
+}
