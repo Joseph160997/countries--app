@@ -1,17 +1,14 @@
 import type { Country } from "../types/Country";
 import type { RestCountriesResponse } from "../types/RestCountryDTO";
-
 import { mapToCountry, unwrapResponse } from "../mappers/CountryMapper";
-
 import { isRestCountriesResponse } from "../validators/restCountriesValidator";
-
 import { httpClient } from "../utils/http";
 import { storage } from "../utils/db";
 
 const API_KEY = import.meta.env.VITE_COUNTRIES_API_KEY;
 const BASE_URL = "https://api.restcountries.com/v5";
 
-// Define los campos que tu mapper requiere
+// Campos mínimos requeridos por el mapper para mantener la respuesta pequeña [1, 3]
 const REQUIRED_FIELDS = [
   "codes",
   "names",
@@ -34,31 +31,28 @@ const options = {
 };
 
 /**
- * Obtiene los datos de los paísesses de la API.
- * @param favoriteCodes
- * @returns
+ * Obtiene países de la API en "chunks" predecibles usando paginación [4].
  */
 export const getAllCountries = async (
   favoriteCodes: string[],
+  limit: number = 20, // Por defecto 20 países por página
+  offset: number = 0, // Empieza desde el primer registro
 ): Promise<Country[]> => {
-  if (!BASE_URL) {
-    throw new Error("La URL de la API no fue proporcionada.");
-  }
+  if (!BASE_URL) throw new Error("La URL de la API no fue proporcionada.");
 
   try {
-    const url = `${BASE_URL}/all?fields=${REQUIRED_FIELDS}`;
+    // Stackeamos filtros: campos específicos + límite + desplazamiento [2, 4]
+    const url = `${BASE_URL}/all?response_fields=${REQUIRED_FIELDS}&limit=${limit}&offset=${offset}`;
+
     const rawResponse = await httpClient<RestCountriesResponse>(url, {
       ...options,
       validator: isRestCountriesResponse,
     });
 
-    // RestCountriesResponse -> RestCountryDTO[]
     const dtos = unwrapResponse(rawResponse);
-
-    // RestCountryDTO[] -> Country[]
     const countries = dtos.map((dto) => mapToCountry(dto, favoriteCodes));
 
-    // Persistencia offline
+    // Guardado offline en segundo plano (non-blocking)
     storage.saveAll<Country>("countries", countries).catch(console.error);
 
     return countries;
@@ -73,8 +67,6 @@ export const getAllCountries = async (
       console.error("[getAllCountries] Fallo de caché:", dbError);
     }
 
-    throw new Error(
-      "No se pudo obtener información ni de la red ni del almacenamiento local.",
-    );
+    throw new Error("Error: No hay conexión ni datos locales disponibles.");
   }
 };
