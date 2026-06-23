@@ -1,55 +1,80 @@
-import type { Country, RestCountryAPIResponse } from "../types/Country";
-import { mapCountry, isRestCountryResponse } from "../mappers/CountryMapper";
+import type { Country } from "../types/Country";
+import type { RestCountriesResponse } from "../types/RestCountryDTO";
+
+import { mapToCountry, unwrapResponse } from "../mappers/CountryMapper";
+
+import { isRestCountriesResponse } from "../validators/restCountriesValidator";
+
 import { httpClient } from "../utils/http";
 import { storage } from "../utils/db";
 
-const BASE_URL = import.meta.env.VITE_API_COUNTRIES_BASE_URL;
+const API_KEY = import.meta.env.VITE_COUNTRIES_API_KEY;
+const BASE_URL = "https://api.restcountries.com/v5";
+
+// Define los campos que tu mapper requiere
+const REQUIRED_FIELDS = [
+  "codes",
+  "names",
+  "flag",
+  "population",
+  "region",
+  "capitals",
+  "subregion",
+  "borders",
+  "languages",
+  "currencies",
+  "tlds",
+].join(",");
+
+const options = {
+  headers: {
+    accept: "application/json",
+    Authorization: `Bearer ${API_KEY}`,
+  },
+};
 
 /**
- * Obtiene países con estrategia "Network First": Intenta API, si falla busca en Storage.
- * @param favoriteCodes - Array de códigos (cca3) guardados en LocalStorage.
- * @return Promise<Country[]> - Lista de países formateados para la UI, ya sea desde la red o desde el almacenamiento local.
- * Implementa validación manual de la respuesta de la API y persistencia en IndexedDB para uso offline.
+ * Obtiene los datos de los paísesses de la API.
+ * @param favoriteCodes
+ * @returns
  */
 export const getAllCountries = async (
   favoriteCodes: string[],
 ): Promise<Country[]> => {
-  if (!BASE_URL) throw new Error("VITE_API_COUNTRIES_BASE_URL no definida.");
+  if (!BASE_URL) {
+    throw new Error("La URL de la API no fue proporcionada.");
+  }
+
   try {
-    // 1. Uso de httpClient: Reemplaza fetch, añade timeout y validación automática
-    const url = `${BASE_URL}/all?fields=name,flags,population,region,capital,cca3`;
-    console.log("URL FINAL:", url);
-    const rawData = await httpClient<RestCountryAPIResponse[]>(url, {
-      method: "GET",
-      validator: isRestCountryResponse, // Validación en tiempo de ejecución (Narrowing)
+    const url = `${BASE_URL}/all?fields=${REQUIRED_FIELDS}`;
+    const rawResponse = await httpClient<RestCountriesResponse>(url, {
+      ...options,
+      validator: isRestCountriesResponse,
     });
-    console.log("aqui dentro ahy", rawData);
-    // 2. Mapeo síncrono a la interfaz de la UI
-    const mappedCountries = rawData.map((raw) =>
-      mapCountry(raw, favoriteCodes),
-    );
 
-    // 3. Persistencia en IndexedDB: Guardamos los datos frescos para uso offline
-    // Usamos el almacenamiento genérico que definimos anteriormente
-    storage.saveAll<Country>("countries", mappedCountries).catch(console.error);
+    // RestCountriesResponse -> RestCountryDTO[]
+    const dtos = unwrapResponse(rawResponse);
 
-    return mappedCountries;
+    // RestCountryDTO[] -> Country[]
+    const countries = dtos.map((dto) => mapToCountry(dto, favoriteCodes));
+
+    // Persistencia offline
+    storage.saveAll<Country>("countries", countries).catch(console.error);
+
+    return countries;
   } catch (error) {
-    console.error("ERROR COMPLETO", error);
+    console.error("[getAllCountries] Fallo de red:", error);
 
-    // 4. Estrategia de Respaldo (Fallback): Si la red falla, consultamos el Storage local
-    const cachedCountries = (await storage.get<Country>(
-      "countries",
-    )) as Country[];
-
-    if (cachedCountries.length > 0) {
-      // Si hay datos locales, los devolvemos (aunque podrían estar desactualizados)
-      return cachedCountries;
+    try {
+      const cached = await storage.get<Country>("countries");
+      const cachedCountries = Array.isArray(cached) ? cached : [cached];
+      if (cachedCountries.length > 0) return cachedCountries;
+    } catch (dbError) {
+      console.error("[getAllCountries] Fallo de caché:", dbError);
     }
 
-    // Si no hay nada en caché, relanzamos el error crítico
     throw new Error(
-      "No se pudo obtener datos ni de la red ni del almacenamiento local.",
+      "No se pudo obtener información ni de la red ni del almacenamiento local.",
     );
   }
 };
