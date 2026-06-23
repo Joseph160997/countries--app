@@ -1,34 +1,17 @@
-/**
- * @fileoverview Contratos de tipos para la UI y la API.
- */
-
 export type Region = "Africa" | "Americas" | "Asia" | "Europe" | "Oceania" | "";
 
-// Contrato para la UI (Limpio)
 export interface Country {
+  cca3: string;
   name: string;
   flag: string;
+  flagAlt: string; // accesibilidad: siempre un string, nunca undefined
   population: number;
   region: Region;
-  capital: string;
-  cca3: string;
-  borders: string[];
+  capital: string; // "No Capital" si no viene — nunca undefined
   isFavorite: boolean;
-}
-
-// Contrato para la API (Estructura cruda de REST Countries)
-export interface RestCountryAPIResponse {
-  name: {
-    common: string;
-    official?: string;
-  };
-  flags: {
-    png: string;
-    svg: string;
-  };
-  population: number;
-  region: string;
-  capital?: string[];
-  borders?: string[];
-  cca3: string;
+  subregion: string; // "" si no viene
+  borders: string[]; // [] si no viene — nunca undefined
+  languages: string[]; // [] si no viene
+  currencies: string[]; // [] si no viene
+  tld: string[]; // [] si no viene
 }
