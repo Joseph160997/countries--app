@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  base: "/countries--app/",
   plugins: [tailwindcss()],
 
   // 🧪 Ahora TypeScript reconocerá perfectamente la propiedad 'test'
