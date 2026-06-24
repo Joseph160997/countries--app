@@ -42,80 +42,117 @@ export const renderCountryCard = (country: Country): string => {
 };
 
 /**
- * Función Pública para renderizar el modal con los detalles de un país.
- * @param country
- * @param borderNames
- * @returns String de HTML
- */
+Renderiza el modal de detalle de un país.
+@param country País seleccionado
+@param borderNames Nombres de países fronterizos
+@returns HTML del modal
+*/
 export const renderCountryDetailModal = (
   country: Country,
   borderNames: string[],
 ): string => {
-  // Generamos el HTML de las fronteras de forma limpia
+  // Función auxiliar para formatear arrays
+  const formatArray = (items: string[]): string =>
+    items.length > 0 ? items.join(", ") : "N/A";
+
+  const formattedLanguages = formatArray(country.languages);
+  const formattedCurrencies = formatArray(country.currencies);
+  const formattedTld = formatArray(country.tld);
+
+  const capital = country.capital || "N/A";
+  const subregion = country.subregion || "N/A";
+  const population = country.population?.toLocaleString() ?? "N/A";
+
   const bordersHTML =
     borderNames.length > 0
       ? borderNames
-          .map(
-            (name, index) => `
-        <button 
-          class="btn-border px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-600 hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium transition-all cursor-pointer shadow-sm" 
-          data-cca3="${country.borders[index]}"
-        >
-          ${name}
-        </button>
-      `,
-          )
-          .join("")
-      : '<span class="text-slate-400 italic text-sm">No border countries</span>';
+          .map((name, index) => {
+            const borderCode = country.borders?.[index] ?? "";
 
-  // Helpers para mostrar "N/A" si los arrays vienen vacíos
-  const formattedLanguages =
-    country.languages.length > 0 ? country.languages.join(", ") : "N/A";
-  const formattedCurrencies =
-    country.currencies.length > 0 ? country.currencies.join(", ") : "N/A";
-  const formattedTld = country.tld.length > 0 ? country.tld.join(", ") : "N/A";
+            return `
+          <button
+            class="btn-border px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-600 hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium transition-all cursor-pointer shadow-sm"
+            data-cca3="${borderCode}"
+          >
+            ${name}
+          </button>
+        `;
+          })
+          .join("")
+      : `
+    <span class="text-slate-400 italic text-sm">
+      No border countries
+    </span>
+  `;
 
   return `
-    <div class="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-modal-in">
-      <button id="close-modal" class="absolute top-4 right-4 z-10 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-rose-500 hover:text-white transition-colors cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-        </svg>
-      </button>
+<div class="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-modal-in">
 
-      <div class="md:w-1/2 h-64 md:h-auto overflow-hidden bg-slate-100 dark:bg-slate-800">
-        <img src="${country.flag}" 
-             alt="Flag of ${country.name}" 
-             loading="lazy" 
-             class="w-full h-full object-cover shadow-inner" />
+  <button
+    id="close-modal"
+    aria-label="Close modal"
+    class="absolute top-4 right-4 z-10 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-rose-500 hover:text-white transition-colors cursor-pointer"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="2.5"
+      stroke="currentColor"
+      class="w-5 h-5"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M6 18 18 6M6 6l12 12"
+      />
+    </svg>
+  </button>
+
+  <div class="md:w-1/2 h-64 md:h-auto overflow-hidden bg-slate-100 dark:bg-slate-800">
+    <img
+      src="${country.flag}"
+      alt="Flag of ${country.name}"
+      loading="lazy"
+      class="w-full h-full object-cover shadow-inner"
+    />
+  </div>
+
+  <div class="md:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
+
+    <h2 class="text-3xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
+      ${country.name}
+    </h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 mb-8 text-sm text-slate-700 dark:text-slate-300">
+
+      <div class="space-y-3">
+        <p><span class="font-bold text-slate-500 dark:text-slate-400">Region:</span> ${country.region}</p>
+        <p><span class="font-bold text-slate-500 dark:text-slate-400">Subregion:</span> ${subregion}</p>
+        <p><span class="font-bold text-slate-500 dark:text-slate-400">Capital:</span> ${capital}</p>
+        <p><span class="font-bold text-slate-500 dark:text-slate-400">Population:</span> ${population}</p>
       </div>
 
-      <div class="md:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
-        <h2 class="text-3xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">${country.name}</h2>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 mb-8 text-sm text-slate-700 dark:text-slate-300">
-          
-          <div class="space-y-3">
-            <p><span class="font-bold text-slate-500 dark:text-slate-400">Region:</span> ${country.region}</p>
-            <p><span class="font-bold text-slate-500 dark:text-slate-400">Subregion:</span> ${country.subregion || "N/A"}</p>
-            <p><span class="font-bold text-slate-500 dark:text-slate-400">Capital:</span> ${country.capital}</p>
-            <p><span class="font-bold text-slate-500 dark:text-slate-400">Population:</span> ${country.population.toLocaleString()}</p>
-          </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-slate-500 dark:text-slate-400">Top Level Domain:</span> ${formattedTld}</p>
+        <p><span class="font-bold text-slate-500 dark:text-slate-400">Currencies:</span> ${formattedCurrencies}</p>
+        <p><span class="font-bold text-slate-500 dark:text-slate-400">Languages:</span> ${formattedLanguages}</p>
+      </div>
 
-          <div class="space-y-3">
-            <p><span class="font-bold text-slate-500 dark:text-slate-400">Top Level Domain:</span> ${formattedTld}</p>
-            <p><span class="font-bold text-slate-500 dark:text-slate-400">Currencies:</span> ${formattedCurrencies}</p>
-            <p><span class="font-bold text-slate-500 dark:text-slate-400">Languages:</span> ${formattedLanguages}</p>
-          </div>
-        </div>
+    </div>
 
-        <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
-          <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Border Countries</h4>
-          <div class="flex flex-wrap gap-2">
-            ${bordersHTML}
-          </div>
-        </div>
+    <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
+      <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+        Border Countries
+      </h4>
+
+      <div class="flex flex-wrap gap-2">
+        ${bordersHTML}
       </div>
     </div>
-  `;
+
+  </div>
+</div>
+
+`;
 };

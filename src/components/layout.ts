@@ -32,7 +32,8 @@ const renderHeader = (): string => {
 };
 
 /**
- * Genera la estructura HTML del Main Content con los filtros e inputs correspondientes.
+ * Genera la estructura HTML del Main de la aplicación.
+ * @returns
  */
 const renderMain = (): string => {
   return `
@@ -67,14 +68,23 @@ const renderMain = (): string => {
               <option value="Oceania">Oceania</option>
             </select>
           </div>
-          
         </div>
       </section>
 
+      <!-- Contador de resultados -->
+      <p id="results-count" class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 text-center"></p>
+
       <!-- Grid de Resultados Dinámicos -->
       <div id="result-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-        <!-- Las tarjetas de países se inyectarán de forma reactiva aquí -->
       </div>
+
+      <!-- Botón Load More -->
+      <div id="load-more-container" class="hidden mt-12 flex justify-center">
+        <button id="btn-load-more" class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm uppercase tracking-wider transition-all cursor-pointer shadow-md active:scale-95">
+          Load More Countries
+        </button>
+      </div>
+
     </main>
   `;
 };
