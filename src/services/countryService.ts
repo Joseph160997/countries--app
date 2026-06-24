@@ -1,14 +1,16 @@
 import type { Country } from "../types/Country";
-import type { RestCountriesResponse } from "../types/RestCountryDTO";
+import type {
+  RestCountriesResponse,
+  RestCountryDTO,
+} from "../types/RestCountryDTO";
 import { mapToCountry, unwrapResponse } from "../mappers/CountryMapper";
 import { isRestCountriesResponse } from "../validators/restCountriesValidator";
 import { httpClient } from "../utils/http";
 import { storage } from "../utils/db";
 
 const API_KEY = import.meta.env.VITE_COUNTRIES_API_KEY;
-const BASE_URL = "https://api.restcountries.com/v5";
+const BASE_URL = "https://api.restcountries.com/countries/v5";
 
-// Campos mínimos requeridos por el mapper para mantener la respuesta pequeña [1, 3]
 const REQUIRED_FIELDS = [
   "codes",
   "names",
@@ -30,43 +32,64 @@ const options = {
   },
 };
 
-/**
- * Obtiene países de la API en "chunks" predecibles usando paginación [4].
- */
 export const getAllCountries = async (
   favoriteCodes: string[],
-  limit: number = 20, // Por defecto 20 países por página
-  offset: number = 0, // Empieza desde el primer registro
 ): Promise<Country[]> => {
-  if (!BASE_URL) throw new Error("La URL de la API no fue proporcionada.");
+  console.log("[getAllCountries] Iniciando carga completa...");
 
   try {
-    // Stackeamos filtros: campos específicos + límite + desplazamiento [2, 4]
-    const url = `${BASE_URL}/all?response_fields=${REQUIRED_FIELDS}&limit=${limit}&offset=${offset}`;
+    const LIMIT = 100; // Máximo del plan gratuito
+    let offset = 0; // Paginación
+    let hasMore = true;
+    const allDtos: RestCountryDTO[] = [];
 
-    const rawResponse = await httpClient<RestCountriesResponse>(url, {
-      ...options,
-      validator: isRestCountriesResponse,
-    });
+    // Paginación interna hasta agotar todos los países
+    while (hasMore) {
+      const url = `${BASE_URL}?response_fields=${REQUIRED_FIELDS}&limit=${LIMIT}&offset=${offset}`;
+      console.log(`[getAllCountries] Fetching offset=${offset}...`);
 
-    const dtos = unwrapResponse(rawResponse);
-    const countries = dtos.map((dto) => mapToCountry(dto, favoriteCodes));
+      const rawResponse = await httpClient<RestCountriesResponse>(url, {
+        ...options,
+        validator: isRestCountriesResponse,
+      });
 
-    // Guardado offline en segundo plano (non-blocking)
+      const dtos = unwrapResponse(rawResponse);
+      allDtos.push(...dtos);
+
+      // La propia API nos dice si hay más páginas
+      hasMore = rawResponse.data.meta.more;
+      offset += LIMIT;
+
+      console.log(
+        `[getAllCountries] Acumulados: ${allDtos.length} / ${rawResponse.data.meta.total}`,
+      );
+    }
+
+    const countries = allDtos.map((dto) => mapToCountry(dto, favoriteCodes));
+    console.log(
+      `[getAllCountries] ✅ ${countries.length} países cargados en total`,
+    );
+
+    // Guardamos TODO en IndexedDB para offline
     storage.saveAll<Country>("countries", countries).catch(console.error);
 
     return countries;
   } catch (error) {
-    console.error("[getAllCountries] Fallo de red:", error);
+    console.error("[getAllCountries] ❌ Fallo de red:", error);
 
     try {
       const cached = await storage.get<Country>("countries");
       const cachedCountries = Array.isArray(cached) ? cached : [cached];
-      if (cachedCountries.length > 0) return cachedCountries;
+      if (cachedCountries.length > 0) {
+        console.log(
+          `[getAllCountries] 📦 Sirviendo ${cachedCountries.length} países desde caché`,
+        );
+        return cachedCountries;
+      }
     } catch (dbError) {
-      console.error("[getAllCountries] Fallo de caché:", dbError);
+      console.error("[getAllCountries] ❌ Fallo de caché:", dbError);
     }
 
-    throw new Error("Error: No hay conexión ni datos locales disponibles.");
+    throw new Error("No hay conexión ni datos locales disponibles.");
   }
 };
