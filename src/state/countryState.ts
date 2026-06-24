@@ -7,6 +7,7 @@ import { storageService } from "../utils/localStorage";
 // 1. ESTADO PRIVADO
 // ========================================================
 
+let isLoading: boolean = false;
 let countries: Country[] = [];
 let filteredCountries: Country[] = [];
 let searchQuery = "";
@@ -89,6 +90,9 @@ export const subscribe = (callback: () => void): (() => void) => {
 // 4. SELECTORES
 // ========================================================
 
+/** Devuelve el estado de carga */
+export const getIsLoading = (): boolean => isLoading;
+
 /**
  * Devuelve solo el slice visible del resultado filtrado.
  * El DOM nunca renderiza más de `visibleCount` tarjetas.
@@ -121,11 +125,17 @@ export const getSort = (): SortCriteria => currentSort;
 // ========================================================
 
 export const loadCountries = async (favoriteCodes: string[]): Promise<void> => {
+  isLoading = true; // modificamos el estado de carga
+  notify(); // 🔔 Notifica para que renderUI muestre los skeletons
+
   try {
     countries = await getAllCountries(favoriteCodes);
-    applyFilters();
+    applyFilters(); // applyFilters llama notify() internamente
   } catch (error) {
     console.error("[Estado] Error en la carga coordinada:", error);
+  } finally {
+    isLoading = false;
+    notify(); // 🔔 Notifica para que renderUI muestre las tarjetas reales
   }
 };
 

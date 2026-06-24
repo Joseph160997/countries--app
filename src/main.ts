@@ -19,8 +19,10 @@ import {
   loadMore,
   hasMore,
   getFilteredTotal,
+  getIsLoading,
 } from "./state/countryState";
 import { debounce } from "./utils/debounce";
+import { renderSkeletonGrid } from "./components/skeleton";
 import {
   renderCountryCard,
   renderCountryDetailModal,
@@ -65,6 +67,16 @@ const resultsCountEl =
 // ========================================================
 const renderUI = (): void => {
   if (!resultsContainer) return;
+
+  //  Si está cargando, mostramos skeletons y salimos
+  if (getIsLoading()) {
+    resultsContainer.innerHTML = renderSkeletonGrid(20);
+
+    // Ocultamos el contador y el load more mientras carga
+    if (resultsCountEl) resultsCountEl.textContent = "";
+    if (loadMoreContainer) loadMoreContainer.classList.add("hidden");
+    return;
+  }
 
   // --- GRILLA ---
   const countriesToRender = getCountries();
