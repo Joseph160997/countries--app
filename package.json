@@ -9,8 +9,8 @@
   "preview": "vite preview",
   "test": "vitest run",
   "test:ui": "vitest --ui",
-  "lint": "eslint ./src --ext .ts",
-  "lint:fix": "eslint ./src --ext .ts --fix",
+  "lint": "eslint ./src",
+  "lint:fix": "eslint ./src --fix",
   "format": "prettier --write ./src",
   "format:check": "prettier --check ./src",
   "ci": "npm run lint && npm run format:check && npm run build && npm run test"

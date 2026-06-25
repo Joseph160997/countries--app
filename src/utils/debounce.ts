@@ -6,6 +6,7 @@
  * @param immediate - Opción de ejecución inmediata.
  * @returns Una nueva versión de la función con el superpoder de retraso.
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const debounce = <T extends (...args: any[]) => void>(
   func: T,
   wait: number,

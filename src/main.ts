@@ -137,9 +137,8 @@ const renderUI = (): void => {
 // ========================================================
 // 4. SUSCRIPCIÓN REACTIVA
 // ========================================================
-const unsubscribe = subscribe(() => {
+subscribe(() => {
   renderUI();
-
   if (favsCounter) {
     favsCounter.textContent = getFavoriteCodes().length.toString();
   }
@@ -149,7 +148,6 @@ const unsubscribe = subscribe(() => {
 // 5. EVENTOS
 // ========================================================
 
-// Búsqueda con debounce
 const optimizedSearch = debounce((text: string) => {
   setSearchQuery(text);
 }, 350);
