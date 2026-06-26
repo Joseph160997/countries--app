@@ -20,7 +20,7 @@ type SortCriteria = "none" | "population-desc" | "name-asc";
 let currentSort: SortCriteria = "none";
 let selectedCountry: Country | null = null;
 
-// 🆕 Cuántos países mostramos en el DOM en este momento
+// Cuántos países mostramos en el DOM en este momento
 let visibleCount: number = 20;
 
 const SORT_KEY = "World_Explorer_Sort";
@@ -102,7 +102,7 @@ export const getCountries = (): Country[] => {
 };
 
 /**
- * 🆕 Indica si hay más países disponibles tras el slice visible.
+ * Indica si hay más países disponibles tras el slice visible.
  * La UI usa esto para mostrar u ocultar el botón "Load more".
  */
 export const hasMore = (): boolean => {
@@ -110,7 +110,7 @@ export const hasMore = (): boolean => {
 };
 
 /**
- * 🆕 Total de resultados filtrados (para mostrar "Mostrando X de Y").
+ *  Total de resultados filtrados (para mostrar "Mostrando X de Y").
  */
 export const getFilteredTotal = (): number => {
   return filteredCountries.length;
@@ -171,12 +171,14 @@ export const toggleShowFavorites = (): void => {
   applyFilters();
 };
 
+//** Aplica un nuevo criterio de ordenamiento */
 export const setSort = (criteria: SortCriteria): void => {
   currentSort = criteria;
   storageService.save(SORT_KEY, criteria);
   applyFilters();
 };
 
+/** Recupera el criterio de ordenamiento guardado */
 export const initSort = (): void => {
   const savedSort = storageService.get<SortCriteria>(SORT_KEY);
   if (savedSort) currentSort = savedSort;
