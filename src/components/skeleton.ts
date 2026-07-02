@@ -1,5 +1,3 @@
-// src/components/skeleton.ts
-
 /**
  * Genera una tarjeta skeleton que imita la forma de una CountryCard real.
  * La animación pulse es nativa de Tailwind — no necesita JS.

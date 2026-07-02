@@ -12,11 +12,33 @@
 
 ---
 
+## Tabla de contenido
+
+- [Demo](#demo)
+- [¿Qué hace esta aplicación?](#qué-hace-esta-aplicación)
+- [Características](#características)
+- [Arquitectura](#arquitectura)
+- [Flujo de datos](#flujo-de-datos)
+- [Stack técnico](#stack-técnico)
+- [Instalación](#instalación)
+- [Scripts disponibles](#scripts-disponibles)
+- [Testing](#testing)
+- [CI/CD](#cicd)
+- [Decisiones técnicas](#decisiones-técnicas)
+- [Roadmap](#roadmap)
+- [Lecciones aprendidas](#lecciones-aprendidas)
+- [Autor](#autor)
+
 ## Demo
 
-🔗 **[world-explorer.github.io/countries--app](https://tuusuario.github.io/countries--app/)**
+🔗 **[joseph160997.github.io/countries--app](https://joseph160997.github.io/countries--app/)**
 
-![World Explorer screenshot](./public/screenshot.png)
+![World Explorer imagenes]
+
+<p align="center">
+  <img src="./docs/imagenes/dark-mode.jpg" width="280">
+  <img src="./docs/imagenes/light-mode.jpg" width="280">
+</p>
 
 ---
 
@@ -286,11 +308,11 @@ El patrón de renderizado es intencional: cada llamada a `renderUI()` reconstruy
 
 ## Autor
 
-**Tu nombre**
+**Joseph**
 
-- GitHub: [@tuusuario](https://github.com/tuusuario)
-- LinkedIn: [linkedin.com/in/tuusuario](https://linkedin.com/in/tuusuario)
-- Portfolio: [tuportfolio.dev](https://tuportfolio.dev)
+- GitHub: [@joseph160997](https://github.com/joseph160997)
+- LinkedIn: [linkedin.com/in/joseph160997](https://linkedin.com/in/joseph160997)
+- Portfolio: [joseph160997.github.io](https://joseph160997.github.io)
 
 ---
 

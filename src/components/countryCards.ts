@@ -20,7 +20,7 @@ export const renderCountryCard = (country: Country): string => {
       
       <div class="p-5 grow flex flex-col justify-between">
         <div>
-          <h3 class="font-bold text-lg text-slate-900 dark:text-slate-100 mb-3 tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          <h3 class="font-bold text-lg text-slate-900 dark:text-slate-700 mb-3 tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
             ${country.name}
           </h3>
           <div class="space-y-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">

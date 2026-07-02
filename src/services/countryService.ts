@@ -37,6 +37,19 @@ const options = {
   },
 };
 
+/**
+ * Obtiene todos los países desde la API o desde el caché local.
+ * @param favoriteCodes
+ * @returns Lista de países con información básica y estado de favorito
+ * @throws Error si no hay conexión ni datos locales disponibles
+ * @remarks
+ * - Estrategia: Cache-first. Primero intenta servir desde IndexedDB si el caché es válido.
+ * - Si el caché es inválido o no existe, hace fetch a la API y actualiza el caché.
+ * - Si la red falla y hay caché expirado, sirve el caché expirado como último recurso.
+ * - Los favoritos se aplican sobre los datos obtenidos, ya sea del caché o de la red.
+ * - El caché se considera válido si tiene menos de 24 horas.
+ * - La API limita la cantidad de resultados por request a 250, por lo que se hace paginación.
+ */
 export const getAllCountries = async (
   favoriteCodes: string[],
 ): Promise<Country[]> => {
@@ -76,7 +89,7 @@ export const getAllCountries = async (
   try {
     const LIMIT = 100;
     let offset = 0;
-    let hasMore = true;
+    let hasMore = true; // La API indica si hay más resultados en meta.more
     const allDtos: RestCountryDTO[] = [];
 
     while (hasMore) {
@@ -99,6 +112,7 @@ export const getAllCountries = async (
       );
     }
 
+    // Mapeamos los DTOs a nuestro modelo de Country
     const countries = allDtos.map((dto) => mapToCountry(dto, favoriteCodes));
     console.log(`[Network] ✅ ${countries.length} países cargados`);
 
