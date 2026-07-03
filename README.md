@@ -1,6 +1,8 @@
 # 🌍 World Explorer v2
 
-> Aplicación SPA de exploración de países del mundo construida con **TypeScript vanilla**, sin frameworks de UI. Arquitectura en capas, estado reactivo con patrón Observer, caché offline con IndexedDB y CI/CD automatizado con GitHub Actions.
+> World Explorer es una aplicación de página única (SPA) desarrollada con **Vanilla TypeScript**, **Vite** y **Tailwind CSS**, creada con el objetivo de explorar cómo construir una aplicación frontend moderna sin depender de frameworks de interfaz.
+
+Más allá de consumir una API, este proyecto fue concebido como un ejercicio de ingeniería de software para diseñar una arquitectura modular, escalable y mantenible. Durante su desarrollo se implementaron conceptos como gestión de estado, separación de responsabilidades, transformación de datos, persistencia local, optimización del rendimiento y testing, buscando comprender los fundamentos que suelen abstraer frameworks como React o Vue.
 
 <p align="center">
   <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
@@ -12,62 +14,78 @@
 
 ---
 
-## Tabla de contenido
+## 📑 Tabla de contenido
 
-- [Demo](#demo)
-- [¿Qué hace esta aplicación?](#qué-hace-esta-aplicación)
-- [Características](#características)
-- [Arquitectura](#arquitectura)
-- [Flujo de datos](#flujo-de-datos)
-- [Stack técnico](#stack-técnico)
-- [Instalación](#instalación)
-- [Scripts disponibles](#scripts-disponibles)
-- [Testing](#testing)
-- [CI/CD](#cicd)
-- [Decisiones técnicas](#decisiones-técnicas)
-- [Roadmap](#roadmap)
-- [Lecciones aprendidas](#lecciones-aprendidas)
-- [Autor](#autor)
-
-## Demo
-
-🔗 **[joseph160997.github.io/countries--app](https://joseph160997.github.io/countries--app/)**
-
-![World Explorer imagenes]
-
-<p align="center">
-  <img src="./docs/imagenes/dark-mode.jpg" width="280">
-  <img src="./docs/imagenes/light-mode.jpg" width="280">
-</p>
+- [🚀 Demo y Capturas](#-demo-y-capturas)
+- [🎯 Sobre el Proyecto](#-sobre-el-proyecto)
+- [✨ Características](#-características)
+- [🏗️ Arquitectura](#-arquitectura)
+- [🔄 Flujo de Datos](#-flujo-de-datos)
+- [🛠️ Stack Técnico](#-stack-técnico)
+- [💻 Instalación y Scripts](#-instalación-y-scripts)
+- [🧪 Testing](#-testing)
+- [⚙️ CI/CD](#-cicd)
+- [💡 Decisiones Técnicas](#-decisiones-técnicas)
+- [🗺️ Roadmap](#-roadmap)
+- [🧠 Lecciones Aprendidas](#-lecciones-aprendidas)
+- [👨‍💻 Autor](#-autor)
 
 ---
 
-## ¿Qué hace esta aplicación?
+## 🚀 Demo y Capturas
 
-World Explorer consume la [REST Countries API v5](https://api.restcountries.com) para mostrar información de todos los países del mundo. El usuario puede buscar, filtrar, ordenar y marcar favoritos — todo sin recargar la página y con soporte offline gracias a IndexedDB.
+🔗 **[Ver Demo en Vivo](https://joseph160997.github.io/countries--app/)**
 
----
-
-## Características
-
-- **Búsqueda en tiempo real** con debounce optimizado (350ms)
-- **Filtrado por región** (África, Américas, Asia, Europa, Oceanía)
-- **Ordenación** por población descendente o nombre A-Z, persistida entre sesiones
-- **Favoritos** guardados en `localStorage`, sin backend
-- **Paginación virtual** — carga 20 países por página, todo en RAM
-- **Modal de detalle** con navegación entre países fronterizos
-- **Modo oscuro / claro** con detección de preferencia del sistema
-- **Caché offline** — estrategia _cache-first_ con IndexedDB (TTL: 24h)
-- **Skeleton loading** — feedback visual durante la carga inicial
-- **Diseño responsive** — mobile-first con Tailwind CSS v4
+<table>
+  <tr>
+    <td align="center"><strong>🌙 Dark Mode</strong></td>
+    <td align="center"><strong>☀️ Light Mode</strong></td>
+  </tr>
+  <tr>
+    <td><img src="./docs/imagenes/dark-mode.jpg" width="400" alt="World Explorer Dark Mode"></td>
+    <td><img src="./docs/imagenes/light-mode.jpg" width="400" alt="World Explorer Light Mode"></td>
+  </tr>
+</table>
 
 ---
 
-## Arquitectura
+## 🎯 Sobre el Proyecto
+
+Este proyecto nació como un desafío personal para profundizar en los fundamentos del desarrollo frontend moderno construyendo una aplicación real **sin depender de frameworks de interfaz**.
+
+El objetivo no era simplemente consumir una API REST, sino comprender y poner en práctica conceptos de ingeniería de software que normalmente permanecen ocultos tras herramientas como React, Vue o Angular. A lo largo del desarrollo se buscó aplicar principios como:
+
+- 🧱 **Arquitectura modular** y separación estricta de responsabilidades.
+- 📡 **Gestión de estado** mediante el patrón Observer.
+- 🔄 **Transformación de datos** (DTOs a modelos de dominio).
+- 💾 **Persistencia local** con IndexedDB y LocalStorage.
+- ⚡ **Optimización del rendimiento** (caché y renderizado incremental).
+- 🛡️ **Desarrollo guiado por tipos** (TypeScript en modo `strict`).
+
+Más que una aplicación para explorar países, **World Explorer** representa un recorrido de aprendizaje orientado a comprender cómo se construyen aplicaciones frontend escalables desde sus cimientos.
+
+---
+
+## ✨ Características
+
+- 🔍 **Búsqueda en tiempo real** con debounce optimizado (350ms).
+- 🌎 **Filtrado por región** (África, Américas, Asia, Europa, Oceanía).
+- 🔠 **Ordenación** por población descendente o nombre A-Z (persistida entre sesiones).
+- ⭐ **Favoritos** guardados en `localStorage`, sin necesidad de backend.
+- 📄 **Paginación virtual** — carga 20 países por página, manteniendo todo en RAM.
+- 🪟 **Modal de detalle** con navegación entre países fronterizos.
+- 🌓 **Modo oscuro / claro** con detección automática de preferencia del sistema.
+- 📦 **Caché offline** — estrategia _cache-first_ con IndexedDB (TTL: 24h).
+- 💀 **Skeleton loading** — feedback visual durante la carga inicial.
+- 📱 **Diseño responsive** — _mobile-first_ con Tailwind CSS v4.
+
+---
+
+## 🏗️ Arquitectura
 
 El proyecto sigue una arquitectura en capas estricta donde cada módulo tiene **una única responsabilidad**. El dato fluye en una sola dirección: de la API hasta el DOM.
 
-```
+```text
 REST Countries API
         │
         ▼
@@ -86,7 +104,7 @@ REST Countries API
   [ UI / main.ts ]       ← Suscriptores que renderizan el DOM cuando el estado cambia
 ```
 
-### Estructura de archivos
+### 📂 Estructura de archivos
 
 ```
 src/
@@ -126,7 +144,7 @@ src/
 
 ---
 
-## Flujo de datos
+## 🔄 Flujo de datos
 
 ```
 Usuario escribe en el input
@@ -149,7 +167,7 @@ renderUI()                  ← Vuelca el estado al DOM con innerHTML
 
 ---
 
-## Stack técnico
+## 🧰 Stack técnico
 
 | Categoría     | Tecnología                      | Decisión                              |
 | ------------- | ------------------------------- | ------------------------------------- |
@@ -165,7 +183,7 @@ renderUI()                  ← Vuelca el estado al DOM con innerHTML
 
 ---
 
-## Instalación
+## ⚙️ Instalación
 
 ### Requisitos
 
@@ -197,7 +215,7 @@ VITE_COUNTRIES_API_KEY=tu_api_key_aqui
 
 ---
 
-## Scripts disponibles
+## 📜 Scripts disponibles
 
 ```bash
 npm run dev           # Servidor de desarrollo con HMR
@@ -214,7 +232,7 @@ npm run ci            # Pipeline completo: lint + format + build + test
 
 ---
 
-## Testing
+## 🧪 Testing
 
 El proyecto incluye tests unitarios para las tres capas con lógica pura: el mapper, los servicios y el estado.
 
@@ -223,7 +241,7 @@ npm run test          # Todos los tests
 npm run test:ui       # Tests con UI interactiva (Vitest UI)
 ```
 
-### Cobertura por módulo
+### 📊 Cobertura por módulo
 
 | Módulo            | Tests    | Qué se prueba                                                |
 | ----------------- | -------- | ------------------------------------------------------------ |
@@ -239,7 +257,7 @@ npm run test:ui       # Tests con UI interactiva (Vitest UI)
 
 ---
 
-## CI/CD
+## 🔁 CI/CD
 
 El pipeline se ejecuta automáticamente en cada `push` a `main` o `develop` y en cada Pull Request.
 
@@ -263,7 +281,7 @@ GitHub Actions (CI)
 
 ---
 
-## Decisiones técnicas
+## 🧠 Decisiones técnicas
 
 ### ¿Por qué sin framework de UI?
 
@@ -283,18 +301,18 @@ El patrón de renderizado es intencional: cada llamada a `renderUI()` reconstruy
 
 ---
 
-## Roadmap
+## 🛣️ Roadmap
 
-- [ ] Página de detalle de país con URL propia (`/country/:cca3`)
-- [ ] Filtro por rango de población con slider
-- [ ] Internacionalización (i18n) — soporte para español e inglés
-- [ ] Service Worker para soporte offline completo (PWA)
-- [ ] Conectar el formulario de feedback a un backend (Supabase o similar)
-- [ ] Aumentar cobertura de tests al 90%+ con tests de integración
+- 🌐 Página de detalle de país con URL propia (/country/:cca3)
+- 📊 Filtro por rango de población con slider
+- 🌍 Internacionalización (i18n) — soporte para español e inglés
+- 📱 Service Worker para soporte offline completo (PWA)
+- 🔗 Conectar el formulario de feedback a un backend (Supabase o similar)
+- 📈 Aumentar cobertura de tests al 90%+ con tests de integración
 
 ---
 
-## Lecciones aprendidas
+## 💡 Lecciones aprendidas
 
 **El patrón Observer escala sorprendentemente bien** para aplicaciones medianas. La separación entre "quién cambia el estado" y "quién reacciona al cambio" hace el código mucho más fácil de depurar.
 
@@ -306,14 +324,15 @@ El patrón de renderizado es intencional: cada llamada a `renderUI()` reconstruy
 
 ---
 
-## Autor
+## 👤 Autor
 
 **Joseph**
 
-- GitHub: [@joseph160997](https://github.com/joseph160997)
-- LinkedIn: [linkedin.com/in/joseph160997](https://linkedin.com/in/joseph160997)
-- Portfolio: [joseph160997.github.io](https://joseph160997.github.io)
+- 🐙 GitHub: [@joseph160997](https://github.com/joseph160997)
+- 💼 LinkedIn: [linkedin.com/in/joseph160997](https://linkedin.com/in/joseph160997)
+- 🌐 Portfolio: [joseph160997.github.io](https://joseph160997.github.io)
 
 ---
 
-<p align="center">Construido con TypeScript puro · Sin frameworks · Con mucho café ☕</p>
+<p align="center">Este proyecto fue construido como una oportunidad para aprender, experimentar y comprender cómo funcionan las aplicaciones frontend modernas desde sus fundamentos. Si alguna decisión de arquitectura te llamó la atención o tienes sugerencias para mejorarla, estará encantado de conversar sobre ello.</p>
+<p align="center">"Diseñado para comprender cómo funcionan internamente las aplicaciones front-end modernas." Con mucho café ☕</p>

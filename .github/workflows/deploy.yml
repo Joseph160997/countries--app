@@ -1,7 +1,6 @@
 name: Deploy
 
 on:
-  # Solo se activa cuando el workflow CI termina con éxito en main
   workflow_run:
     workflows: ["CI"]
     branches: [main]
@@ -11,8 +10,11 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
-    # Doble seguro: solo despliega si el CI pasó, no si falló
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
 
     permissions:
       contents: read
@@ -39,7 +41,6 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Tu API key viene de los Secrets de GitHub, nunca del código
           VITE_COUNTRIES_API_KEY: ${{ secrets.VITE_COUNTRIES_API_KEY }}
 
       - name: Setup Pages
@@ -53,8 +54,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-        with:
-          enablement: true
