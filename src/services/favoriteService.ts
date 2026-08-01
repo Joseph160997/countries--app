@@ -1,39 +1,50 @@
 import { storageService } from "../utils/localStorage";
 import { showToast } from "../utils/toast";
+import { err, ok, unwrapOr, type Result } from "../shared/result";
+import type { AppError } from "../domain/errors";
 
 /** Clave única para World Explorer */
 export const FAVS_KEY = "world_explorer_favs";
 
 /**
  * Type Guard: Valida que el dato recuperado sea un array de strings (códigos CCA3).
- * Esto previene errores si el LocalStorage es manipulado externamente. [2]
  */
 export const isValidFavList = (data: unknown): data is string[] => {
   return Array.isArray(data) && data.every((item) => typeof item === "string");
 };
 
 /**
- * Recupera la lista de códigos de países favoritos.
- * Devuelve siempre un array para que la UI nunca rompa. [3, 4]
+ * Recupera la lista de códigos favoritos.
+ *
+ * ANTES: devolvía [] tanto para "sin favoritos" como para "datos corruptos"
+ *        → el fallo era invisible.
+ * AHORA: ok([]) si no hay datos, ok(codes) si son válidos,
+ *        err(storage) si están corruptos → el caller decide.
  */
-export const getFavoriteCodes = (): string[] => {
-  const data = storageService.get<string[]>(FAVS_KEY);
-  return isValidFavList(data) ? data : [];
+export const getFavoriteCodes = (): Result<string[], AppError> => {
+  const data = storageService.get<unknown>(FAVS_KEY);
+
+  if (data === null) return ok([]);
+  if (isValidFavList(data)) return ok(data);
+
+  return err({
+    kind: "storage",
+    message: `Favorites data is corrupt: ${JSON.stringify(data)}`,
+  });
 };
 
 /**
  * Determina si un país específico es favorito por su código.
  */
 export const isCountryFavorite = (cca3: string): boolean => {
-  return getFavoriteCodes().includes(cca3);
+  return unwrapOr(getFavoriteCodes(), []).includes(cca3);
 };
 
 /**
  * Lógica de negocio para agregar/quitar favoritos.
- * Solo guarda los códigos (IDs) para mantener el almacenamiento ligero.
  */
 export const toggleFavoritePersistence = (cca3: string): boolean => {
-  const favorites = getFavoriteCodes();
+  const favorites = unwrapOr(getFavoriteCodes(), []);
   const isFav = favorites.includes(cca3);
 
   const updatedFavs = isFav
@@ -42,11 +53,10 @@ export const toggleFavoritePersistence = (cca3: string): boolean => {
 
   storageService.save(FAVS_KEY, updatedFavs);
 
-  // Feedback visual usando tu sistema de Toasts
   showToast(
     isFav ? "Removed from favorites" : "Added to favorites",
     isFav ? "info" : "success",
   );
 
-  return !isFav; // Retorna el nuevo estado para uso inmediato
+  return !isFav;
 };
