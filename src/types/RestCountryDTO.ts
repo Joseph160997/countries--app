@@ -7,10 +7,8 @@
  * Este DTO representa un único objeto dentro de data.objects.
  */
 
-// ======================================================
 // RESPONSE WRAPPER
 // (lo que devuelve el fetch antes de desempaquetar)
-// ======================================================
 
 export interface RestCountriesResponse {
   readonly data: {
@@ -25,9 +23,7 @@ export interface RestCountriesResponse {
   };
 }
 
-// ======================================================
 // DTO PRINCIPAL
-// ======================================================
 
 export interface RestCountryDTO {
   // --------------------------------------------------
