@@ -1,4 +1,6 @@
 import "./style.css";
+import { isErr, unwrapOr } from "./shared/result";
+
 import { initializeLayout } from "./components/layout";
 import {
   subscribe,
@@ -140,7 +142,10 @@ const renderUI = (): void => {
 subscribe(() => {
   renderUI();
   if (favsCounter) {
-    favsCounter.textContent = getFavoriteCodes().length.toString();
+    favsCounter.textContent = unwrapOr(
+      getFavoriteCodes(),
+      [],
+    ).length.toString();
   }
 });
 
@@ -315,14 +320,17 @@ modalContainer?.addEventListener("click", (e) => {
 // 6. ARRANQUE
 // ========================================================
 const startApp = async (): Promise<void> => {
-  const favsCounter = document.querySelector<HTMLSpanElement>(
-    "#favs-count-display",
-  );
   initSort();
   initTheme();
 
-  const savedFavorites = getFavoriteCodes();
-  if (favsCounter) favsCounter.textContent = savedFavorites.length.toString();
+  const favsResult = getFavoriteCodes();
+  if (isErr(favsResult)) {
+    console.warn(
+      "[Favorites] Corrupt data detected, starting with an empty list:",
+      favsResult.error.message,
+    );
+  }
+  const savedFavorites = unwrapOr(favsResult, []);
 
   try {
     await loadCountries(savedFavorites);
@@ -334,5 +342,4 @@ const startApp = async (): Promise<void> => {
   if (currentSort === "population-desc") updateSortButtonsUI(btnSortPop!);
   if (currentSort === "name-asc") updateSortButtonsUI(btnSortName!);
 };
-
 startApp();
