@@ -194,7 +194,7 @@ renderUI()                  ← Vuelca el estado al DOM con innerHTML
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tuusuario/countries--app.git
+git clone https://github.com/Joseph160997/countries--app.git
 cd countries--app
 
 # 2. Instalar dependencias
@@ -208,10 +208,11 @@ cp .env.example .env
 ### Variables de entorno
 
 ```env
-VITE_COUNTRIES_API_KEY=tu_api_key_aqui
+VITE_COUNTRIES_API_KEY=your_api_key_here
 ```
 
 > Puedes obtener una API key gratuita en [api.restcountries.com](https://api.restcountries.com).
+> ⚠️ **Nunca** commitees keys reales. Copia `.env.example` a `.env` y rellénalo localmente.
 
 ---
 
@@ -326,7 +327,7 @@ El patrón de renderizado es intencional: cada llamada a `renderUI()` reconstruy
 
 ## 👤 Autor
 
-**Joseph**
+**Joseph Ortega**
 
 - 🐙 GitHub: [@joseph160997](https://github.com/joseph160997)
 - 💼 LinkedIn: [linkedin.com/in/joseph160997](https://linkedin.com/in/joseph160997)

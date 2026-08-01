@@ -15,6 +15,11 @@ export const toggleTheme = (): boolean => {
   const htmlElement = document.documentElement;
   const isDark = htmlElement.classList.toggle("dark");
 
+  // Sincronizar data-theme
+  const newTheme = htmlElement.classList.contains("dark") ? "dark" : "light";
+  htmlElement.setAttribute("data-theme", newTheme);
+  document.body.setAttribute("data-theme", newTheme);
+
   // GUARDAMOS: Guardamos 'dark' o 'light' en el disco local del usuario
   storageService.save(THEME_KEY, isDark ? "dark" : "light");
 
@@ -43,4 +48,11 @@ export const initTheme = (): void => {
   } else {
     htmlElement.classList.remove("dark");
   }
+
+  // Sincronizar data-theme
+  const currentTheme = htmlElement.classList.contains("dark")
+    ? "dark"
+    : "light";
+  htmlElement.setAttribute("data-theme", currentTheme);
+  document.body.setAttribute("data-theme", currentTheme);
 };
