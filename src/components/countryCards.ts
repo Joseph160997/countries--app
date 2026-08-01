@@ -82,22 +82,21 @@ export const renderCountryDetailModal = (
       ? borderNames
           .map((name, index) => {
             const borderCode = country.borders?.[index] ?? "";
-
             return `
-          <button
-            class="btn-border px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-600 hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium transition-all cursor-pointer shadow-sm"
-            data-cca3="${borderCode}"
-          >
-            ${name}
-          </button>
-        `;
+            <span
+              class="border-chip inline-block px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 rounded-full text-xs font-medium transition-colors cursor-pointer hover:bg-emerald-200 dark:hover:bg-emerald-800/50"
+              data-cca3="${borderCode}"
+            >
+              ${name.trim()}
+            </span>
+          `;
           })
           .join("")
       : `
-    <span class="text-slate-400 italic text-sm">
-      No border countries
-    </span>
-  `;
+      <span class="text-slate-400 italic text-sm">
+        No border countries
+      </span>
+    `;
 
   return `
 <div class="relative w-full max-w-4xl bg-white dark:bg-slate-800/80 rounded-2xl shadow-xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50 animate-fade-in-up">
@@ -172,16 +171,8 @@ export const renderCountryDetailModal = (
       <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700/50">
         <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Border Countries</h4>
         <div class="flex flex-wrap gap-2">
-          ${bordersHTML
-            .replace(
-              /btn-border.*?data-cca3="([^"`]*)".*?>(.*?)<\/button>/g,
-              (_, cca3, name) => `
-            <span class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 rounded-full text-xs font-medium transition-colors cursor-pointer hover:bg-emerald-200 dark:hover:bg-emerald-800/50" data-cca3="${cca3}">
-              ${name.trim()}
-            </span>
-          `,
-            )
-            .trim()}
+  ${bordersHTML}
+</div>
         </div>
       </div>
 

@@ -299,9 +299,9 @@ modalContainer?.addEventListener("click", (e) => {
     return;
   }
 
-  const btnBorder = target.closest(".btn-border");
-  if (btnBorder) {
-    const nextCca3 = (btnBorder as HTMLElement).dataset.cca3;
+  const borderChip = target.closest(".border-chip");
+  if (borderChip) {
+    const nextCca3 = (borderChip as HTMLElement).dataset.cca3;
     if (nextCca3) openCountryModal(nextCca3);
     return;
   }
