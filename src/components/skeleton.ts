@@ -4,7 +4,7 @@
  */
 const renderSkeletonCard = (): string => {
   return `
-    <div class="bg-white dark:bg-slate-850 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-md overflow-hidden flex flex-col">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-md overflow-hidden flex flex-col">
       
       <!-- Imagen falsa -->
       <div class="h-40 bg-slate-200 dark:bg-slate-700 animate-pulse"></div>
