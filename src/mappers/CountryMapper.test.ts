@@ -6,9 +6,7 @@ import type {
   RestCountriesResponse,
 } from "../types/RestCountryDTO";
 
-// ======================================================
 // FIXTURES (Datos de prueba reutilizables)
-// ======================================================
 
 /**
  * DTO base completo que representa un país real.
@@ -42,9 +40,7 @@ const baseDtoComplete: RestCountryDTO = {
   tlds: [".co"],
 };
 
-// ======================================================
 // TESTS
-// ======================================================
 
 describe("CountryMapper", () => {
   // ====================================================
