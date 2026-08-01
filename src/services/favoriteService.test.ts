@@ -180,7 +180,7 @@ describe("favoriteService", () => {
 
       expectSavedFavorites(["ARG", "COL"]);
 
-      expect(showToast).toHaveBeenCalledWith("Agregado a favoritos", "success");
+      expect(showToast).toHaveBeenCalledWith("Added to favorites", "success");
     });
 
     it("should remove a country when it already exists", () => {
@@ -195,7 +195,7 @@ describe("favoriteService", () => {
 
       expectSavedFavorites(["ARG"]);
 
-      expect(showToast).toHaveBeenCalledWith("Eliminado de favoritos", "info");
+      expect(showToast).toHaveBeenCalledWith("Removed from favorites", "info");
     });
 
     it("should recover from corrupted storage data", () => {

@@ -42,9 +42,9 @@ export const toggleFavoritePersistence = (cca3: string): boolean => {
 
   storageService.save(FAVS_KEY, updatedFavs);
 
-  // Feedback visual usando tu sistema de Toasts [3, 5]
+  // Feedback visual usando tu sistema de Toasts
   showToast(
-    isFav ? "Eliminado de favoritos" : "Agregado a favoritos",
+    isFav ? "Removed from favorites" : "Added to favorites",
     isFav ? "info" : "success",
   );
 

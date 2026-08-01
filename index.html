@@ -1,18 +1,31 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth" data-theme="light"> 
+<html lang="en" class="scroll-smooth">
   <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>World Explorer v2 - Senior Frontend</title>
+    <script>
+      // Anti-FOUC: aplica el tema guardado ANTES del primer render.
+      // storageService serializa con JSON.stringify, así que el valor
+      // guardado viene con comillas: '"dark"' → hay que parsearlo igual.
+      (function () {
+        try {
+          var stored = JSON.parse(localStorage.getItem("app_theme") || "null");
+          var isDark =
+            stored === "dark" ||
+            (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (isDark) document.documentElement.classList.add("dark");
+          document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+        } catch {
+          /* localStorage no disponible (modo privado) → default light */
+        }
+      })();
+    </script>
   </head>
-  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col" data-theme="light">
-    
+  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col">
     <div id="app" class="flex flex-col grow"></div>
-
-    <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md hidden">
-      </div>
-
+    <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md hidden"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
