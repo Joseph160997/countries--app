@@ -1,5 +1,6 @@
 import type { Country, Region } from "@/domain/country";
-import { getAllCountries } from "@/infrastructure/api/restCountries/country.client";
+import type { CountryRepository } from "@/domain/ports/country.repository";
+import { isErr } from "@/shared/result";
 import { toggleFavoritePersistence } from "@/presentation/services/favoriteService";
 import { storageService } from "@/infrastructure/persistence/localStorage.store";
 
@@ -19,6 +20,9 @@ let minPopulation: number = 0;
 type SortCriteria = "none" | "population-desc" | "name-asc";
 let currentSort: SortCriteria = "none";
 let selectedCountry: Country | null = null;
+
+// Dependencia inyectada: el puerto, nunca el adapter concreto
+let countryRepository: CountryRepository | null = null;
 
 // Cuántos países mostramos en el DOM en este momento
 let visibleCount: number = 20;
@@ -124,21 +128,45 @@ export const getSort = (): SortCriteria => currentSort;
 // 5. ACCIONES
 // ========================================================
 
-export const loadCountries = async (favoriteCodes: string[]): Promise<void> => {
-  isLoading = true; // modificamos el estado de carga
-  notify(); // 🔔 Notifica para que renderUI muestre los skeletons
-
-  try {
-    countries = await getAllCountries(favoriteCodes);
-    applyFilters(); // applyFilters llama notify() internamente
-  } catch (error) {
-    console.error("[Estado] Error en la carga coordinada:", error);
-  } finally {
-    isLoading = false;
-    notify(); // 🔔 Notifica para que renderUI muestre las tarjetas reales
-  }
+/**
+ * Inyección de dependencias — la ejecuta el composition root (main.ts).
+ * Este módulo depende de la ABSTRACCIÓN, no de REST Countries.
+ */
+export const initCountryState = (repository: CountryRepository): void => {
+  countryRepository = repository;
 };
 
+export const loadCountries = async (favoriteCodes: string[]): Promise<void> => {
+  // Esto es un bug de programación, no un fallo del negocio:
+  // por eso SÍ se lanza. Excepciones para bugs, Result para fallos esperados.
+  if (!countryRepository) {
+    throw new Error(
+      "[State] Debes llamar a initCountryState() antes de loadCountries()",
+    );
+  }
+
+  isLoading = true;
+  notify(); // 🔔 skeletons
+
+  try {
+    const result = await countryRepository.getAll(favoriteCodes);
+
+    if (isErr(result)) {
+      console.error(
+        "[Estado] Error en la carga coordinada:",
+        result.error.message,
+      );
+    } else {
+      countries = result.value;
+      applyFilters(); // llama notify() internamente
+    }
+  } finally {
+    // El Result eliminó el catch, pero el finally queda como
+    // seguro contra bugs: el loading nunca queda colgado.
+    isLoading = false;
+    notify(); // 🔔 tarjetas reales
+  }
+};
 /**
  * 🆕 Amplía la ventana visible en 20 países más.
  * No hace ningún request — todo está en RAM.

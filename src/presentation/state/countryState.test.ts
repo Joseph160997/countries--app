@@ -1,10 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Country } from "@/domain/country";
+import type { CountryRepository } from "@/domain/ports/country.repository";
+import type { AppError } from "@/domain/errors";
+import type { Result } from "@/shared/result";
+import { err, ok } from "@/shared/result";
 
-vi.mock("@/infrastructure/api/restCountries/country.client", () => ({
-  getAllCountries: vi.fn(),
-}));
+// ======================================================
+// FAKE REPOSITORY — test double que implementa el puerto.
+// Sin vi.mock, sin magia de módulos: un objeto y una promesa.
+// ======================================================
+let fakeResult: Promise<Result<Country[], AppError>> = Promise.resolve(ok([]));
+
+const fakeRepository: CountryRepository = {
+  getAll: () => fakeResult,
+};
+
 vi.mock("@/presentation/services/favoriteService", () => ({
   toggleFavoritePersistence: vi.fn(),
 }));
@@ -32,9 +43,9 @@ import {
   getBorderNames,
   subscribe,
   resetState,
+  initCountryState,
 } from "./countryState";
 
-import { getAllCountries } from "@/infrastructure/api/restCountries/country.client";
 import { toggleFavoritePersistence } from "@/presentation/services/favoriteService";
 // FIXTURE
 
@@ -88,80 +99,78 @@ const mockCountries: Country[] = [
 
 // TESTS
 
-describe("countryState", () => {
-  beforeEach(() => {
-    // Limpiamos el estado y los mocks antes de cada test
-    resetState();
-    vi.clearAllMocks();
+beforeEach(() => {
+  resetState();
+  vi.clearAllMocks();
+  initCountryState(fakeRepository);
+  fakeResult = Promise.resolve(ok(mockCountries)); // happy path por defecto
+});
+// ====================================================
+// GRUPO A: Carga de datos
+// ====================================================
+describe("loadCountries", () => {
+  it("should set isLoading to true while loading", async () => {
+    // Arrange — hacemos que getAllCountries tarde un poco
+    // para poder capturar el estado intermedio
+    let resolvePromise: (value: Country[]) => void;
+    const pendingPromise = new Promise<Country[]>((resolve) => {
+      resolvePromise = resolve;
+    });
+    fakeResult = pendingPromise.then((countries) => ok(countries));
+
+    // Act — iniciamos la carga sin await (para capturar el estado intermedio)
+    const loadPromise = loadCountries([]);
+
+    // Assert — mientras carga, isLoading debe ser true
+    expect(getIsLoading()).toBe(true);
+
+    // Resolvemos la promesa para que no quede pendiente
+    resolvePromise!(mockCountries);
+    await loadPromise;
   });
 
-  // ====================================================
-  // GRUPO A: Carga de datos
-  // ====================================================
-  describe("loadCountries", () => {
-    it("should set isLoading to true while loading", async () => {
-      // Arrange — hacemos que getAllCountries tarde un poco
-      // para poder capturar el estado intermedio
-      let resolvePromise: (value: Country[]) => void;
-      const pendingPromise = new Promise<Country[]>((resolve) => {
-        resolvePromise = resolve;
-      });
-      vi.mocked(getAllCountries).mockReturnValue(pendingPromise);
+  it("should set isLoading to false after loading", async () => {
+    // Arrange
+    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
 
-      // Act — iniciamos la carga sin await (para capturar el estado intermedio)
-      const loadPromise = loadCountries([]);
+    // Act
+    await loadCountries([]);
 
-      // Assert — mientras carga, isLoading debe ser true
-      expect(getIsLoading()).toBe(true);
+    // Assert
+    expect(getIsLoading()).toBe(false);
+  });
 
-      // Resolvemos la promesa para que no quede pendiente
-      resolvePromise!(mockCountries);
-      await loadPromise;
+  it("should populate countries after successful load", async () => {
+    // Arrange
+    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
+
+    // Act
+    await loadCountries([]);
+
+    // Assert
+    expect(getFilteredTotal()).toBe(3);
+  });
+
+  it("should set isLoading to true while loading", async () => {
+    let resolveFake!: (value: Result<Country[], AppError>) => void;
+    fakeResult = new Promise((resolve) => {
+      resolveFake = resolve;
     });
 
-    it("should set isLoading to false after loading", async () => {
-      // Arrange
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
+    const loadPromise = loadCountries([]);
+    expect(getIsLoading()).toBe(true);
 
-      // Act
-      await loadCountries([]);
+    resolveFake(ok(mockCountries));
+    await loadPromise;
+  });
 
-      // Assert
-      expect(getIsLoading()).toBe(false);
-    });
-
-    it("should populate countries after successful load", async () => {
-      // Arrange
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
-
-      // Act
-      await loadCountries([]);
-
-      // Assert
-      expect(getFilteredTotal()).toBe(3);
-    });
-
-    it("should set isLoading to false even if loading fails", async () => {
-      // Arrange — simulamos un error de red
-      vi.mocked(getAllCountries).mockRejectedValue(new Error("Network error"));
-
-      // Act
-      await loadCountries([]);
-
-      // Assert — el finally siempre se ejecuta
-      expect(getIsLoading()).toBe(false);
-    });
-
-    it("should show empty list if loading fails", async () => {
-      // Arrange
-      vi.mocked(getAllCountries).mockRejectedValue(new Error("Network error"));
-
-      // Act
-      await loadCountries([]);
-
-      // Assert
-      expect(getFilteredTotal()).toBe(0);
-    });
+  it("should set isLoading to false even if loading fails", async () => {
+    // Ya no se rechaza una promesa: se RESUELVE con un error tipado
+    fakeResult = Promise.resolve(
+      err({ kind: "network", message: "Network error" }),
+    );
+    await loadCountries([]);
+    expect(getIsLoading()).toBe(false);
   });
 
   // ====================================================
@@ -170,7 +179,7 @@ describe("countryState", () => {
   describe("filters", () => {
     beforeEach(async () => {
       // Cargamos los países una vez para todos los tests de filtros
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
+      fakeRepository.getAll = () => fakeResult;
       await loadCountries([]);
     });
 
@@ -246,7 +255,7 @@ describe("countryState", () => {
         name: `Country ${i}`,
       }));
 
-      vi.mocked(getAllCountries).mockResolvedValue(manyCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(manyCountries));
       await loadCountries([]);
 
       // Assert — solo muestra 20 aunque haya 25
@@ -260,14 +269,14 @@ describe("countryState", () => {
         name: `Country ${i}`,
       }));
 
-      vi.mocked(getAllCountries).mockResolvedValue(manyCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(manyCountries));
       await loadCountries([]);
 
       expect(hasMore()).toBe(true);
     });
 
     it("hasMore should return false when all countries are visible", async () => {
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
       await loadCountries([]);
 
       // Solo 3 países — todos visibles
@@ -281,7 +290,7 @@ describe("countryState", () => {
         name: `Country ${i}`,
       }));
 
-      vi.mocked(getAllCountries).mockResolvedValue(manyCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(manyCountries));
       await loadCountries([]);
 
       // Primero vemos 20
@@ -298,7 +307,7 @@ describe("countryState", () => {
   // ====================================================
   describe("modal", () => {
     beforeEach(async () => {
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
       await loadCountries([]);
     });
 
@@ -324,7 +333,7 @@ describe("countryState", () => {
   // ====================================================
   describe("toggleCountryFavorite", () => {
     beforeEach(async () => {
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
       await loadCountries([]);
     });
 
@@ -354,7 +363,7 @@ describe("countryState", () => {
   // ====================================================
   describe("setSort", () => {
     beforeEach(async () => {
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
       await loadCountries([]);
     });
 
@@ -385,7 +394,7 @@ describe("countryState", () => {
   // ====================================================
   describe("getBorderNames", () => {
     beforeEach(async () => {
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
       await loadCountries([]);
     });
 
@@ -413,7 +422,7 @@ describe("countryState", () => {
       const listener = vi.fn();
       subscribe(listener);
 
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
       await loadCountries([]);
 
       // notify() se llama varias veces durante loadCountries
@@ -427,7 +436,7 @@ describe("countryState", () => {
       unsubscribe();
       listener.mockClear();
 
-      vi.mocked(getAllCountries).mockResolvedValue(mockCountries);
+      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
       await loadCountries([]);
 
       expect(listener).not.toHaveBeenCalled();

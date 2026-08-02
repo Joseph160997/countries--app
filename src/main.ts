@@ -1,5 +1,6 @@
 import "@/presentation/styles/style.css";
 import { initializeLayout } from "@/presentation/components/layout";
+import { RestCountriesRepository } from "@/infrastructure/api/restCountries/country.repository";
 import {
   subscribe,
   getCountries,
@@ -20,6 +21,7 @@ import {
   hasMore,
   getFilteredTotal,
   getIsLoading,
+  initCountryState,
 } from "@/presentation/state/countryState";
 import { debounce } from "@/shared/debounce";
 import { renderSkeletonGrid } from "@/presentation/components/skeleton";
@@ -37,6 +39,13 @@ import type { Region } from "@/domain/country";
 // 1. INICIALIZACIÓN DE LA INTERFAZ (DOM Dinámico)
 // ========================================================
 initializeLayout("app");
+
+// ========================================================
+// COMPOSITION ROOT
+// Único lugar de toda la app donde lo concreto se conecta
+// a lo abstracto. Si mañana cambias de API, editas SOLO esto.
+// ========================================================
+initCountryState(new RestCountriesRepository());
 
 // ========================================================
 // 2. CAPTURA DE ELEMENTOS DEL DOM
