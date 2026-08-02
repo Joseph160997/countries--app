@@ -1,9 +1,11 @@
+import type { KeyValueStore } from "@/domain/ports/keyValue.store";
+
 /**
  * Servici unicificado para la gestión de favoritos usando localStorage.
  * Este módulo actúa como una capa de abstracción, permitiendo cambiar la implementación
  * de almacenamiento en el futuro sin afectar al resto de la aplicación.
  */
-export const storageService = {
+export const storageService: KeyValueStore = {
   /**
    * Guarda un valor de cualquier tipo en localStorage.
    * @param key - La clave del valor a guardar.
