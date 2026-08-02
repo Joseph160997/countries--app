@@ -1,13 +1,16 @@
 /// <reference types="vitest" />
-// 🚨 CAMBIAMOS LA IMPORTACIÓN: De 'vite' a 'vitest/config'
+import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vitest/config";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   base: "/countries--app/",
   plugins: [tailwindcss()],
-
-  // 🧪 Ahora TypeScript reconocerá perfectamente la propiedad 'test'
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
   test: {
     globals: true,
     environment: "jsdom",

@@ -1,11 +1,6 @@
-// src/mappers/CountryMapper.test.ts
 import { describe, it, expect } from "vitest";
-import { mapToCountry, unwrapResponse } from "./CountryMapper";
-import type {
-  RestCountryDTO,
-  RestCountriesResponse,
-} from "../types/RestCountryDTO";
-
+import { mapToCountry, unwrapResponse } from "./country.mapper";
+import type { RestCountryDTO, RestCountriesResponse } from "./restCountry.dto";
 // FIXTURES (Datos de prueba reutilizables)
 
 /**

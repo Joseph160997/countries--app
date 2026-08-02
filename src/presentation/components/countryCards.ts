@@ -1,5 +1,4 @@
-import type { Country } from "../types/Country";
-
+import type { Country } from "@/domain/country";
 const getRegionBadgeClasses = (region: string): string => {
   const classes: Record<string, string> = {
     Americas: "bg-emerald-100 text-emerald-800",
@@ -24,11 +23,11 @@ export const renderCountryCard = (country: Country): string => {
 
   return `
     <article data-id="${country.cca3}" class="country-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200/40 dark:border-slate-700/40 shadow-sm dark:shadow hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col group">
-      
+
       <div class="overflow-hidden h-40 bg-slate-100 dark:bg-slate-900/30 relative">
         <img src="${country.flag}" alt="Flag of ${country.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
       </div>
-      
+
       <div class="p-5 grow flex flex-col justify-between">
         <div>
           <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100 mb-3 tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
@@ -43,7 +42,7 @@ export const renderCountryCard = (country: Country): string => {
             <p><span class="font-normal">Capital:</span> ${country.capital}</p>
           </div>
         </div>
-        
+
         <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/40">
           <span class="text-[10px] bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 px-2 py-1 rounded-md font-medium tracking-wider">${country.cca3}</span>
           <button data-id="${country.cca3}" class="btn-fav text-xl hover:scale-110 transition-transform duration-200 cursor-pointer p-1 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400">

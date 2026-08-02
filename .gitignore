@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json

@@ -1,7 +1,5 @@
-import "./style.css";
-import { isErr, unwrapOr } from "./shared/result";
-
-import { initializeLayout } from "./components/layout";
+import "@/presentation/styles/style.css";
+import { initializeLayout } from "@/presentation/components/layout";
 import {
   subscribe,
   getCountries,
@@ -22,17 +20,18 @@ import {
   hasMore,
   getFilteredTotal,
   getIsLoading,
-} from "./state/countryState";
-import { debounce } from "./utils/debounce";
-import { renderSkeletonGrid } from "./components/skeleton";
+} from "@/presentation/state/countryState";
+import { debounce } from "@/shared/debounce";
+import { renderSkeletonGrid } from "@/presentation/components/skeleton";
 import {
   renderCountryCard,
   renderCountryDetailModal,
-} from "./components/countryCards";
-import { getFavoriteCodes } from "./services/favoriteService";
-import { renderEmptyStateCard } from "./components/emptyState";
-import { toggleTheme, initTheme } from "./services/themeService";
-import type { Region } from "./types/Country";
+} from "@/presentation/components/countryCards";
+import { getFavoriteCodes } from "@/presentation/services/favoriteService";
+import { renderEmptyStateCard } from "@/presentation/components/emptyState";
+import { toggleTheme, initTheme } from "@/presentation/services/themeService";
+import { isErr, unwrapOr } from "@/shared/result";
+import type { Region } from "@/domain/country";
 
 // ========================================================
 // 1. INICIALIZACIÓN DE LA INTERFAZ (DOM Dinámico)

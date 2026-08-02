@@ -1,7 +1,4 @@
-import type {
-  RestCountryDTO,
-  RestCountriesResponse,
-} from "../types/RestCountryDTO";
+import type { RestCountryDTO, RestCountriesResponse } from "./restCountry.dto";
 
 /** * Comprueba que un valor sea un objeto válido. */
 function isObject(value: unknown): value is Record<string, unknown> {

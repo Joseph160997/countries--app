@@ -1,20 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Country } from "../types/Country";
 
-// Mockeamos las dependencias externas ANTES de importar el estado
-vi.mock("../services/countryService", () => ({
+import type { Country } from "@/domain/country";
+
+vi.mock("@/infrastructure/api/restCountries/country.client", () => ({
   getAllCountries: vi.fn(),
 }));
-
-vi.mock("../services/favoriteService", () => ({
+vi.mock("@/presentation/services/favoriteService", () => ({
   toggleFavoritePersistence: vi.fn(),
 }));
-
-vi.mock("../utils/localStorage", () => ({
-  storageService: {
-    get: vi.fn(),
-    save: vi.fn(),
-  },
+vi.mock("@/infrastructure/persistence/localStorage.store", () => ({
+  storageService: { get: vi.fn(), save: vi.fn() },
 }));
 
 // Importamos DESPUÉS de los mocks, para que sean reemplazados.
@@ -39,12 +34,10 @@ import {
   resetState,
 } from "./countryState";
 
-import { getAllCountries } from "../services/countryService";
-import { toggleFavoritePersistence } from "../services/favoriteService";
-
-// ======================================================
+import { getAllCountries } from "@/infrastructure/api/restCountries/country.client";
+import { toggleFavoritePersistence } from "@/presentation/services/favoriteService";
 // FIXTURE
-// ======================================================
+
 const mockCountries: Country[] = [
   {
     cca3: "COL",
@@ -93,9 +86,8 @@ const mockCountries: Country[] = [
   },
 ];
 
-// ======================================================
 // TESTS
-// ======================================================
+
 describe("countryState", () => {
   beforeEach(() => {
     // Limpiamos el estado y los mocks antes de cada test

@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
-@variant dark 
-(&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   /* Estilos globales */
@@ -145,8 +144,9 @@ textarea,
 /* ———————————————————————————————————————————————
    🎯 BOTONES Y INTERACCIONES
    ——————————————————————————————————————————————— */
+
 .btn-fav {
-  transition-transform: transform 200ms ease;
+  transition: transform 200ms ease;
 }
 
 .btn-fav:hover {

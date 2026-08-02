@@ -1,8 +1,5 @@
-import type { Country, Region } from "../types/Country";
-import type {
-  RestCountryDTO,
-  RestCountriesResponse,
-} from "../types/RestCountryDTO";
+import type { Country, Region } from "@/domain/country";
+import type { RestCountryDTO, RestCountriesResponse } from "./restCountry.dto";
 
 const VALID_REGIONS: readonly Region[] = [
   "Africa",

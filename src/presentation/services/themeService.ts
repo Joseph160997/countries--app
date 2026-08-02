@@ -1,5 +1,4 @@
-import { storageService } from "../utils/localStorage";
-
+import { storageService } from "@/infrastructure/persistence/localStorage.store";
 /**
  * Clave única para World Explorer
  */

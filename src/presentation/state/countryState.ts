@@ -1,7 +1,7 @@
-import type { Country, Region } from "../types/Country";
-import { getAllCountries } from "../services/countryService";
-import { toggleFavoritePersistence } from "../services/favoriteService";
-import { storageService } from "../utils/localStorage";
+import type { Country, Region } from "@/domain/country";
+import { getAllCountries } from "@/infrastructure/api/restCountries/country.client";
+import { toggleFavoritePersistence } from "@/presentation/services/favoriteService";
+import { storageService } from "@/infrastructure/persistence/localStorage.store";
 
 // ========================================================
 // 1. ESTADO PRIVADO

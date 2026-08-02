@@ -1,14 +1,10 @@
-import type { Country } from "../types/Country";
-import type {
-  RestCountriesResponse,
-  RestCountryDTO,
-} from "../types/RestCountryDTO";
-import { mapToCountry, unwrapResponse } from "../mappers/CountryMapper";
-import { isRestCountriesResponse } from "../validators/restCountriesValidator";
-import { httpClient } from "../utils/http";
-import { storage } from "../utils/db";
-import { storageService } from "../utils/localStorage";
-
+import type { Country } from "@/domain/country";
+import type { RestCountriesResponse, RestCountryDTO } from "./restCountry.dto";
+import { mapToCountry, unwrapResponse } from "./country.mapper";
+import { isRestCountriesResponse } from "./restCountries.validator";
+import { httpClient } from "@/infrastructure/http/http.client";
+import { storage } from "@/infrastructure/persistence/indexedDb.store";
+import { storageService } from "@/infrastructure/persistence/localStorage.store";
 // Esta constante define cuánto tiempo es válido el caché — 24 horas en milisegundos
 const CACHE_KEY = "countries_last_fetch";
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24h

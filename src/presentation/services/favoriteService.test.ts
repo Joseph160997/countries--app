@@ -1,4 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/infrastructure/persistence/localStorage.store", () => ({
+  storageService: { get: vi.fn(), save: vi.fn() },
+}));
+vi.mock("./toast", () => ({
+  showToast: vi.fn(),
+}));
+
 import {
   FAVS_KEY,
   getFavoriteCodes,
@@ -6,22 +14,8 @@ import {
   isValidFavList,
   toggleFavoritePersistence,
 } from "./favoriteService";
-import { storageService } from "../utils/localStorage";
-import { showToast } from "../utils/toast";
-
-// MOCKS
-
-vi.mock("../utils/localStorage", () => ({
-  storageService: {
-    get: vi.fn(),
-    save: vi.fn(),
-  },
-}));
-
-vi.mock("../utils/toast", () => ({
-  showToast: vi.fn(),
-}));
-
+import { storageService } from "@/infrastructure/persistence/localStorage.store";
+import { showToast } from "./toast";
 // HELPERS
 
 const mockFavorites = (favorites: unknown) => {

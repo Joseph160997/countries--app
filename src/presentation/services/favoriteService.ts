@@ -1,7 +1,7 @@
-import { storageService } from "../utils/localStorage";
-import { showToast } from "../utils/toast";
-import { err, ok, unwrapOr, type Result } from "../shared/result";
-import type { AppError } from "../domain/errors";
+import { storageService } from "@/infrastructure/persistence/localStorage.store";
+import { showToast } from "./toast";
+import { err, ok, unwrapOr, type Result } from "@/shared/result";
+import type { AppError } from "@/domain/errors";
 
 /** Clave única para World Explorer */
 export const FAVS_KEY = "world_explorer_favs";
