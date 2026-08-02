@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
@@ -14,18 +14,27 @@
           var stored = JSON.parse(localStorage.getItem("app_theme") || "null");
           var isDark =
             stored === "dark" ||
-            (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
+            (!stored &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
           if (isDark) document.documentElement.classList.add("dark");
-          document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+          document.documentElement.setAttribute(
+            "data-theme",
+            isDark ? "dark" : "light",
+          );
         } catch {
           /* localStorage no disponible (modo privado) → default light */
         }
       })();
     </script>
   </head>
-  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col">
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col"
+  >
     <div id="app" class="flex flex-col grow"></div>
-    <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md hidden"></div>
+    <div
+      id="modal-container"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md hidden"
+    ></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
