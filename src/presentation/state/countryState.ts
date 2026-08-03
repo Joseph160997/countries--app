@@ -3,87 +3,63 @@ import type { CountryRepository } from "@/domain/ports/country.repository";
 import { isErr } from "@/shared/result";
 import { toggleFavoritePersistence } from "@/presentation/services/favoriteService";
 import { storageService } from "@/infrastructure/persistence/localStorage.store";
+import {
+  createCountriesSlice,
+  PAGE_SIZE,
+  type CountriesStore,
+} from "../slices/countries.slice";
+import {
+  createFiltersSlice,
+  type FiltersStore,
+  type SortCriteria,
+} from "../slices/filters.slice";
+import { computeFilteredCountries } from "../slices/explorer.selectors";
 
 // ========================================================
-// 1. ESTADO PRIVADO
+// 1. DEPENDENCIA + SLICES (el estado ya no vive aquí)
 // ========================================================
-
-let isLoading: boolean = false;
-let countries: Country[] = [];
-let filteredCountries: Country[] = [];
-let searchQuery = "";
-let selectedRegion = "";
-let listeners: (() => void)[] = [];
-let isShowingFavorites: boolean = false;
-let minPopulation: number = 0;
-
-type SortCriteria = "none" | "population-desc" | "name-asc";
-let currentSort: SortCriteria = "none";
-let selectedCountry: Country | null = null;
-
-// Dependencia inyectada: el puerto, nunca el adapter concreto
 let countryRepository: CountryRepository | null = null;
 
-// Cuántos países mostramos en el DOM en este momento
-let visibleCount: number = 20;
+const countriesStore: CountriesStore = createCountriesSlice();
+const filtersStore: FiltersStore = createFiltersSlice();
+
+// Modal y favoritos aún viven aquí — el Step 2.3 los extrae a sus propios slices.
+let selectedCountry: Country | null = null;
+
+/** Caché del resultado derivado — se recalcula en cada cambio relevante. */
+let filteredCountries: Country[] = [];
+
+let listeners: Array<() => void> = [];
 
 const SORT_KEY = "World_Explorer_Sort";
 
-// ========================================================
-// 2. MOTOR DE CÓMPUTO
-// ========================================================
+export const initCountryState = (repository: CountryRepository): void => {
+  countryRepository = repository;
+};
 
-/**
- * Aplica los filtros de búsqueda y ordenamiento.
- */
+// ========================================================
+// 2. MOTOR DE DERIVACIÓN (ahora delega en el selector puro)
+// ========================================================
 const applyFilters = (): void => {
-  const query = searchQuery.trim().toLowerCase();
-
-  let result = countries.filter((country) => {
-    const matchesSearch = country.name.toLowerCase().includes(query);
-    const matchesRegion =
-      selectedRegion === "" || country.region === selectedRegion;
-    const matchesFavorites = !isShowingFavorites || country.isFavorite;
-    const matchesPopulation =
-      minPopulation === 0 || country.population >= minPopulation;
-    return (
-      matchesSearch && matchesRegion && matchesFavorites && matchesPopulation
-    );
-  });
-
-  if (currentSort !== "none") {
-    result.sort((a, b) => {
-      if (currentSort === "population-desc") return b.population - a.population;
-      if (currentSort === "name-asc") return a.name.localeCompare(b.name);
-      return 0;
-    });
-  }
-
-  filteredCountries = result;
-
-  // 🆕 Cuando cambian los filtros, reseteamos la ventana visible
-  // para que el usuario empiece desde el principio del nuevo resultado
-  visibleCount = 20;
-
+  filteredCountries = computeFilteredCountries(
+    countriesStore.getState().all,
+    filtersStore.getState(),
+  );
+  // Reset de la ventana de paginación cuando cambian los filtros
+  countriesStore.setState({ visibleCount: PAGE_SIZE });
   notify();
 };
 
 // ========================================================
 // 3. REACTIVIDAD
 // ========================================================
-
-/**
- * Notifica a los observadores que el estado ha cambiado.
- */
 const notify = (): void => {
   listeners.forEach((listener) => listener());
 };
 
-/**
- *   Suscribe a cambios en el estado.
- */
 export const subscribe = (callback: () => void): (() => void) => {
   listeners.push(callback);
+  // Comportamiento heredado: se preserva por equivalencia.
   if (filteredCountries.length > 0) callback();
   return () => {
     listeners = listeners.filter((l) => l !== callback);
@@ -93,129 +69,99 @@ export const subscribe = (callback: () => void): (() => void) => {
 // ========================================================
 // 4. SELECTORES
 // ========================================================
+export const getIsLoading = (): boolean => countriesStore.getState().isLoading;
 
-/** Devuelve el estado de carga */
-export const getIsLoading = (): boolean => isLoading;
+export const getCountries = (): Country[] =>
+  filteredCountries.slice(0, countriesStore.getState().visibleCount);
 
-/**
- * Devuelve solo el slice visible del resultado filtrado.
- * El DOM nunca renderiza más de `visibleCount` tarjetas.
- */
-export const getCountries = (): Country[] => {
-  return filteredCountries.slice(0, visibleCount);
-};
+export const hasMore = (): boolean =>
+  countriesStore.getState().visibleCount < filteredCountries.length;
 
-/**
- * Indica si hay más países disponibles tras el slice visible.
- * La UI usa esto para mostrar u ocultar el botón "Load more".
- */
-export const hasMore = (): boolean => {
-  return visibleCount < filteredCountries.length;
-};
-
-/**
- *  Total de resultados filtrados (para mostrar "Mostrando X de Y").
- */
-export const getFilteredTotal = (): number => {
-  return filteredCountries.length;
-};
+export const getFilteredTotal = (): number => filteredCountries.length;
 
 export const getSelectedCountry = (): Country | null => selectedCountry;
-export const isShowingFavoritesActive = (): boolean => isShowingFavorites;
-export const getSort = (): SortCriteria => currentSort;
+
+export const isShowingFavoritesActive = (): boolean =>
+  filtersStore.getState().showFavorites;
+
+export const getSort = (): SortCriteria => filtersStore.getState().sort;
 
 // ========================================================
 // 5. ACCIONES
 // ========================================================
-
-/**
- * Inyección de dependencias — la ejecuta el composition root (main.ts).
- * Este módulo depende de la ABSTRACCIÓN, no de REST Countries.
- */
-export const initCountryState = (repository: CountryRepository): void => {
-  countryRepository = repository;
-};
-
 export const loadCountries = async (favoriteCodes: string[]): Promise<void> => {
-  // Esto es un bug de programación, no un fallo del negocio:
-  // por eso SÍ se lanza. Excepciones para bugs, Result para fallos esperados.
   if (!countryRepository) {
     throw new Error(
       "[State] Debes llamar a initCountryState() antes de loadCountries()",
     );
   }
-
-  isLoading = true;
-  notify(); // 🔔 skeletons
-
+  countriesStore.setState({ isLoading: true });
+  notify();
   try {
     const result = await countryRepository.getAll(favoriteCodes);
-
     if (isErr(result)) {
       console.error(
         "[Estado] Error en la carga coordinada:",
         result.error.message,
       );
     } else {
-      countries = result.value;
-      applyFilters(); // llama notify() internamente
+      countriesStore.setState({ all: result.value });
+      applyFilters();
     }
   } finally {
-    // El Result eliminó el catch, pero el finally queda como
-    // seguro contra bugs: el loading nunca queda colgado.
-    isLoading = false;
-    notify(); // 🔔 tarjetas reales
+    countriesStore.setState({ isLoading: false });
+    notify();
   }
 };
-/**
- * 🆕 Amplía la ventana visible en 20 países más.
- * No hace ningún request — todo está en RAM.
- */
+
 export const loadMore = (): void => {
-  visibleCount = Math.min(visibleCount + 20, filteredCountries.length);
+  const { visibleCount } = countriesStore.getState();
+  countriesStore.setState({
+    visibleCount: Math.min(visibleCount + PAGE_SIZE, filteredCountries.length),
+  });
   notify();
 };
 
 export const setSearchQuery = (text: string): void => {
-  searchQuery = text;
+  filtersStore.setState({ query: text });
   applyFilters();
 };
 
 export const setRegionFilter = (region: Region): void => {
-  selectedRegion = region;
+  filtersStore.setState({ region });
   applyFilters();
 };
 
 export const toggleCountryFavorite = (cca3: string): void => {
   const nowIsFavorite = toggleFavoritePersistence(cca3);
-  countries = countries.map((c) =>
-    c.cca3 === cca3 ? { ...c, isFavorite: nowIsFavorite } : c,
-  );
+  const { all } = countriesStore.getState();
+  countriesStore.setState({
+    all: all.map((c) =>
+      c.cca3 === cca3 ? { ...c, isFavorite: nowIsFavorite } : c,
+    ),
+  });
   applyFilters();
 };
 
 export const toggleShowFavorites = (): void => {
-  isShowingFavorites = !isShowingFavorites;
+  const { showFavorites } = filtersStore.getState();
+  filtersStore.setState({ showFavorites: !showFavorites });
   applyFilters();
 };
 
-//** Aplica un nuevo criterio de ordenamiento */
 export const setSort = (criteria: SortCriteria): void => {
-  currentSort = criteria;
+  filtersStore.setState({ sort: criteria });
   storageService.save(SORT_KEY, criteria);
   applyFilters();
 };
 
-/** Recupera el criterio de ordenamiento guardado */
 export const initSort = (): void => {
   const savedSort = storageService.get<SortCriteria>(SORT_KEY);
-  if (savedSort) currentSort = savedSort;
+  if (savedSort) filtersStore.setState({ sort: savedSort });
 };
 
 export const openCountryModal = (cca3: string): void => {
-  // Buscamos en `countries` completo, no en el slice visible
-  // así funciona aunque el país no esté renderizado en pantalla
-  const country = countries.find((c) => c.cca3 === cca3);
+  const country = countriesStore.getState().all.find((c) => c.cca3 === cca3);
   if (country) {
     selectedCountry = country;
     notify();
@@ -227,22 +173,16 @@ export const closeCountryModal = (): void => {
   notify();
 };
 
-export const getBorderNames = (codes: string[]): string[] => {
-  return codes.map((code) => {
-    const found = countries.find((c) => c.cca3 === code);
+export const getBorderNames = (codes: string[]): string[] =>
+  codes.map((code) => {
+    const found = countriesStore.getState().all.find((c) => c.cca3 === code);
     return found ? found.name : code;
   });
-};
 
 export const resetState = (): void => {
-  countries = [];
-  filteredCountries = [];
-  searchQuery = "";
-  selectedRegion = "";
-  isShowingFavorites = false;
-  minPopulation = 0;
-  currentSort = "none";
+  countriesStore.reset();
+  filtersStore.reset();
   selectedCountry = null;
-  visibleCount = 20;
+  filteredCountries = [];
   listeners = [];
 };
