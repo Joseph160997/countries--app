@@ -23,6 +23,7 @@ Más allá de consumir una API, este proyecto fue concebido como un ejercicio de
 - [🔄 Flujo de Datos](#-flujo-de-datos)
 - [🛠️ Stack Técnico](#-stack-técnico)
 - [💻 Instalación y Scripts](#-instalación-y-scripts)
+- [🛡️ Guardrails (Git Hooks)](#-guardrails-git-hooks)
 - [🧪 Testing](#-testing)
 - [⚙️ CI/CD](#-cicd)
 - [💡 Decisiones Técnicas](#-decisiones-técnicas)
@@ -86,60 +87,63 @@ Más que una aplicación para explorar países, **World Explorer** representa un
 El proyecto sigue una arquitectura en capas estricta donde cada módulo tiene **una única responsabilidad**. El dato fluye en una sola dirección: de la API hasta el DOM.
 
 ```text
-REST Countries API
+Acción del usuario (input, click, ESC)
         │
         ▼
-  [ Validator ]          ← Valida que el JSON tiene la forma esperada (Type Guards)
+[ Controllers ]        ← traducen evento → acción de estado
         │
         ▼
-  [ Mapper ]             ← Transforma RestCountryDTO → Country (modelo de UI)
+[ countryState ]       ← muta estado privado, recalcula filtros
         │
         ▼
-  [ countryService ]     ← Orquesta red, caché e IndexedDB (estrategia cache-first)
+[ notify() ]           ← patrón Observer
         │
         ▼
-  [ countryState ]       ← Estado global con patrón Observer + motor de filtros
-        │
-        ▼
-  [ UI / main.ts ]       ← Suscriptores que renderizan el DOM cuando el estado cambia
+[ ui.renderer ]        ← pinta TODO el estado: grid, modal, botones
+
+Carga de datos:
+main.ts cablea RestCountriesRepository → countryState
+loadCountries → repository.getAll() → Result<Country[], AppError>
+   ├─ ok  → applyFilters → notify → render
+   └─ err → log + estado vacío visible
 ```
 
 ### 📂 Estructura de archivos
 
 ```
 src/
-├── components/
-│   ├── countryCards.ts     # Renderiza tarjetas y modal de detalle
-│   ├── emptyState.ts       # Estado vacío (sin resultados / sin favoritos)
-│   ├── layout.ts           # Header, main, footer (HTML estático inyectado al inicio)
-│   └── skeleton.ts         # Grid de tarjetas placeholder durante la carga
+├── main.ts                              # Composition root: cablea capas y arranca
 │
-├── mappers/
-│   └── CountryMapper.ts    # DTO → Country. Función pura, sin efectos secundarios
+├── domain/                              # QUÉ existe — sin frameworks ni efectos
+│   ├── country.ts                       #   Entidad Country y Region
+│   ├── errors.ts                        #   Taxonomía AppError
+│   └── ports/
+│       ├── country.repository.ts        #   Contrato: obtener países
+│       └── keyValue.store.ts            #   Contrato: persistencia clave/valor
 │
-├── services/
-│   ├── countryService.ts   # Orquestación: red → validación → mapeo → caché
-│   ├── favoriteService.ts  # CRUD de favoritos sobre localStorage
-│   └── themeService.ts     # Toggle y persistencia del tema visual
+├── shared/                              # Utilidades puras, sin capa
+│   ├── result.ts                        #   Result<T,E>: fallos como valores
+│   └── debounce.ts
 │
-├── state/
-│   └── countryState.ts     # Estado global, filtros, paginación y Observer
+├── infrastructure/                      # CÓMO nos conectamos al mundo
+│   ├── http/http.client.ts              #   fetch con timeout, abort y validación
+│   ├── persistence/
+│   │   ├── indexedDb.store.ts           #   CRUD genérico sobre IndexedDB
+│   │   └── localStorage.store.ts        #   Implementa KeyValueStore
+│   └── api/restCountries/               #   Todo lo específico de esta API
+│       ├── restCountry.dto.ts           #     Contrato crudo de la API
+│       ├── restCountries.validator.ts   #     Type Guards en runtime
+│       ├── country.mapper.ts            #     DTO → Country (función pura)
+│       └── country.repository.ts        #     Implementa CountryRepository
 │
-├── types/
-│   ├── Country.ts          # Modelo de dominio de la UI
-│   └── RestCountryDTO.ts   # Contrato con la API externa
-│
-├── utils/
-│   ├── db.ts               # Abstracción genérica sobre IndexedDB
-│   ├── debounce.ts         # Utilidad de antirrebote con cancelación manual
-│   ├── http.ts             # Cliente HTTP con timeout, validación y abort
-│   ├── localStorage.ts     # Wrapper tipado sobre localStorage
-│   └── toast.ts            # Sistema de notificaciones visuales flotantes
-│
-├── validators/
-│   └── restCountriesValidator.ts  # Type Guards para validar la respuesta de la API
-│
-└── main.ts                 # Punto de entrada: inicialización, eventos y arranque
+└── presentation/                        # CÓMO se muestra e interactúa
+    ├── state/countryState.ts            #   Estado + Observer + motor de filtros
+    ├── renderers/ui.renderer.ts         #   Único punto donde estado toca DOM
+    ├── controllers/                     #   search, filter, grid, modal,
+    │                                    #   pagination, theme
+    ├── components/                      #   Plantillas: cards, modal, skeletons
+    ├── services/                        #   favoriteService, themeService, toast
+    └── styles/style.css
 ```
 
 ---
@@ -219,17 +223,29 @@ VITE_COUNTRIES_API_KEY=your_api_key_here
 ## 📜 Scripts disponibles
 
 ```bash
-npm run dev           # Servidor de desarrollo con HMR
-npm run build         # Compilación de producción (tsc + vite build)
-npm run preview       # Previsualización del build de producción
-npm run test          # Ejecutar tests una vez (modo CI)
-npm run test:ui       # Tests con interfaz gráfica interactiva
-npm run lint          # Análisis estático con ESLint
-npm run lint:fix      # Corrección automática de errores de lint
-npm run format        # Formatear código con Prettier
-npm run format:check  # Verificar formato sin modificar archivos
-npm run ci            # Pipeline completo: lint + format + build + test
+npm run dev            # Servidor de desarrollo con HMR
+npm run build          # Compilación de producción (tsc + vite build)
+npm run preview        # Previsualización del build
+npm run verify         # Pipeline local completo: format + lint + test + build
+npm run test           # Tests una vez (modo CI)
+npm run test:watch     # Tests en modo interactivo
+npm run test:ui        # Tests con UI de Vitest
+npm run test:coverage  # Tests con reporte de cobertura
+npm run lint / lint:fix
+npm run format / format:check
 ```
+
+---
+
+## 🛡️ Guardrails (Git Hooks)
+
+| Hook         | Qué hace                                                     |
+| ------------ | ------------------------------------------------------------ |
+| `pre-commit` | `lint-staged`: ESLint + Prettier solo sobre archivos staged  |
+| `commit-msg` | `commitlint`: rechaza mensajes fuera de Conventional Commits |
+
+Los hooks se instalan solos con `npm install` (script `prepare`).
+CI sigue siendo la última barrera: los hooks te protegen a ti, el pipeline protege al equipo.
 
 ---
 
