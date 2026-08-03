@@ -14,6 +14,7 @@ import {
   type SortCriteria,
 } from "../slices/filters.slice";
 import { computeFilteredCountries } from "../slices/explorer.selectors";
+import { createModalSlice, type ModalStore } from "../slices/modal.slice";
 
 // ========================================================
 // 1. DEPENDENCIA + SLICES (el estado ya no vive aquí)
@@ -24,7 +25,7 @@ const countriesStore: CountriesStore = createCountriesSlice();
 const filtersStore: FiltersStore = createFiltersSlice();
 
 // Modal y favoritos aún viven aquí — el Step 2.3 los extrae a sus propios slices.
-let selectedCountry: Country | null = null;
+const modalStore: ModalStore = createModalSlice();
 
 /** Caché del resultado derivado — se recalcula en cada cambio relevante. */
 let filteredCountries: Country[] = [];
@@ -79,7 +80,8 @@ export const hasMore = (): boolean =>
 
 export const getFilteredTotal = (): number => filteredCountries.length;
 
-export const getSelectedCountry = (): Country | null => selectedCountry;
+export const getSelectedCountry = (): Country | null =>
+  modalStore.getState().selectedCountry;
 
 export const isShowingFavoritesActive = (): boolean =>
   filtersStore.getState().showFavorites;
@@ -163,13 +165,13 @@ export const initSort = (): void => {
 export const openCountryModal = (cca3: string): void => {
   const country = countriesStore.getState().all.find((c) => c.cca3 === cca3);
   if (country) {
-    selectedCountry = country;
+    modalStore.setState({ selectedCountry: country });
     notify();
   }
 };
 
 export const closeCountryModal = (): void => {
-  selectedCountry = null;
+  modalStore.setState({ selectedCountry: null });
   notify();
 };
 
@@ -182,7 +184,7 @@ export const getBorderNames = (codes: string[]): string[] =>
 export const resetState = (): void => {
   countriesStore.reset();
   filtersStore.reset();
-  selectedCountry = null;
+  modalStore.reset();
   filteredCountries = [];
   listeners = [];
 };

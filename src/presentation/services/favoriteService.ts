@@ -1,62 +1,34 @@
-import { storageService } from "@/infrastructure/persistence/localStorage.store";
-import { showToast } from "./toast";
-import { err, ok, unwrapOr, type Result } from "@/shared/result";
+import {
+  FAVS_KEY,
+  isValidFavList,
+  loadFavorites,
+} from "@/infrastructure/persistence/favorites.store";
+import { unwrapOr, type Result } from "@/shared/result";
 import type { AppError } from "@/domain/errors";
+import { toggleFavorite } from "@/application/toggleFavorite.usecase";
+import { showToast } from "./toast";
 
-/** Clave única para World Explorer */
-export const FAVS_KEY = "world_explorer_favs";
+// Re-exports para no romper a quienes ya importaban desde aquí
+export { FAVS_KEY, isValidFavList };
 
-/**
- * Type Guard: Valida que el dato recuperado sea un array de strings (códigos CCA3).
- */
-export const isValidFavList = (data: unknown): data is string[] => {
-  return Array.isArray(data) && data.every((item) => typeof item === "string");
-};
+/** Recupera los códigos favoritos como Result. */
+export const getFavoriteCodes = (): Result<string[], AppError> =>
+  loadFavorites();
 
-/**
- * Recupera la lista de códigos favoritos.
- *
- * ANTES: devolvía [] tanto para "sin favoritos" como para "datos corruptos"
- *        → el fallo era invisible.
- * AHORA: ok([]) si no hay datos, ok(codes) si son válidos,
- *        err(storage) si están corruptos → el caller decide.
- */
-export const getFavoriteCodes = (): Result<string[], AppError> => {
-  const data = storageService.get<unknown>(FAVS_KEY);
-
-  if (data === null) return ok([]);
-  if (isValidFavList(data)) return ok(data);
-
-  return err({
-    kind: "storage",
-    message: `Favorites data is corrupt: ${JSON.stringify(data)}`,
-  });
-};
+/** ¿Es favorito este país? */
+export const isCountryFavorite = (cca3: string): boolean =>
+  unwrapOr(getFavoriteCodes(), []).includes(cca3);
 
 /**
- * Determina si un país específico es favorito por su código.
- */
-export const isCountryFavorite = (cca3: string): boolean => {
-  return unwrapOr(getFavoriteCodes(), []).includes(cca3);
-};
-
-/**
- * Lógica de negocio para agregar/quitar favoritos.
+ * Alterna un favorito y muestra el feedback visual.
+ * La lógica de negocio vive en el caso de uso; aquí solo
+ * orquestamos el toast (responsabilidad de presentation).
  */
 export const toggleFavoritePersistence = (cca3: string): boolean => {
-  const favorites = unwrapOr(getFavoriteCodes(), []);
-  const isFav = favorites.includes(cca3);
-
-  const updatedFavs = isFav
-    ? favorites.filter((id) => id !== cca3)
-    : [...favorites, cca3];
-
-  storageService.save(FAVS_KEY, updatedFavs);
-
+  const { isNowFavorite } = toggleFavorite(cca3);
   showToast(
-    isFav ? "Removed from favorites" : "Added to favorites",
-    isFav ? "info" : "success",
+    isNowFavorite ? "Added to favorites" : "Removed from favorites",
+    isNowFavorite ? "success" : "info",
   );
-
-  return !isFav;
+  return isNowFavorite;
 };
