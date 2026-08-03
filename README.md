@@ -90,21 +90,20 @@ El proyecto sigue una arquitectura en capas estricta donde cada módulo tiene **
 Acción del usuario (input, click, ESC)
         │
         ▼
-[ Controllers ]        ← traducen evento → acción de estado
+[ Controller ]            ← traduce evento → acción de un slice
         │
         ▼
-[ countryState ]       ← muta estado privado, recalcula filtros
+[ Slice: setState ]       ← mutación inmutable del estado
         │
         ▼
-[ notify() ]           ← patrón Observer
+[ notify() ]              ← el store avisa si algo cambió de verdad
         │
         ▼
-[ ui.renderer ]        ← pinta TODO el estado: grid, modal, botones
+[ ui.renderer ]           ← deriva y pinta: grid, modal, botones, contadores
 
 Carga de datos:
-main.ts cablea RestCountriesRepository → countryState
-loadCountries → repository.getAll() → Result<Country[], AppError>
-   ├─ ok  → applyFilters → notify → render
+main.ts → repository.getAll() → Result<Country[], AppError>
+   ├─ ok  → countries.slice + applyFilters → render
    └─ err → log + estado vacío visible
 ```
 
@@ -125,22 +124,32 @@ src/
 │   ├── result.ts                        #   Result<T,E>: fallos como valores
 │   └── debounce.ts
 │
+├── application/                         # CASOS DE USO — orquestación sin UI
+│   └── toggleFavorite.usecase.ts        #   Alternar favorito (sin toast)
+│
 ├── infrastructure/                      # CÓMO nos conectamos al mundo
-│   ├── http/http.client.ts              #   fetch con timeout, abort y validación
+│   ├── http/http.client.ts
 │   ├── persistence/
-│   │   ├── indexedDb.store.ts           #   CRUD genérico sobre IndexedDB
-│   │   └── localStorage.store.ts        #   Implementa KeyValueStore
-│   └── api/restCountries/               #   Todo lo específico de esta API
-│       ├── restCountry.dto.ts           #     Contrato crudo de la API
-│       ├── restCountries.validator.ts   #     Type Guards en runtime
-│       ├── country.mapper.ts            #     DTO → Country (función pura)
-│       └── country.repository.ts        #     Implementa CountryRepository
+│   │   ├── indexedDb.store.ts
+│   │   ├── localStorage.store.ts
+│   │   └── favorites.store.ts           #   Lee/escribe favoritos (Result)
+│   └── api/restCountries/
+│       ├── restCountry.dto.ts
+│       ├── restCountries.validator.ts
+│       ├── country.mapper.ts
+│       └── country.repository.ts
 │
 └── presentation/                        # CÓMO se muestra e interactúa
-    ├── state/countryState.ts            #   Estado + Observer + motor de filtros
+    ├── state/
+    │   ├── store.ts                     #   Núcleo createStore<T>
+    │   └── countryState.ts              #   Coordinador que compone slices
+    ├── slices/
+    │   ├── countries.slice.ts           #   Datos + loading + paginación
+    │   ├── filters.slice.ts             #   Query, región, sort, favoritos
+    │   ├── explorer.selectors.ts        #   Derivación pura (filtros)
+    │   └── modal.slice.ts               #   País seleccionado
+    ├── controllers/                     #   search, filter, grid, modal, pagination, theme
     ├── renderers/ui.renderer.ts         #   Único punto donde estado toca DOM
-    ├── controllers/                     #   search, filter, grid, modal,
-    │                                    #   pagination, theme
     ├── components/                      #   Plantillas: cards, modal, skeletons
     ├── services/                        #   favoriteService, themeService, toast
     └── styles/style.css
