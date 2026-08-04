@@ -1,6 +1,6 @@
 import type { Country, Region } from "@/domain/country";
 import type { CountryRepository } from "@/domain/ports/country.repository";
-import { isErr } from "@/shared/result";
+import { isErr, isOk } from "@/shared/result";
 import { toggleFavoritePersistence } from "@/presentation/services/favoriteService";
 import { storageService } from "@/infrastructure/persistence/localStorage.store";
 import {
@@ -15,11 +15,13 @@ import {
 } from "../slices/filters.slice";
 import { computeFilteredCountries } from "../slices/explorer.selectors";
 import { createModalSlice, type ModalStore } from "../slices/modal.slice";
+import type { WeatherProvider } from "@/domain/ports/weather.provider";
 
 // ========================================================
 // 1. DEPENDENCIA + SLICES (el estado ya no vive aquí)
 // ========================================================
 let countryRepository: CountryRepository | null = null;
+let weatherProvider: WeatherProvider | null = null;
 
 const countriesStore: CountriesStore = createCountriesSlice();
 const filtersStore: FiltersStore = createFiltersSlice();
@@ -36,6 +38,10 @@ const SORT_KEY = "World_Explorer_Sort";
 
 export const initCountryState = (repository: CountryRepository): void => {
   countryRepository = repository;
+};
+
+export const initWeatherProvider = (provider: WeatherProvider): void => {
+  weatherProvider = provider;
 };
 
 // ========================================================
@@ -164,16 +170,49 @@ export const initSort = (): void => {
 
 export const openCountryModal = (cca3: string): void => {
   const country = countriesStore.getState().all.find((c) => c.cca3 === cca3);
-  if (country) {
-    modalStore.setState({ selectedCountry: country });
-    notify();
+  if (!country) return;
+
+  const willFetchWeather = Boolean(
+    weatherProvider && country.capitalCoordinates,
+  );
+  modalStore.setState({
+    selectedCountry: country,
+    weather: null,
+    weatherStatus: willFetchWeather ? "loading" : "idle",
+  });
+  notify();
+
+  if (willFetchWeather) void loadWeather(country);
+};
+
+const loadWeather = async (country: Country): Promise<void> => {
+  if (!weatherProvider || !country.capitalCoordinates) return;
+  const { lat, lng } = country.capitalCoordinates;
+  const result = await weatherProvider.getCurrentWeather(lat, lng);
+
+  // Guard de carrera: el usuario pudo cerrar o abrir OTRO país
+  // mientras el fetch volaba. Si ya no es el mismo país, descartamos.
+  if (modalStore.getState().selectedCountry?.cca3 !== country.cca3) return;
+
+  if (isOk(result)) {
+    modalStore.setState({ weather: result.value, weatherStatus: "ready" });
+  } else {
+    modalStore.setState({ weatherStatus: "error" });
   }
+  notify();
 };
 
 export const closeCountryModal = (): void => {
-  modalStore.setState({ selectedCountry: null });
+  modalStore.setState({
+    selectedCountry: null,
+    weather: null,
+    weatherStatus: "idle",
+  });
   notify();
 };
+
+export const getWeather = () => modalStore.getState().weather;
+export const getWeatherStatus = () => modalStore.getState().weatherStatus;
 
 export const getBorderNames = (codes: string[]): string[] =>
   codes.map((code) => {

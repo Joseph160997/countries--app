@@ -1,4 +1,7 @@
 import type { Country } from "@/domain/country";
+import type { WeatherData } from "@/domain/weather";
+import type { WeatherStatus } from "@/presentation/slices/modal.slice";
+
 const getRegionBadgeClasses = (region: string): string => {
   const classes: Record<string, string> = {
     Americas: "bg-emerald-100 text-emerald-800",
@@ -63,6 +66,8 @@ Renderiza el modal de detalle de un país.
 export const renderCountryDetailModal = (
   country: Country,
   borderNames: string[],
+  weather: WeatherData | null = null,
+  weatherStatus: WeatherStatus = "idle",
 ): string => {
   const formatArray = (items: string[]): string =>
     items.length > 0 ? items.join(", ") : "N/A";
@@ -114,6 +119,8 @@ export const renderCountryDetailModal = (
           ${country.region}
         </span>
         <p class="text-slate-600 dark:text-slate-400 text-sm mb-6">${country.region} · ${subregion}</p>
+
+        ${renderWeatherWidget(weather, weatherStatus, capital)}
 
         <!-- Ficha: población, capital, área, densidad -->
         <div class="grid grid-cols-2 gap-3 mb-6">
@@ -265,6 +272,50 @@ const renderExploreLinks = (country: Country): string => {
     <div class="mt-6 pt-5 border-t border-slate-100 dark:border-slate-700/50">
       <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Explore More</h4>
       <div class="flex flex-col sm:flex-row gap-2">${buttons}</div>
+    </div>
+  `;
+};
+
+const renderWeatherWidget = (
+  weather: WeatherData | null,
+  status: WeatherStatus,
+  capital: string,
+): string => {
+  if (status === "idle") return "";
+
+  if (status === "loading") {
+    return `
+      <div class="mb-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700/40 animate-pulse">
+        <div class="h-4 w-1/2 bg-slate-200 dark:bg-slate-600 rounded mb-2"></div>
+        <div class="h-3 w-2/3 bg-slate-200 dark:bg-slate-600 rounded"></div>
+      </div>
+    `;
+  }
+
+  if (status === "error" || !weather) {
+    return `
+      <div class="mb-6 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 text-xs text-slate-400 dark:text-slate-500 italic">
+        Weather unavailable for ${capital}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="mb-6 p-4 rounded-xl bg-linear-to-r from-sky-50 to-blue-50 dark:from-sky-950/40 dark:to-blue-950/40 border border-sky-100 dark:border-sky-900/40">
+      <div class="flex items-center gap-4">
+        <span class="text-4xl">${weather.icon}</span>
+        <div class="min-w-0">
+          <p class="text-xl font-bold text-slate-900 dark:text-slate-100">
+            ${Math.round(weather.temperatureC)}°C
+            <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">in ${capital}</span>
+          </p>
+          <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">${weather.condition}</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            💧 ${weather.humidity}% · 💨 ${Math.round(weather.windSpeedKmh)} km/h
+          </p>
+        </div>
+        <span class="ml-auto shrink-0 text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 px-2 py-1 rounded-full">Live</span>
+      </div>
     </div>
   `;
 };

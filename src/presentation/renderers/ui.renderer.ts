@@ -8,6 +8,8 @@ import {
   hasMore,
   isShowingFavoritesActive,
   subscribe,
+  getWeather,
+  getWeatherStatus,
 } from "@/presentation/state/countryState";
 import {
   renderCountryCard,
@@ -124,7 +126,12 @@ const renderModal = (): void => {
     // borders es string[] por contrato del modelo — el `|| []` defensivo
     // del código anterior era ruido: el mapper garantiza el array.
     const borderNames = getBorderNames(selected.borders);
-    modalContainer.innerHTML = renderCountryDetailModal(selected, borderNames);
+    modalContainer.innerHTML = renderCountryDetailModal(
+      selected,
+      borderNames,
+      getWeather(),
+      getWeatherStatus(),
+    );
     modalContainer.classList.remove("hidden");
     modalContainer.classList.add("flex");
     document.body.style.overflow = "hidden";
