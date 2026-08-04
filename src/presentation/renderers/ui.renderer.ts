@@ -14,6 +14,7 @@ import {
 import {
   renderCountryCard,
   renderCountryDetailModal,
+  renderWeatherWidget,
 } from "@/presentation/components/countryCards";
 import { renderEmptyStateCard } from "@/presentation/components/emptyState";
 import { renderSkeletonGrid } from "@/presentation/components/skeleton";
@@ -118,28 +119,46 @@ const renderResultsMeta = (): void => {
   }
 };
 
+let lastModalCca3: string | null = null;
+
 const renderModal = (): void => {
   if (!modalContainer) return;
   const selected = getSelectedCountry();
 
-  if (selected) {
-    // borders es string[] por contrato del modelo — el `|| []` defensivo
-    // del código anterior era ruido: el mapper garantiza el array.
-    const borderNames = getBorderNames(selected.borders);
-    modalContainer.innerHTML = renderCountryDetailModal(
-      selected,
-      borderNames,
-      getWeather(),
-      getWeatherStatus(),
-    );
-    modalContainer.classList.remove("hidden");
-    modalContainer.classList.add("flex");
-    document.body.style.overflow = "hidden";
-  } else {
+  if (!selected) {
+    lastModalCca3 = null;
     modalContainer.classList.add("hidden");
     modalContainer.classList.remove("flex");
     document.body.style.overflow = "auto";
+    return;
   }
+
+  // Sigue abierto el MISMO país → solo cambió el clima.
+  // Parcheamos únicamente el widget: sin re-animación, sin recargar la bandera.
+  if (lastModalCca3 === selected.cca3) {
+    const widget = document.getElementById("weather-widget");
+    if (widget) {
+      widget.outerHTML = renderWeatherWidget(
+        getWeather(),
+        getWeatherStatus(),
+        selected.capital,
+      );
+    }
+    return;
+  }
+
+  // País nuevo (o primera apertura) → render completo
+  lastModalCca3 = selected.cca3;
+  const borderNames = getBorderNames(selected.borders);
+  modalContainer.innerHTML = renderCountryDetailModal(
+    selected,
+    borderNames,
+    getWeather(),
+    getWeatherStatus(),
+  );
+  modalContainer.classList.remove("hidden");
+  modalContainer.classList.add("flex");
+  document.body.style.overflow = "hidden";
 };
 
 const renderHeaderWidgets = (): void => {
