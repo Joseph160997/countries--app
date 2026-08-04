@@ -33,6 +33,25 @@ const baseDtoComplete: RestCountryDTO = {
   languages: [{ name: "Spanish", bcp47: "es" }],
   currencies: [{ code: "COP", name: "Colombian Peso", symbol: "$" }],
   tlds: [".co"],
+  area: { kilometers: 1141748, miles: 709449 },
+  coordinates: { lat: 4.5709, lng: -74.2973 },
+  landlocked: false,
+  timezones: ["America/Bogota"],
+  calling_codes: ["+57"],
+  car: { driving_side: "right" },
+  links: {
+    google_maps: "https://maps.google.com/?q=Colombia",
+    open_street_maps: "https://osm.org/?q=Colombia",
+    wikipedia: "https://en.wikipedia.org/wiki/Colombia",
+  },
+  memberships: {
+    un: true,
+    eu: false,
+    nato: false,
+    g7: false,
+    g20: false,
+    schengen: false,
+  },
 };
 
 // TESTS
@@ -82,6 +101,55 @@ describe("CountryMapper", () => {
       expect(result.subregion).toBe("South America");
       expect(result.borders).toEqual(["VEN", "PAN", "ECU"]);
       expect(result.tld).toEqual([".co"]);
+    });
+
+    describe("computed fields", () => {
+      it("should compute density from population and area", () => {
+        const result = mapToCountry(baseDtoComplete, []);
+        expect(result.areaKm2).toBe(1141748);
+        expect(result.density).toBe(Math.round(51000000 / 1141748));
+      });
+
+      it("should leave density undefined when area is missing", () => {
+        const dto: RestCountryDTO = { ...baseDtoComplete, area: undefined };
+        expect(mapToCountry(dto, []).density).toBeUndefined();
+      });
+
+      it("should map country and capital coordinates", () => {
+        const dto: RestCountryDTO = {
+          ...baseDtoComplete,
+          capitals: [
+            {
+              name: "Bogotá",
+              primary: true,
+              coordinates: { lat: 4.711, lng: -74.072 },
+            },
+          ],
+        };
+        const result = mapToCountry(dto, []);
+        expect(result.coordinates).toEqual({ lat: 4.5709, lng: -74.2973 });
+        expect(result.capitalCoordinates).toEqual({ lat: 4.711, lng: -74.072 });
+      });
+
+      it("should map only the active memberships", () => {
+        const result = mapToCountry(baseDtoComplete, []);
+        expect(result.memberships).toEqual(["UN"]);
+      });
+
+      it("should map driving side, landlocked, timezones and calling codes", () => {
+        const result = mapToCountry(baseDtoComplete, []);
+        expect(result.drivingSide).toBe("right");
+        expect(result.landlocked).toBe(false);
+        expect(result.timezones).toEqual(["America/Bogota"]);
+        expect(result.callingCodes).toEqual(["+57"]);
+      });
+
+      it("should map wikipedia link for the Fase 3.3 summary", () => {
+        const result = mapToCountry(baseDtoComplete, []);
+        expect(result.links?.wikipedia).toBe(
+          "https://en.wikipedia.org/wiki/Colombia",
+        );
+      });
     });
 
     // ====================================================

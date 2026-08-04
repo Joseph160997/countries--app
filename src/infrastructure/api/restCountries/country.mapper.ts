@@ -1,4 +1,4 @@
-import type { Country, Region } from "@/domain/country";
+import type { Country, CountryLinks, GeoPoint, Region } from "@/domain/country";
 import type { RestCountryDTO, RestCountriesResponse } from "./restCountry.dto";
 
 const VALID_REGIONS: readonly Region[] = [
@@ -39,6 +39,18 @@ export const mapToCountry = (
     languages: mapLanguages(dto.languages),
     currencies: mapCurrencies(dto.currencies),
     tld: dto.tlds ?? [],
+
+    // ── Fase 3 ──
+    areaKm2: dto.area?.kilometers,
+    density: computeDensity(dto.population, dto.area),
+    coordinates: pickCoordinates(dto),
+    capitalCoordinates: pickCapitalCoordinates(dto),
+    timezones: dto.timezones,
+    callingCodes: dto.calling_codes,
+    drivingSide: dto.car?.driving_side,
+    landlocked: dto.landlocked,
+    memberships: mapMemberships(dto.memberships),
+    links: mapLinks(dto.links),
   };
 };
 
@@ -85,4 +97,54 @@ function mapCurrencies(currencies: RestCountryDTO["currencies"]): string[] {
   if (!currencies) return [];
 
   return currencies.map((c) => `${c.name} (${c.symbol})`).filter(Boolean);
+}
+const MEMBERSHIP_LABELS: Record<string, string> = {
+  un: "UN",
+  eu: "EU",
+  nato: "NATO",
+  g7: "G7",
+  g20: "G20",
+  schengen: "Schengen",
+};
+
+/** Calcula la densidad poblacional del país. */
+function computeDensity(
+  population: number,
+  area?: { kilometers: number },
+): number | undefined {
+  if (!area || area.kilometers <= 0) return undefined;
+  return Math.round(population / area.kilometers);
+}
+
+/** Extrae las coordenadas de la capital. */
+function pickCoordinates(dto: RestCountryDTO): GeoPoint | undefined {
+  if (!dto.coordinates) return undefined;
+  return { lat: dto.coordinates.lat, lng: dto.coordinates.lng };
+}
+
+function pickCapitalCoordinates(dto: RestCountryDTO): GeoPoint | undefined {
+  if (!dto.capitals || dto.capitals.length === 0) return undefined;
+  const primary = dto.capitals.find((c) => c.primary) ?? dto.capitals[0];
+  if (!primary.coordinates) return undefined;
+  return { lat: primary.coordinates.lat, lng: primary.coordinates.lng };
+}
+
+/** Extrae las membresías del Comité Olímpico Internacional. */
+function mapMemberships(
+  memberships?: Record<string, boolean>,
+): string[] | undefined {
+  if (!memberships) return undefined;
+  const labels = Object.entries(memberships)
+    .filter(([, isMember]) => isMember)
+    .map(([key]) => MEMBERSHIP_LABELS[key] ?? key.toUpperCase());
+  return labels.length > 0 ? labels : undefined;
+}
+
+function mapLinks(links?: RestCountryDTO["links"]): CountryLinks | undefined {
+  if (!links) return undefined;
+  return {
+    googleMaps: links.google_maps,
+    openStreetMaps: links.open_street_maps,
+    wikipedia: links.wikipedia,
+  };
 }

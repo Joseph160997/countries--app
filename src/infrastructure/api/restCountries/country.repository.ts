@@ -26,6 +26,15 @@ const REQUIRED_FIELDS = [
   "languages",
   "currencies",
   "tlds",
+  // ── Fase 3: datos de ficha ──
+  "area",
+  "coordinates",
+  "landlocked",
+  "timezones",
+  "calling_codes",
+  "car",
+  "links",
+  "memberships",
 ].join(",");
 
 const options = {
