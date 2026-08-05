@@ -10,6 +10,9 @@ import {
   subscribe,
   getWeather,
   getWeatherStatus,
+  getWikiStatus,
+  getWiki,
+  renderWikiWidget,
 } from "@/presentation/state/countryState";
 import {
   renderCountryCard,
@@ -136,13 +139,17 @@ const renderModal = (): void => {
   // Sigue abierto el MISMO país → solo cambió el clima.
   // Parcheamos únicamente el widget: sin re-animación, sin recargar la bandera.
   if (lastModalCca3 === selected.cca3) {
-    const widget = document.getElementById("weather-widget");
-    if (widget) {
-      widget.outerHTML = renderWeatherWidget(
+    const weatherWidget = document.getElementById("weather-widget");
+    if (weatherWidget) {
+      weatherWidget.outerHTML = renderWeatherWidget(
         getWeather(),
         getWeatherStatus(),
         selected.capital,
       );
+    }
+    const wikiWidget = document.getElementById("wiki-widget");
+    if (wikiWidget) {
+      wikiWidget.outerHTML = renderWikiWidget(getWiki(), getWikiStatus());
     }
     return;
   }
@@ -155,6 +162,8 @@ const renderModal = (): void => {
     borderNames,
     getWeather(),
     getWeatherStatus(),
+    getWiki(),
+    getWikiStatus(),
   );
   modalContainer.classList.remove("hidden");
   modalContainer.classList.add("flex");

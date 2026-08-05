@@ -14,14 +14,21 @@ import {
   type SortCriteria,
 } from "../slices/filters.slice";
 import { computeFilteredCountries } from "../slices/explorer.selectors";
-import { createModalSlice, type ModalStore } from "../slices/modal.slice";
+import {
+  createModalSlice,
+  type AsyncStatus,
+  type ModalStore,
+} from "../slices/modal.slice";
 import type { WeatherProvider } from "@/domain/ports/weather.provider";
+import type { WikiProvider } from "@/domain/ports/wiki.provider";
+import type { WikiSummary } from "@/domain/wiki";
 
 // ========================================================
 // 1. DEPENDENCIA + SLICES (el estado ya no vive aquí)
 // ========================================================
 let countryRepository: CountryRepository | null = null;
 let weatherProvider: WeatherProvider | null = null;
+let wikiProvider: WikiProvider | null = null;
 
 const countriesStore: CountriesStore = createCountriesSlice();
 const filtersStore: FiltersStore = createFiltersSlice();
@@ -42,6 +49,10 @@ export const initCountryState = (repository: CountryRepository): void => {
 
 export const initWeatherProvider = (provider: WeatherProvider): void => {
   weatherProvider = provider;
+};
+
+export const initWikiProvider = (provider: WikiProvider): void => {
+  wikiProvider = provider;
 };
 
 // ========================================================
@@ -175,15 +186,52 @@ export const openCountryModal = (cca3: string): void => {
   const willFetchWeather = Boolean(
     weatherProvider && country.capitalCoordinates,
   );
+  const willFetchWiki = Boolean(wikiProvider && country.links?.wikipedia);
+
   modalStore.setState({
     selectedCountry: country,
     weather: null,
     weatherStatus: willFetchWeather ? "loading" : "idle",
+    wiki: null,
+    wikiStatus: willFetchWiki ? "loading" : "idle",
   });
   notify();
 
   if (willFetchWeather) void loadWeather(country);
+  if (willFetchWiki) void loadWiki(country);
 };
+
+const loadWiki = async (country: Country): Promise<void> => {
+  const url = country.links?.wikipedia;
+  if (!wikiProvider || !url) return;
+  const result = await wikiProvider.getSummaryFromUrl(url);
+
+  // Guard de carrera — mismo principio que con el clima
+  if (modalStore.getState().selectedCountry?.cca3 !== country.cca3) return;
+
+  if (isOk(result)) {
+    modalStore.setState({ wiki: result.value, wikiStatus: "ready" });
+  } else {
+    modalStore.setState({ wikiStatus: "error" });
+  }
+  notify();
+};
+
+export const closeCountryModal = (): void => {
+  modalStore.setState({
+    selectedCountry: null,
+    weather: null,
+    weatherStatus: "idle",
+    wiki: null,
+    wikiStatus: "idle",
+  });
+  notify();
+};
+
+export const getWiki = () => modalStore.getState().wiki;
+export const getWikiStatus = () => modalStore.getState().wikiStatus;
+export const getWeather = () => modalStore.getState().weather;
+export const getWeatherStatus = () => modalStore.getState().weatherStatus;
 
 const loadWeather = async (country: Country): Promise<void> => {
   if (!weatherProvider || !country.capitalCoordinates) return;
@@ -202,18 +250,6 @@ const loadWeather = async (country: Country): Promise<void> => {
   notify();
 };
 
-export const closeCountryModal = (): void => {
-  modalStore.setState({
-    selectedCountry: null,
-    weather: null,
-    weatherStatus: "idle",
-  });
-  notify();
-};
-
-export const getWeather = () => modalStore.getState().weather;
-export const getWeatherStatus = () => modalStore.getState().weatherStatus;
-
 export const getBorderNames = (codes: string[]): string[] =>
   codes.map((code) => {
     const found = countriesStore.getState().all.find((c) => c.cca3 === code);
@@ -226,4 +262,44 @@ export const resetState = (): void => {
   modalStore.reset();
   filteredCountries = [];
   listeners = [];
+};
+
+export const renderWikiWidget = (
+  wiki: WikiSummary | null,
+  status: AsyncStatus,
+): string => {
+  let content = "";
+
+  if (status === "loading") {
+    content = `
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700/40 animate-pulse">
+        <div class="flex gap-3">
+          <div class="w-20 h-20 shrink-0 bg-slate-200 dark:bg-slate-600 rounded-lg"></div>
+          <div class="grow space-y-2">
+            <div class="h-3 w-full bg-slate-200 dark:bg-slate-600 rounded"></div>
+            <div class="h-3 w-full bg-slate-200 dark:bg-slate-600 rounded"></div>
+            <div class="h-3 w-2/3 bg-slate-200 dark:bg-slate-600 rounded"></div>
+          </div>
+        </div>
+      </div>`;
+  } else if (status === "ready" && wiki && wiki.extract) {
+    const thumbnail = wiki.thumbnail
+      ? `<img src="${wiki.thumbnail}" alt="Wikipedia thumbnail" loading="lazy" class="w-20 h-20 shrink-0 rounded-lg object-cover border border-slate-200/60 dark:border-slate-600/60"/>`
+      : "";
+    content = `
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/40 animate-fade-in-up">
+        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5">About</p>
+        <div class="flex gap-3">
+          ${thumbnail}
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-5">${wiki.extract}</p>
+        </div>
+        <a href="${wiki.pageUrl}" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-1 mt-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+          Read more on Wikipedia →
+        </a>
+      </div>`;
+  }
+  // idle / error → vacío: el "About" simplemente no aparece
+
+  return `<div id="wiki-widget" class="mt-6">${content}</div>`;
 };

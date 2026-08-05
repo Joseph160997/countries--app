@@ -1,6 +1,8 @@
 import type { Country } from "@/domain/country";
 import type { WeatherData } from "@/domain/weather";
-import type { WeatherStatus } from "@/presentation/slices/modal.slice";
+import type { WikiSummary } from "@/domain/wiki";
+import type { AsyncStatus } from "@/presentation/slices/modal.slice";
+import { renderWikiWidget } from "../state/countryState";
 
 const getRegionBadgeClasses = (region: string): string => {
   const classes: Record<string, string> = {
@@ -67,7 +69,9 @@ export const renderCountryDetailModal = (
   country: Country,
   borderNames: string[],
   weather: WeatherData | null = null,
-  weatherStatus: WeatherStatus = "idle",
+  weatherStatus: AsyncStatus = "idle",
+  wiki: WikiSummary | null = null,
+  wikiStatus: AsyncStatus = "idle",
 ): string => {
   const formatArray = (items: string[]): string =>
     items.length > 0 ? items.join(", ") : "N/A";
@@ -153,7 +157,11 @@ export const renderCountryDetailModal = (
           <div class="flex flex-wrap gap-2">${bordersHTML}</div>
         </div>
 
+        ${renderWikiWidget(wiki, wikiStatus)}
+
         ${renderExploreLinks(country)}
+
+
       </div>
     </div>
   </div>
@@ -278,7 +286,7 @@ const renderExploreLinks = (country: Country): string => {
 
 export const renderWeatherWidget = (
   weather: WeatherData | null,
-  status: WeatherStatus,
+  status: AsyncStatus,
   capital: string,
 ): string => {
   let content = "";

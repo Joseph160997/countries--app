@@ -4,6 +4,7 @@ import {
   initCountryState,
   initSort,
   initWeatherProvider,
+  initWikiProvider,
   loadCountries,
 } from "@/presentation/state/countryState";
 import { RestCountriesRepository } from "@/infrastructure/api/restCountries/country.repository";
@@ -17,6 +18,7 @@ import { initModalController } from "@/presentation/controllers/modal.controller
 import { initPaginationController } from "@/presentation/controllers/pagination.controller";
 import { initThemeController } from "@/presentation/controllers/theme.controller";
 import { OpenMeteoProvider } from "@/infrastructure/api/openMeteo/openMeteo.provider";
+import { WikipediaProvider } from "@/infrastructure/api/wikipedia/wikipedia.provider";
 
 // ========================================================
 // 1. LAYOUT + COMPOSITION ROOT
@@ -24,6 +26,7 @@ import { OpenMeteoProvider } from "@/infrastructure/api/openMeteo/openMeteo.prov
 initializeLayout("app");
 initCountryState(new RestCountriesRepository());
 initWeatherProvider(new OpenMeteoProvider());
+initWikiProvider(new WikipediaProvider());
 
 // ========================================================
 // 2. PRESENTACIÓN (el orden importa: renderer antes que controllers)
