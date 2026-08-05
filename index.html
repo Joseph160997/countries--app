@@ -4,7 +4,14 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>World Explorer v2 - Senior Frontend</title>
+    <title>Terra · Atlas</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <script>
       // Anti-FOUC: aplica el tema guardado ANTES del primer render.
       // storageService serializa con JSON.stringify, así que el valor
@@ -28,7 +35,7 @@
     </script>
   </head>
   <body
-    class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col"
+    class="bg-paper dark:bg-space text-ink dark:text-starlight transition-colors duration-300 min-h-screen flex flex-col"
   >
     <div id="app" class="flex flex-col grow"></div>
     <div
