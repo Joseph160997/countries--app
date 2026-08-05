@@ -114,43 +114,37 @@ src/
 ├── main.ts                              # Composition root: cablea capas y arranca
 │
 ├── domain/                              # QUÉ existe — sin frameworks ni efectos
-│   ├── country.ts                       #   Entidad Country y Region
+│   ├── country.ts                       #   Entidad Country (23 campos)
 │   ├── errors.ts                        #   Taxonomía AppError
+│   ├── weather.ts                       #   WeatherData (clima como concepto propio)
 │   └── ports/
 │       ├── country.repository.ts        #   Contrato: obtener países
-│       └── keyValue.store.ts            #   Contrato: persistencia clave/valor
+│       ├── keyValue.store.ts            #   Contrato: persistencia clave/valor
+│       └── weather.provider.ts          #   Contrato: clima por coordenadas
 │
 ├── shared/                              # Utilidades puras, sin capa
 │   ├── result.ts                        #   Result<T,E>: fallos como valores
 │   └── debounce.ts
 │
 ├── application/                         # CASOS DE USO — orquestación sin UI
-│   └── toggleFavorite.usecase.ts        #   Alternar favorito (sin toast)
+│   └── toggleFavorite.usecase.ts
 │
 ├── infrastructure/                      # CÓMO nos conectamos al mundo
 │   ├── http/http.client.ts
 │   ├── persistence/
 │   │   ├── indexedDb.store.ts
 │   │   ├── localStorage.store.ts
-│   │   └── favorites.store.ts           #   Lee/escribe favoritos (Result)
-│   └── api/restCountries/
-│       ├── restCountry.dto.ts
-│       ├── restCountries.validator.ts
-│       ├── country.mapper.ts
-│       └── country.repository.ts
+│   │   └── favorites.store.ts
+│   └── api/
+│       ├── restCountries/               #   DTO, validator, mapper, repository
+│       └── openMeteo/                   #   DTO, validator, mapper WMO, provider
 │
 └── presentation/                        # CÓMO se muestra e interactúa
-    ├── state/
-    │   ├── store.ts                     #   Núcleo createStore<T>
-    │   └── countryState.ts              #   Coordinador que compone slices
-    ├── slices/
-    │   ├── countries.slice.ts           #   Datos + loading + paginación
-    │   ├── filters.slice.ts             #   Query, región, sort, favoritos
-    │   ├── explorer.selectors.ts        #   Derivación pura (filtros)
-    │   └── modal.slice.ts               #   País seleccionado
+    ├── state/                           #   store.ts (núcleo) + countryState.ts (coordinador)
+    ├── slices/                          #   countries, filters, selectors, modal (+clima)
     ├── controllers/                     #   search, filter, grid, modal, pagination, theme
-    ├── renderers/ui.renderer.ts         #   Único punto donde estado toca DOM
-    ├── components/                      #   Plantillas: cards, modal, skeletons
+    ├── renderers/ui.renderer.ts         #   Único punto donde estado toca DOM (+ parches selectivos)
+    ├── components/                      #   Plantillas: cards, modal-ficha, skeletons
     ├── services/                        #   favoriteService, themeService, toast
     └── styles/style.css
 ```
