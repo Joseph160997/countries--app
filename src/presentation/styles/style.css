@@ -2,6 +2,12 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Reserva el espacio de la scrollbar para que el contenido
+   no salte horizontalmente cuando el modal bloquea el scroll. */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* =========================================================
    TERRA · ATLAS — design tokens
 

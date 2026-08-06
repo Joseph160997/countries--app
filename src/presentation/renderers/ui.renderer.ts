@@ -88,35 +88,52 @@ const syncButtonState = (
 // ========================================================
 // RENDERIZADO — cada función pinta UN aspecto del estado
 // ========================================================
+let lastGridFingerprint: string | null = null;
+
 const renderGrid = (): void => {
   if (!resultsContainer) return;
 
+  let html: string;
+  let fingerprint: string;
+
   if (getIsLoading()) {
-    resultsContainer.innerHTML = renderSkeletonGrid(20);
-    return;
+    fingerprint = "loading";
+    html = renderSkeletonGrid(20);
+  } else {
+    const visible = getCountries();
+
+    // La huella incluye TODO lo que afecta visualmente al grid:
+    // qué países están visibles, sus favoritos y qué vista está activa.
+    fingerprint =
+      `${isShowingFavoritesActive() ? "favs" : "all"}:` +
+      (visible.map((c) => `${c.cca3}:${c.isFavorite}`).join("|") || "empty");
+
+    if (visible.length === 0) {
+      const isFavsView = isShowingFavoritesActive();
+      html = renderEmptyStateCard(
+        isFavsView
+          ? {
+              title: "Your favorites list is empty",
+              description:
+                "You haven't marked any countries yet. Click the heart icon!",
+            }
+          : {
+              title: "No countries found",
+              description:
+                "We couldn't find any country matching your search. Try another name.",
+              showButton: false,
+            },
+      );
+    } else {
+      html = visible.map(renderCountryCard).join("");
+    }
   }
 
-  const visible = getCountries();
-  if (visible.length === 0) {
-    const isFavsView = isShowingFavoritesActive();
-    resultsContainer.innerHTML = renderEmptyStateCard(
-      isFavsView
-        ? {
-            title: "Your favorites list is empty",
-            description:
-              "You haven't marked any countries yet. Click the heart icon!",
-          }
-        : {
-            title: "No countries found",
-            description:
-              "We couldn't find any country matching your search. Try another name.",
-            showButton: false,
-          },
-    );
-    return;
-  }
+  // Nada cambió → el DOM NO se toca (las imágenes y animaciones no se reinician)
+  if (fingerprint === lastGridFingerprint) return;
+  lastGridFingerprint = fingerprint;
 
-  resultsContainer.innerHTML = visible.map(renderCountryCard).join("");
+  resultsContainer.innerHTML = html;
 };
 
 const renderPaginationSection = (): void => {
