@@ -124,28 +124,37 @@ export const renderCountryDetailModal = (
       : `<span class="text-ink-faint dark:text-starlight-faint italic text-sm">No border countries</span>`;
 
   return `
-  <div class="relative w-full max-w-4xl max-h-[90vh] bg-paper-card dark:bg-space-card rounded-2xl shadow-xl overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 animate-fade-in-up flex flex-col">
+  <div class="relative w-full max-w-4xl max-h-[90vh] bg-paper-card dark:bg-space-card rounded-2xl shadow-2xl shadow-slate-300/50 dark:shadow-space-deep overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 animate-fade-in-up flex flex-col">
+    <!-- Pestaña de atlas -->
+    <div class="h-1.5 shrink-0 ${getRegionAccentClass(country.region)}"></div>
+
+    <!-- Cerrar -->
     <button
       id="close-modal"
       aria-label="Close modal"
-      class="absolute top-4 right-4 z-20 p-2 rounded-full bg-paper-card/70 dark:bg-space-deep/70 hover:bg-accent-soft dark:hover:bg-gold/20 transition-colors cursor-pointer backdrop-blur-sm"
+      class="absolute top-4 right-4 z-20 p-2 rounded-full bg-paper-card/90 dark:bg-space-deep/90 hover:bg-accent-soft dark:hover:bg-gold/20 text-ink-soft dark:text-starlight-soft transition-colors cursor-pointer backdrop-blur-sm shadow-md"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 text-ink-soft dark:text-starlight-soft">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
       </svg>
     </button>
 
-    <div class="md:flex overflow-y-auto grow">
-      <div class="md:w-1/2 h-48 md:h-auto md:sticky md:top-0 md:self-start overflow-hidden bg-paper-deep dark:bg-space-deep">
-        <img src="${country.flag}" alt="Flag of ${country.name}" loading="lazy" class="w-full h-full md:h-auto object-cover"/>
+    <!-- CUERPO: flex-1 + min-h-0 es la llave del scroll interno en desktop -->
+    <div class="min-h-0 flex-1 flex flex-col md:flex-row">
+      <!-- BANDERA: h-56 en móvil (altura fija), h-full en desktop (se estira) -->
+      <div class="relative md:w-2/5 h-56 md:h-full shrink-0 overflow-hidden bg-paper-deep dark:bg-space-deep">
+        <img src="${country.flag}" alt="Flag of ${country.name}" loading="eager" class="modal-flag w-full h-full object-cover"/>
+        <div class="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-ink/60 to-transparent dark:from-space-deep/80 pointer-events-none"></div>
+        <span class="absolute bottom-3 left-3 font-mono text-[11px] font-bold tracking-wider bg-ink/70 dark:bg-space-deep/85 text-starlight px-2.5 py-1 rounded backdrop-blur-sm">${country.cca3}</span>
       </div>
 
-      <div class="md:w-1/2 p-6 lg:p-8">
-        <h2 class="font-display text-2xl lg:text-3xl font-bold text-ink dark:text-starlight mb-2">${country.name}</h2>
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold mt-1 mb-3 ${getRegionBadgeClasses(country.region)}">
-          ${country.region}
-        </span>
-        <p class="text-ink-soft dark:text-starlight-soft text-sm mb-6">${country.region} · ${subregion}</p>
+      <!-- CONTENIDO: min-h-0 + overflow-y-auto → scroll interno funciona -->
+      <div class="md:w-3/5 min-h-0 md:overflow-y-auto p-6 lg:p-8">
+        <h2 class="font-display text-2xl lg:text-3xl font-extrabold text-ink dark:text-starlight tracking-tight mb-3">${country.name}</h2>
+        <div class="flex flex-wrap items-center gap-2 mb-6">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getRegionBadgeClasses(country.region)}">${country.region}</span>
+          <span class="text-sm text-ink-soft dark:text-starlight-soft">${subregion}</span>
+        </div>
 
         ${renderWeatherWidget(weather, weatherStatus, capital)}
 
@@ -174,7 +183,7 @@ export const renderCountryDetailModal = (
           </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-slate-200/60 dark:border-starlight-faint/15">
+        <div class="mt-8 pt-6 border-t border-slate-200/50 dark:border-starlight-faint/15">
           <h4 class="text-sm font-bold text-ink dark:text-starlight mb-3">Border Countries</h4>
           <div class="flex flex-wrap gap-2">${bordersHTML}</div>
         </div>
