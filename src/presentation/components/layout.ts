@@ -43,6 +43,8 @@ const renderHeader = (): string => {
 const renderMain = (): string => {
   return `
     <main class="container mx-auto px-4 sm:px-6 py-10 grow">
+    <!-- Spotlight: País del Día (lo llena el renderer) -->
+    <div id="spotlight-container"></div>
       <!-- Sección de Controles y Filtros Avanzados -->
       <section class="mb-12 max-w-3xl mx-auto">
         <div class="flex flex-col gap-6 p-6 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800/50 shadow-xl shadow-slate-100/40 dark:shadow-none transition-all">

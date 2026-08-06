@@ -4,7 +4,7 @@ import type { WikiSummary } from "@/domain/wiki";
 import type { AsyncStatus } from "@/presentation/slices/modal.slice";
 import { renderWikiWidget } from "../state/countryState";
 
-const getRegionBadgeClasses = (region: string): string => {
+export const getRegionBadgeClasses = (region: string): string => {
   const classes: Record<string, string> = {
     Americas: "bg-emerald-100 text-emerald-800",
     Europe: "bg-indigo-100 text-indigo-800",

@@ -13,6 +13,7 @@ import {
   getWikiStatus,
   getWiki,
   renderWikiWidget,
+  getSpotlightCountry,
 } from "@/presentation/state/countryState";
 import {
   renderCountryCard,
@@ -23,6 +24,10 @@ import { renderEmptyStateCard } from "@/presentation/components/emptyState";
 import { renderSkeletonGrid } from "@/presentation/components/skeleton";
 import { getFavoriteCodes } from "@/presentation/services/favoriteService";
 import { unwrapOr } from "@/shared/result";
+import {
+  renderSpotlight,
+  renderSpotlightSkeleton,
+} from "@/presentation/components/spotlight";
 
 // ========================================================
 // ELEMENTOS DEL DOM (capturados en initRenderer, no al importar)
@@ -69,6 +74,8 @@ const syncButtonState = (
   btn.classList.remove(...(isActive ? inactiveClasses : activeClasses));
   btn.classList.add(...(isActive ? activeClasses : inactiveClasses));
 };
+
+let spotlightRendered = false;
 
 // ========================================================
 // RENDERIZADO — cada función pinta UN aspecto del estado
@@ -195,10 +202,28 @@ const renderHeaderWidgets = (): void => {
 };
 
 const renderUI = (): void => {
+  spotlightRendered = false; // forzamos re-render del Spotlight si cambia el estado
   renderGrid();
   renderResultsMeta();
   renderModal();
   renderHeaderWidgets();
+  renderSpotlightSection();
+};
+
+const renderSpotlightSection = (): void => {
+  const container = document.getElementById("spotlight-container");
+  if (!container || spotlightRendered) return;
+
+  if (getIsLoading()) {
+    container.innerHTML = renderSpotlightSkeleton();
+    return;
+  }
+
+  const spotlight = getSpotlightCountry();
+  if (!spotlight) return;
+
+  container.innerHTML = renderSpotlight(spotlight);
+  spotlightRendered = true; // se pinta UNA vez; el país del día no cambia en la sesión
 };
 
 // ========================================================

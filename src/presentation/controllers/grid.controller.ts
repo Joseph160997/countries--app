@@ -11,6 +11,17 @@ import {
  */
 export const initGridController = (): void => {
   document
+    .querySelector("#spotlight-container")
+    ?.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      const btn = target.closest(".btn-spotlight-explore");
+      if (btn) {
+        const id = (btn as HTMLElement).dataset.id;
+        if (id) openCountryModal(id);
+      }
+    });
+
+  document
     .querySelector<HTMLDivElement>("#result-container")
     ?.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;

@@ -13,7 +13,10 @@ import {
   type FiltersStore,
   type SortCriteria,
 } from "../slices/filters.slice";
-import { computeFilteredCountries } from "../slices/explorer.selectors";
+import {
+  computeFilteredCountries,
+  pickCountryOfTheDay,
+} from "../slices/explorer.selectors";
 import {
   createModalSlice,
   type AsyncStatus,
@@ -53,6 +56,11 @@ export const initWeatherProvider = (provider: WeatherProvider): void => {
 
 export const initWikiProvider = (provider: WikiProvider): void => {
   wikiProvider = provider;
+};
+
+/** País del Día — se calcula sobre la lista COMPLETA, no la filtrada. */
+export const getSpotlightCountry = (): Country | null => {
+  return pickCountryOfTheDay(countriesStore.getState().all);
 };
 
 // ========================================================

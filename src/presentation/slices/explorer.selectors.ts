@@ -38,3 +38,22 @@ const sortCountries = (list: Country[], sort: SortCriteria): Country[] => {
   }
   return copy;
 };
+
+/**
+ * Selección determinista del "País del Día".
+ * Mismo día → mismo país para todos los usuarios.
+ * Ordenamos por cca3 para que el resultado NO dependa del orden
+ * en que la API o el caché devuelven los datos.
+ */
+export const pickCountryOfTheDay = (
+  countries: readonly Country[],
+  now: Date = new Date(),
+): Country | null => {
+  if (countries.length === 0) return null;
+  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor(
+    (now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  const sorted = [...countries].sort((a, b) => a.cca3.localeCompare(b.cca3));
+  return sorted[dayOfYear % sorted.length];
+};
