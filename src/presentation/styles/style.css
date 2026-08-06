@@ -4,7 +4,9 @@
 
 /* =========================================================
    TERRA · ATLAS — design tokens
-   Día = papel de atlas y tinta. Noche = Black Marble.
+
+   🌞 ATLAS VIVO (claro)  — papel cálido, tinta carbón, esmeralda vivo
+   🌙 MEDIANOCHE (oscuro) — carbón azulado, luz cálida, ámbar dorado
    ========================================================= */
 @theme {
   /* Tipografía */
@@ -12,16 +14,34 @@
   --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Día — Atlas */
-  --color-paper: #f0f4f7;
-  --color-paper-deep: #e4ebf1;
-  --color-ink: #16233a;
-  --color-ink-soft: #4a5d7e;
+  /* Superficies — Atlas Vivo */
+  --color-paper: #faf6f1;
+  --color-paper-deep: #f2ebe0;
+  --color-paper-card: #ffffff;
+  --color-ink: #1a1a1a;
+  --color-ink-soft: #555555;
+  --color-ink-faint: #8a8578;
 
-  /* Noche — Black Marble */
-  --color-space: #080f1e;
-  --color-space-deep: #0e1a30;
-  --color-starlight: #e9eff8;
+  /* Superficies — Medianoche */
+  --color-space: #0a0e1a;
+  --color-space-deep: #050810;
+  --color-space-card: #121827;
+  --color-starlight: #f5efe6;
+  --color-starlight-soft: #a8a39b;
+  --color-starlight-faint: #6b6960;
+
+  /* Acentos (vivos en ambos modos) */
+  --color-accent: #059669; /* esmeralda — Atlas Vivo */
+  --color-accent-soft: #d1fae5;
+  --color-gold: #fbbf24; /* ámbar — Medianoche */
+  --color-gold-soft: #fde68a;
+
+  /* Paleta de regiones */
+  --color-region-africa: #f97316; /* naranja */
+  --color-region-americas: #059669; /* esmeralda */
+  --color-region-asia: #dc2626; /* rojo */
+  --color-region-europe: #2563eb; /* azul */
+  --color-region-oceania: #0891b2; /* cian */
 }
 
 :root {
@@ -32,15 +52,27 @@
 }
 
 /* =========================================================
-   ATMÓSFERA — el fondo cuenta la historia del producto:
-   curvas topográficas de día, campo estelar de noche.
+   ATMÓSFERA — el fondo cuenta la historia del producto
    ========================================================= */
 body {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='none' stroke='%2316233a' stroke-opacity='0.05'%3E%3Cpath d='M0 36c30-14 60 10 90-4s60-22 90-8 40 18 60 12'/%3E%3Cpath d='M0 92c34-18 62 6 94-8s58-18 88-6 38 14 58 10'/%3E%3Cpath d='M0 148c28-12 58 8 92-6s62-16 90-4 36 12 58 8'/%3E%3Cpath d='M0 204c32-16 60 6 92-8s60-14 90-2 36 10 58 6'/%3E%3C/g%3E%3C/svg%3E");
+  background-color: var(--color-paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='none' stroke='%231a1a1a' stroke-opacity='0.04'%3E%3Cpath d='M0 36c30-14 60 10 90-4s60-22 90-8 40 18 60 12'/%3E%3Cpath d='M0 92c34-18 62 6 94-8s58-18 88-6 38 14 58 10'/%3E%3Cpath d='M0 148c28-12 58 8 92-6s62-16 90-4 36 12 58 8'/%3E%3Cpath d='M0 204c32-16 60 6 92-8s60-14 90-2 36 10 58 6'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 .dark body {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='none' stroke='%23e9eff8' stroke-opacity='0.04'%3E%3Cpath d='M0 36c30-14 60 10 90-4s60-22 90-8 40 18 60 12'/%3E%3Cpath d='M0 92c34-18 62 6 94-8s58-18 88-6 38 14 58 10'/%3E%3Cpath d='M0 148c28-12 58 8 92-6s62-16 90-4 36 12 58 8'/%3E%3Cpath d='M0 204c32-16 60 6 92-8s60-14 90-2 36 10 58 6'/%3E%3C/g%3E%3Cg fill='%23e9eff8' fill-opacity='0.1'%3E%3Ccircle cx='28' cy='64' r='1'/%3E%3Ccircle cx='150' cy='30' r='1.2'/%3E%3Ccircle cx='205' cy='118' r='0.9'/%3E%3Ccircle cx='70' cy='176' r='1.1'/%3E%3Ccircle cx='180' cy='210' r='1'/%3E%3C/g%3E%3C/svg%3E");
+  background-color: var(--color-space);
+  background-image:
+    radial-gradient(
+      ellipse at top,
+      rgba(251, 191, 36, 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at bottom,
+      rgba(5, 150, 105, 0.04) 0%,
+      transparent 50%
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='none' stroke='%23f5efe6' stroke-opacity='0.025'%3E%3Cpath d='M0 36c30-14 60 10 90-4s60-22 90-8 40 18 60 12'/%3E%3Cpath d='M0 92c34-18 62 6 94-8s58-18 88-6 38 14 58 10'/%3E%3Cpath d='M0 148c28-12 58 8 92-6s62-16 90-4 36 12 58 8'/%3E%3Cpath d='M0 204c32-16 60 6 92-8s60-14 90-2 36 10 58 6'/%3E%3C/g%3E%3Cg fill='%23f5efe6' fill-opacity='0.08'%3E%3Ccircle cx='28' cy='64' r='0.8'/%3E%3Ccircle cx='150' cy='30' r='1'/%3E%3Ccircle cx='205' cy='118' r='0.7'/%3E%3Ccircle cx='70' cy='176' r='0.9'/%3E%3Ccircle cx='180' cy='210' r='0.8'/%3E%3Ccircle cx='110' cy='80' r='0.6'/%3E%3Ccircle cx='220' cy='180' r='0.7'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 /* =========================================================
@@ -59,6 +91,7 @@ textarea,
 #btn-show-favorites,
 #sort-pop,
 #sort-name,
+#sort-area,
 .btn-fav {
   transition-property:
     background-color, border-color, color, transform, opacity, box-shadow, scale;
@@ -112,6 +145,11 @@ img[loading="lazy"] {
     0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
+}
+.dark .country-card:hover {
+  box-shadow:
+    0 10px 25px -5px rgba(251, 191, 36, 0.15),
+    0 4px 6px -2px rgba(0, 0, 0, 0.3);
 }
 
 #modal-container {

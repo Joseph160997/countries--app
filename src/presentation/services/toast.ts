@@ -26,9 +26,11 @@ export const showToast = (message: string, type: ToastType = "info"): void => {
   const toast = document.createElement("div");
 
   // Definimos los colores basados en el tipo de notificación
-  let bgStyles = "bg-blue-600 text-white";
-  if (type === "success") bgStyles = "bg-emerald-600 text-white";
-  if (type === "error") bgStyles = "bg-rose-600 text-white";
+  let bgStyles = "bg-paper-card text-ink border border-slate-200/60";
+  if (type === "success") bgStyles = "bg-accent text-white";
+  if (type === "error") bgStyles = "bg-red-600 text-white";
+  if (type === "info")
+    bgStyles = "bg-space-card text-starlight border border-starlight-faint/15";
 
   // Secuencia de diseño del Toast flotante
   toast.className = `p-4 rounded-xl shadow-2xl ${bgStyles} font-semibold text-sm tracking-tight transition-all duration-300 transform translate-x-20 opacity-0 pointer-events-auto flex items-center gap-2`;

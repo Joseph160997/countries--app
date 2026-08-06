@@ -4,30 +4,22 @@
  */
 const renderSkeletonCard = (): string => {
   return `
-    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-md overflow-hidden flex flex-col">
-      
-      <!-- Imagen falsa -->
-      <div class="h-40 bg-slate-200 dark:bg-slate-700 animate-pulse"></div>
-      
-      <div class="p-5 flex flex-col gap-3">
-        <!-- Título falso -->
-        <div class="h-5 w-3/4 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse"></div>
-        
-        <!-- Líneas de datos falsas -->
-        <div class="space-y-2 mt-1">
-          <div class="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded animate-pulse"></div>
-          <div class="h-3 w-5/6 bg-slate-100 dark:bg-slate-800 rounded animate-pulse"></div>
-          <div class="h-3 w-4/6 bg-slate-100 dark:bg-slate-800 rounded animate-pulse"></div>
-        </div>
-        
-        <!-- Footer falso -->
-        <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/60">
-          <div class="h-5 w-10 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse"></div>
-          <div class="h-6 w-6 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse"></div>
-        </div>
-      </div>
+<div class="bg-paper-card dark:bg-space-card rounded-2xl border border-slate-200/60 dark:border-starlight-faint/15 shadow-md overflow-hidden flex flex-col">
+  <div class="h-40 bg-paper-deep dark:bg-space-deep animate-pulse"></div>
+  <div class="p-5 flex flex-col gap-3">
+    <div class="h-5 w-3/4 bg-paper-deep dark:bg-space-deep rounded-md animate-pulse"></div>
+    <div class="space-y-2 mt-1">
+      <div class="h-3 w-full bg-paper-deep dark:bg-space-deep rounded animate-pulse"></div>
+      <div class="h-3 w-5/6 bg-paper-deep dark:bg-space-deep rounded animate-pulse"></div>
+      <div class="h-3 w-4/6 bg-paper-deep dark:bg-space-deep rounded animate-pulse"></div>
     </div>
-  `;
+    <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-200/60 dark:border-starlight-faint/15">
+      <div class="h-5 w-10 bg-paper-deep dark:bg-space-deep rounded-md animate-pulse"></div>
+      <div class="h-6 w-6 bg-paper-deep dark:bg-space-deep rounded-full animate-pulse"></div>
+    </div>
+  </div>
+</div>
+`;
 };
 
 /**

@@ -61,8 +61,20 @@ const FAVS_INACTIVE = [
   "border-rose-100",
   "dark:border-rose-900/40",
 ];
-const SORT_ACTIVE = ["bg-blue-600", "text-white", "border-blue-600"];
-const SORT_INACTIVE = ["bg-slate-100", "dark:bg-slate-800", "text-slate-700"];
+const SORT_ACTIVE = [
+  "bg-accent",
+  "dark:bg-gold",
+  "text-white",
+  "dark:text-space",
+  "border-accent",
+  "dark:border-gold",
+];
+const SORT_INACTIVE = [
+  "bg-paper-deep",
+  "dark:bg-space-deep",
+  "text-ink-soft",
+  "dark:text-starlight-soft",
+];
 
 /** Sincroniza la apariencia de un botón con un booleano de estado. */
 const syncButtonState = (

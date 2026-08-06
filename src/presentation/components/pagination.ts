@@ -39,6 +39,7 @@ export const buildCompactWindow = (
   return Array.from({ length: visible }, (_, i) => start + i);
 };
 
+/** Botón de navegación (número). */
 const numberButton = (page: number, isActive: boolean): string => `
   <button
     data-page="${page}"
@@ -46,14 +47,15 @@ const numberButton = (page: number, isActive: boolean): string => `
     class="min-w-10 h-10 px-2 rounded-lg font-mono text-sm font-semibold border transition-all cursor-pointer active:scale-95
       ${
         isActive
-          ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
-          : "bg-white dark:bg-space-deep/60 text-ink dark:text-starlight border-slate-200/80 dark:border-starlight/10 hover:border-emerald-500 dark:hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400"
+          ? "bg-accent dark:bg-gold text-white dark:text-space border-accent dark:border-gold shadow-md"
+          : "bg-paper-card dark:bg-space-card text-ink dark:text-starlight border-slate-200/60 dark:border-starlight-faint/15 hover:border-accent dark:hover:border-gold hover:text-accent dark:hover:text-gold"
       }"
   >
     ${page}
   </button>
 `;
 
+/** Botón de navegación (anterior/siguiente). */
 const navButton = (page: number, label: string, disabled: boolean): string => `
   <button
     data-page="${page}"
@@ -61,8 +63,8 @@ const navButton = (page: number, label: string, disabled: boolean): string => `
     class="h-10 px-3 rounded-lg font-sans text-sm font-bold border transition-all active:scale-95
       ${
         disabled
-          ? "opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200/60 dark:border-slate-700/60"
-          : "cursor-pointer bg-white dark:bg-space-deep/60 text-ink dark:text-starlight border-slate-200/80 dark:border-starlight/10 hover:border-emerald-500 dark:hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400"
+          ? "opacity-40 cursor-not-allowed bg-paper-deep dark:bg-space-deep text-ink-faint dark:text-starlight-faint border-slate-200/60 dark:border-starlight-faint/15"
+          : "cursor-pointer bg-paper-card dark:bg-space-card text-ink dark:text-starlight border-slate-200/60 dark:border-starlight-faint/15 hover:border-accent dark:hover:border-gold hover:text-accent dark:hover:text-gold"
       }"
   >
     ${label}
