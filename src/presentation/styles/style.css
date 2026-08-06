@@ -166,3 +166,52 @@ img[loading="lazy"] {
 .btn-fav:active {
   transform: scale(0.95);
 }
+
+/* =========================================================
+   HERO CAROUSEL — crossfade + Ken Burns
+   ========================================================= */
+.hero-slide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 900ms ease;
+}
+.hero-slide.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.hero-slide.is-active .hero-flag {
+  animation: hero-zoom 7s ease-out forwards;
+}
+@keyframes hero-zoom {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+
+.hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgba(233, 239, 248, 0.35);
+  cursor: pointer;
+  transition: all 300ms ease;
+}
+.hero-dot:hover {
+  background: rgba(233, 239, 248, 0.7);
+}
+.hero-dot.is-active {
+  width: 24px;
+  background: var(--color-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide.is-active .hero-flag {
+    animation: none;
+  }
+  .hero-slide {
+    transition: none;
+  }
+}

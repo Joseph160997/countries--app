@@ -173,7 +173,7 @@ const formatDensity = (density: number | undefined): string =>
 const renderStatBox = (label: string, value: string): string => `
   <div class="bg-paper-deep dark:bg-space-deep/60 p-4 rounded-xl border border-slate-200/40 dark:border-starlight-faint/10">
     <p class="text-xs font-semibold text-ink-faint dark:text-starlight-faint uppercase tracking-wider mb-1">${label}</p>
-    <p class="text-base lg:text-lg font-bold text-ink dark:text-starlight break-words">${value}</p>
+    <p class="text-base lg:text-lg font-bold text-ink dark:text-starlight wrap-break-word">${value}</p>
   </div>
 `;
 
@@ -298,7 +298,7 @@ export const renderWeatherWidget = (
       </div>`;
   } else {
     content = `
-      <div class="p-4 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-950/40 dark:to-space-deep border border-sky-100 dark:border-sky-900/30">
+      <div class="p-4 rounded-xl bg-linear-to-r from-sky-50 to-blue-50 dark:from-sky-950/40 dark:to-space-deep border border-sky-100 dark:border-sky-900/30">
         <div class="flex items-center gap-4">
           <span class="text-4xl">${weather.icon}</span>
           <div class="min-w-0">

@@ -15,7 +15,8 @@ import {
 } from "../slices/filters.slice";
 import {
   computeFilteredCountries,
-  pickCountryOfTheDay,
+  buildHeroSlides,
+  type HeroSlide,
 } from "../slices/explorer.selectors";
 import { createModalSlice, type ModalStore } from "../slices/modal.slice";
 import type { WeatherProvider } from "@/domain/ports/weather.provider";
@@ -53,10 +54,9 @@ export const initWikiProvider = (provider: WikiProvider): void => {
   wikiProvider = provider;
 };
 
-/** País del Día — se calcula sobre la lista COMPLETA, no la filtrada. */
-export const getSpotlightCountry = (): Country | null => {
-  return pickCountryOfTheDay(countriesStore.getState().all);
-};
+/** Slides del hero: País del Día + destacados curados. */
+export const getHeroSlides = (): HeroSlide[] =>
+  buildHeroSlides(countriesStore.getState().all);
 
 // ========================================================
 // 2. MOTOR DE DERIVACIÓN (ahora delega en el selector puro)

@@ -41,16 +41,21 @@ const renderHeader = (): string => {
 const renderMain = (): string => {
   return `
 <main class="container mx-auto px-4 sm:px-6 py-10 grow">
-  <div id="spotlight-container"></div>
+  <!-- Buscador protagonista -->
+  <section class="mb-10 max-w-3xl mx-auto">
+    <div class="relative w-full">
+      <input type="text" id="search-input" placeholder="Search countries, capitals, regions…" class="w-full sm:p-5 pl-14 rounded-2xl bg-paper-card dark:bg-space-card border border-slate-200/80 dark:border-starlight-faint/15 text-ink dark:text-starlight placeholder-ink-faint dark:placeholder-starlight-faint focus:outline-none focus:ring-2 focus:ring-accent/60 dark:focus:ring-gold/60 focus:border-transparent transition-all shadow-lg shadow-slate-200/60 dark:shadow-none text-base font-medium"/>
+      <span class="absolute left-5 top-1/2 -translate-y-1/2 text-ink-faint dark:text-starlight-faint pointer-events-none text-xl">🔎</span>
+    </div>
+  </section>
 
-  <section class="mb-12 max-w-3xl mx-auto">
-    <div class="flex flex-col gap-6 p-6 rounded-2xl bg-paper-card dark:bg-space-card border border-slate-200/60 dark:border-starlight-faint/15 shadow-lg shadow-slate-200/40 dark:shadow-none transition-all">
-      <div class="relative w-full">
-        <input type="text" id="search-input" placeholder="Search for a country by name or region..." class="w-full p-4 pl-12 rounded-xl bg-paper-deep dark:bg-space-deep border border-slate-200/60 dark:border-starlight-faint/15 text-ink dark:text-starlight placeholder-ink-faint dark:placeholder-starlight-faint focus:outline-none focus:ring-2 focus:ring-accent/60 dark:focus:ring-gold/60 focus:border-transparent transition-all shadow-inner text-sm font-medium"/>
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-ink-faint dark:text-starlight-faint pointer-events-none text-lg">🔎</span>
-      </div>
+  <!-- Hero carrusel (lo llena el renderer) -->
+  <div id="hero-container" class="mb-12"></div>
 
-      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200/60 dark:border-starlight-faint/15">
+  <!-- Toolbar: orden + región -->
+  <section class="mb-8">
+    <div class="flex flex-col gap-4 p-5 rounded-2xl bg-paper-card dark:bg-space-card border border-slate-200/60 dark:border-starlight-faint/15 shadow-sm transition-all">
+      <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap gap-2">
           <button id="sort-pop" class="px-4 py-2.5 rounded-lg bg-paper-deep dark:bg-space-deep hover:bg-accent dark:hover:bg-gold hover:text-white dark:hover:text-space text-ink-soft dark:text-starlight-soft transition-all cursor-pointer text-xs font-bold uppercase tracking-wider border border-slate-200/60 dark:border-starlight-faint/15 active:scale-95 shadow-xs">
             📊 Sort By Population
@@ -74,9 +79,11 @@ const renderMain = (): string => {
     </div>
   </section>
 
+  <!-- Grid de Resultados -->
   <div id="result-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
   </div>
 
+  <!-- Paginación -->
   <div id="pagination-container" class="mt-12"></div>
 </main>
 `;
