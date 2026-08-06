@@ -17,14 +17,9 @@ import {
   computeFilteredCountries,
   pickCountryOfTheDay,
 } from "../slices/explorer.selectors";
-import {
-  createModalSlice,
-  type AsyncStatus,
-  type ModalStore,
-} from "../slices/modal.slice";
+import { createModalSlice, type ModalStore } from "../slices/modal.slice";
 import type { WeatherProvider } from "@/domain/ports/weather.provider";
 import type { WikiProvider } from "@/domain/ports/wiki.provider";
-import type { WikiSummary } from "@/domain/wiki";
 
 // ========================================================
 // 1. DEPENDENCIA + SLICES (el estado ya no vive aquí)
@@ -72,7 +67,7 @@ const applyFilters = (): void => {
     filtersStore.getState(),
   );
   // Reset de la ventana de paginación cuando cambian los filtros
-  countriesStore.setState({ visibleCount: PAGE_SIZE });
+  countriesStore.setState({ currentPage: 1 });
   notify();
 };
 
@@ -97,11 +92,25 @@ export const subscribe = (callback: () => void): (() => void) => {
 // ========================================================
 export const getIsLoading = (): boolean => countriesStore.getState().isLoading;
 
-export const getCountries = (): Country[] =>
-  filteredCountries.slice(0, countriesStore.getState().visibleCount);
+export const getCountries = (): Country[] => {
+  const { currentPage } = countriesStore.getState();
+  const start = (currentPage - 1) * PAGE_SIZE;
+  return filteredCountries.slice(start, start + PAGE_SIZE);
+};
 
-export const hasMore = (): boolean =>
-  countriesStore.getState().visibleCount < filteredCountries.length;
+export const getCurrentPage = (): number =>
+  countriesStore.getState().currentPage;
+
+export const getTotalPages = (): number => {
+  if (filteredCountries.length === 0) return 1;
+  return Math.ceil(filteredCountries.length / PAGE_SIZE);
+};
+
+export const setPage = (page: number): void => {
+  const clamped = Math.max(1, Math.min(page, getTotalPages()));
+  countriesStore.setState({ currentPage: clamped });
+  notify();
+};
 
 export const getFilteredTotal = (): number => filteredCountries.length;
 
@@ -139,14 +148,6 @@ export const loadCountries = async (favoriteCodes: string[]): Promise<void> => {
     countriesStore.setState({ isLoading: false });
     notify();
   }
-};
-
-export const loadMore = (): void => {
-  const { visibleCount } = countriesStore.getState();
-  countriesStore.setState({
-    visibleCount: Math.min(visibleCount + PAGE_SIZE, filteredCountries.length),
-  });
-  notify();
 };
 
 export const setSearchQuery = (text: string): void => {
@@ -270,44 +271,4 @@ export const resetState = (): void => {
   modalStore.reset();
   filteredCountries = [];
   listeners = [];
-};
-
-export const renderWikiWidget = (
-  wiki: WikiSummary | null,
-  status: AsyncStatus,
-): string => {
-  let content = "";
-
-  if (status === "loading") {
-    content = `
-      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700/40 animate-pulse">
-        <div class="flex gap-3">
-          <div class="w-20 h-20 shrink-0 bg-slate-200 dark:bg-slate-600 rounded-lg"></div>
-          <div class="grow space-y-2">
-            <div class="h-3 w-full bg-slate-200 dark:bg-slate-600 rounded"></div>
-            <div class="h-3 w-full bg-slate-200 dark:bg-slate-600 rounded"></div>
-            <div class="h-3 w-2/3 bg-slate-200 dark:bg-slate-600 rounded"></div>
-          </div>
-        </div>
-      </div>`;
-  } else if (status === "ready" && wiki && wiki.extract) {
-    const thumbnail = wiki.thumbnail
-      ? `<img src="${wiki.thumbnail}" alt="Wikipedia thumbnail" loading="lazy" class="w-20 h-20 shrink-0 rounded-lg object-cover border border-slate-200/60 dark:border-slate-600/60"/>`
-      : "";
-    content = `
-      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/40 animate-fade-in-up">
-        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5">About</p>
-        <div class="flex gap-3">
-          ${thumbnail}
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-5">${wiki.extract}</p>
-        </div>
-        <a href="${wiki.pageUrl}" target="_blank" rel="noopener noreferrer"
-           class="inline-flex items-center gap-1 mt-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
-          Read more on Wikipedia →
-        </a>
-      </div>`;
-  }
-  // idle / error → vacío: el "About" simplemente no aparece
-
-  return `<div id="wiki-widget" class="mt-6">${content}</div>`;
 };

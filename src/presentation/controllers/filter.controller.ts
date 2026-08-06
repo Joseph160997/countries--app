@@ -18,6 +18,12 @@ export const initFilterController = (): void => {
     });
 
   document
+    .querySelector<HTMLButtonElement>("#sort-area")
+    ?.addEventListener("click", () => {
+      setSort("area-desc");
+    });
+
+  document
     .querySelector<HTMLButtonElement>("#sort-pop")
     ?.addEventListener("click", () => {
       setSort("population-desc");

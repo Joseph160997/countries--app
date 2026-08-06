@@ -5,20 +5,21 @@ import {
   getIsLoading,
   getSelectedCountry,
   getSort,
-  hasMore,
   isShowingFavoritesActive,
   subscribe,
   getWeather,
   getWeatherStatus,
   getWikiStatus,
   getWiki,
-  renderWikiWidget,
   getSpotlightCountry,
+  getTotalPages,
+  getCurrentPage,
 } from "@/presentation/state/countryState";
 import {
   renderCountryCard,
   renderCountryDetailModal,
   renderWeatherWidget,
+  renderWikiWidget,
 } from "@/presentation/components/countryCards";
 import { renderEmptyStateCard } from "@/presentation/components/emptyState";
 import { renderSkeletonGrid } from "@/presentation/components/skeleton";
@@ -28,18 +29,18 @@ import {
   renderSpotlight,
   renderSpotlightSkeleton,
 } from "@/presentation/components/spotlight";
+import { renderPagination } from "../components/pagination";
 
 // ========================================================
 // ELEMENTOS DEL DOM (capturados en initRenderer, no al importar)
 // ========================================================
 let resultsContainer: HTMLDivElement | null = null;
-let resultsCountEl: HTMLParagraphElement | null = null;
-let loadMoreContainer: HTMLDivElement | null = null;
 let modalContainer: HTMLDivElement | null = null;
 let favsCounter: HTMLSpanElement | null = null;
 let btnShowFavorites: HTMLButtonElement | null = null;
 let btnSortPop: HTMLButtonElement | null = null;
 let btnSortName: HTMLButtonElement | null = null;
+let btnSortArea: HTMLButtonElement | null = null;
 
 // ========================================================
 // VOCABULARIO VISUAL (clases como datos, no esparcidas en handlers)
@@ -111,22 +112,20 @@ const renderGrid = (): void => {
   resultsContainer.innerHTML = visible.map(renderCountryCard).join("");
 };
 
-const renderResultsMeta = (): void => {
+const renderPaginationSection = (): void => {
+  const container = document.getElementById("pagination-container");
+  if (!container) return;
+
   if (getIsLoading()) {
-    if (resultsCountEl) resultsCountEl.textContent = "";
-    if (loadMoreContainer) loadMoreContainer.classList.add("hidden");
+    container.innerHTML = "";
     return;
   }
 
-  const visible = getCountries().length;
-  const total = getFilteredTotal();
-  if (resultsCountEl) {
-    resultsCountEl.textContent =
-      visible > 0 ? `Showing ${visible} of ${total} countries` : "";
-  }
-  if (loadMoreContainer) {
-    loadMoreContainer.classList.toggle("hidden", !hasMore());
-  }
+  container.innerHTML = renderPagination({
+    currentPage: getCurrentPage(),
+    totalPages: getTotalPages(),
+    totalResults: getFilteredTotal(),
+  });
 };
 
 let lastModalCca3: string | null = null;
@@ -198,13 +197,20 @@ const renderHeaderWidgets = (): void => {
     SORT_ACTIVE,
     SORT_INACTIVE,
   );
+
+  syncButtonState(
+    btnSortArea,
+    sort === "area-desc",
+    SORT_ACTIVE,
+    SORT_INACTIVE,
+  );
+
   syncButtonState(btnSortName, sort === "name-asc", SORT_ACTIVE, SORT_INACTIVE);
 };
 
 const renderUI = (): void => {
-  spotlightRendered = false; // forzamos re-render del Spotlight si cambia el estado
   renderGrid();
-  renderResultsMeta();
+  renderPaginationSection();
   renderModal();
   renderHeaderWidgets();
   renderSpotlightSection();
@@ -231,13 +237,12 @@ const renderSpotlightSection = (): void => {
 // ========================================================
 export const initRenderer = (): void => {
   resultsContainer = document.querySelector("#result-container");
-  resultsCountEl = document.querySelector("#results-count");
-  loadMoreContainer = document.querySelector("#load-more-container");
   modalContainer = document.querySelector("#modal-container");
   favsCounter = document.querySelector("#favs-count-display");
   btnShowFavorites = document.querySelector("#btn-show-favorites");
   btnSortPop = document.querySelector("#sort-pop");
   btnSortName = document.querySelector("#sort-name");
+  btnSortArea = document.querySelector("#sort-area");
 
   // La única suscripción de toda la app: notify() → repintado completo
   subscribe(renderUI);

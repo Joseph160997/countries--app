@@ -1,7 +1,11 @@
 import type { Region } from "@/domain/country";
 import { createStore, type Store } from "../state/store";
 
-export type SortCriteria = "none" | "population-desc" | "name-asc";
+export type SortCriteria =
+  | "none"
+  | "population-desc"
+  | "name-asc"
+  | "area-desc";
 
 export interface FiltersSliceState {
   query: string;

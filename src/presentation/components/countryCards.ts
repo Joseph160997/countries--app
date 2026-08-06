@@ -2,7 +2,6 @@ import type { Country } from "@/domain/country";
 import type { WeatherData } from "@/domain/weather";
 import type { WikiSummary } from "@/domain/wiki";
 import type { AsyncStatus } from "@/presentation/slices/modal.slice";
-import { renderWikiWidget } from "../state/countryState";
 
 export const getRegionBadgeClasses = (region: string): string => {
   const classes: Record<string, string> = {
@@ -179,7 +178,7 @@ const formatDensity = (density: number | undefined): string =>
 const renderStatBox = (label: string, value: string): string => `
   <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl">
     <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">${label}</p>
-    <p class="text-base lg:text-lg font-bold text-slate-900 dark:text-slate-100 wrap-break-words">${value}</p>
+    <p class="text-base lg:text-lg font-bold text-slate-900 dark:text-slate-100 wrap-break-word">${value}</p>
   </div>
 `;
 
@@ -323,4 +322,44 @@ export const renderWeatherWidget = (
   }
 
   return `<div id="weather-widget" class="mb-6">${content}</div>`;
+};
+
+export const renderWikiWidget = (
+  wiki: WikiSummary | null,
+  status: AsyncStatus,
+): string => {
+  let content = "";
+
+  if (status === "loading") {
+    content = `
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700/40 animate-pulse">
+        <div class="flex gap-3">
+          <div class="w-20 h-20 shrink-0 bg-slate-200 dark:bg-slate-600 rounded-lg"></div>
+          <div class="grow space-y-2">
+            <div class="h-3 w-full bg-slate-200 dark:bg-slate-600 rounded"></div>
+            <div class="h-3 w-full bg-slate-200 dark:bg-slate-600 rounded"></div>
+            <div class="h-3 w-2/3 bg-slate-200 dark:bg-slate-600 rounded"></div>
+          </div>
+        </div>
+      </div>`;
+  } else if (status === "ready" && wiki && wiki.extract) {
+    const thumbnail = wiki.thumbnail
+      ? `<img src="${wiki.thumbnail}" alt="Wikipedia thumbnail" loading="lazy" class="w-20 h-20 shrink-0 rounded-lg object-cover border border-slate-200/60 dark:border-slate-600/60"/>`
+      : "";
+    content = `
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/40 animate-fade-in-up">
+        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5">About</p>
+        <div class="flex gap-3">
+          ${thumbnail}
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-5">${wiki.extract}</p>
+        </div>
+        <a href="${wiki.pageUrl}" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-1 mt-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+          Read more on Wikipedia →
+        </a>
+      </div>`;
+  }
+  // idle / error → vacío: el "About" simplemente no aparece
+
+  return `<div id="wiki-widget" class="mt-6">${content}</div>`;
 };

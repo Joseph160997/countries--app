@@ -29,8 +29,6 @@ import {
   getCountries,
   getIsLoading,
   getFilteredTotal,
-  hasMore,
-  loadMore,
   setSearchQuery,
   setRegionFilter,
   toggleShowFavorites,
@@ -44,6 +42,9 @@ import {
   subscribe,
   resetState,
   initCountryState,
+  setPage,
+  getCurrentPage,
+  getTotalPages,
 } from "./countryState";
 
 import { toggleFavoritePersistence } from "@/presentation/services/favoriteService";
@@ -64,6 +65,7 @@ const mockCountries: Country[] = [
     languages: ["Spanish"],
     currencies: ["Colombian Peso ($)"],
     tld: [".co"],
+    areaKm2: 1141748,
   },
   {
     cca3: "ARG",
@@ -79,6 +81,7 @@ const mockCountries: Country[] = [
     languages: ["Spanish"],
     currencies: ["Argentine Peso ($)"],
     tld: [".ar"],
+    areaKm2: 2780400,
   },
   {
     cca3: "ESP",
@@ -94,6 +97,7 @@ const mockCountries: Country[] = [
     languages: ["Spanish"],
     currencies: ["Euro (€)"],
     tld: [".es"],
+    areaKm2: 505990,
   },
 ];
 
@@ -110,48 +114,6 @@ beforeEach(() => {
 // ====================================================
 describe("loadCountries", () => {
   it("should set isLoading to true while loading", async () => {
-    // Arrange — hacemos que getAllCountries tarde un poco
-    // para poder capturar el estado intermedio
-    let resolvePromise: (value: Country[]) => void;
-    const pendingPromise = new Promise<Country[]>((resolve) => {
-      resolvePromise = resolve;
-    });
-    fakeResult = pendingPromise.then((countries) => ok(countries));
-
-    // Act — iniciamos la carga sin await (para capturar el estado intermedio)
-    const loadPromise = loadCountries([]);
-
-    // Assert — mientras carga, isLoading debe ser true
-    expect(getIsLoading()).toBe(true);
-
-    // Resolvemos la promesa para que no quede pendiente
-    resolvePromise!(mockCountries);
-    await loadPromise;
-  });
-
-  it("should set isLoading to false after loading", async () => {
-    // Arrange
-    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
-
-    // Act
-    await loadCountries([]);
-
-    // Assert
-    expect(getIsLoading()).toBe(false);
-  });
-
-  it("should populate countries after successful load", async () => {
-    // Arrange
-    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
-
-    // Act
-    await loadCountries([]);
-
-    // Assert
-    expect(getFilteredTotal()).toBe(3);
-  });
-
-  it("should set isLoading to true while loading", async () => {
     let resolveFake!: (value: Result<Country[], AppError>) => void;
     fakeResult = new Promise((resolve) => {
       resolveFake = resolve;
@@ -164,8 +126,17 @@ describe("loadCountries", () => {
     await loadPromise;
   });
 
+  it("should set isLoading to false after loading", async () => {
+    await loadCountries([]);
+    expect(getIsLoading()).toBe(false);
+  });
+
+  it("should populate countries after successful load", async () => {
+    await loadCountries([]);
+    expect(getFilteredTotal()).toBe(3);
+  });
+
   it("should set isLoading to false even if loading fails", async () => {
-    // Ya no se rechaza una promesa: se RESUELVE con un error tipado
     fakeResult = Promise.resolve(
       err({ kind: "network", message: "Network error" }),
     );
@@ -173,273 +144,274 @@ describe("loadCountries", () => {
     expect(getIsLoading()).toBe(false);
   });
 
-  // ====================================================
-  // GRUPO B: Filtros
-  // ====================================================
-  describe("filters", () => {
-    beforeEach(async () => {
-      // Cargamos los países una vez para todos los tests de filtros
-      fakeRepository.getAll = () => fakeResult;
-      await loadCountries([]);
+  it("should show empty list if loading fails", async () => {
+    fakeResult = Promise.resolve(
+      err({ kind: "network", message: "Network error" }),
+    );
+    await loadCountries([]);
+    expect(getFilteredTotal()).toBe(0);
+  });
+});
+describe("pagination", () => {
+  const makeMany = (n: number): Country[] =>
+    Array.from({ length: n }, (_, i) => ({
+      ...mockCountries[0],
+      cca3: `C${i.toString().padStart(3, "0")}`,
+      name: `Country ${i}`,
+    }));
+
+  it("should return only PAGE_SIZE countries on the first page", async () => {
+    fakeResult = Promise.resolve(ok(makeMany(45)));
+    await loadCountries([]);
+    expect(getCountries()).toHaveLength(20);
+  });
+
+  it("should compute total pages correctly", async () => {
+    fakeResult = Promise.resolve(ok(makeMany(45)));
+    await loadCountries([]);
+    expect(getTotalPages()).toBe(3); // 45 / 20 = 2.25 → 3
+  });
+
+  it("setPage should move to the requested page", async () => {
+    fakeResult = Promise.resolve(ok(makeMany(45)));
+    await loadCountries([]);
+    setPage(3);
+    expect(getCurrentPage()).toBe(3);
+    expect(getCountries()).toHaveLength(5); // 45 - 40 = 5
+  });
+
+  it("setPage should clamp to valid bounds", async () => {
+    fakeResult = Promise.resolve(ok(makeMany(45)));
+    await loadCountries([]);
+    setPage(99);
+    expect(getCurrentPage()).toBe(3);
+    setPage(0);
+    expect(getCurrentPage()).toBe(1);
+  });
+
+  it("should reset to page 1 when filters change", async () => {
+    fakeResult = Promise.resolve(ok(makeMany(45)));
+    await loadCountries([]);
+    setPage(3);
+    setSearchQuery("Country 1");
+    expect(getCurrentPage()).toBe(1);
+  });
+});
+
+// ====================================================
+// GRUPO D: Modal
+// ====================================================
+describe("modal", () => {
+  beforeEach(async () => {
+    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
+    await loadCountries([]);
+  });
+
+  it("should set selectedCountry when opening modal", () => {
+    openCountryModal("COL");
+    expect(getSelectedCountry()?.cca3).toBe("COL");
+  });
+
+  it("should clear selectedCountry when closing modal", () => {
+    openCountryModal("COL");
+    closeCountryModal();
+    expect(getSelectedCountry()).toBeNull();
+  });
+
+  it("should not set selectedCountry for unknown cca3", () => {
+    openCountryModal("ZZZ");
+    expect(getSelectedCountry()).toBeNull();
+  });
+});
+
+// ====================================================
+// GRUPO E: Favoritos
+// ====================================================
+describe("toggleCountryFavorite", () => {
+  beforeEach(async () => {
+    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
+    await loadCountries([]);
+  });
+
+  it("should toggle isFavorite to true", () => {
+    vi.mocked(toggleFavoritePersistence).mockReturnValue(true);
+
+    toggleCountryFavorite("COL");
+
+    const col = getCountries().find((c) => c.cca3 === "COL");
+    expect(col?.isFavorite).toBe(true);
+  });
+
+  it("should toggle isFavorite to false", () => {
+    vi.mocked(toggleFavoritePersistence).mockReturnValue(false);
+
+    toggleCountryFavorite("ARG");
+
+    // ARG no aparece en el slice visible porque está fuera del filtro
+    // buscamos en todos usando getBorderNames como proxy — mejor abrir modal
+    openCountryModal("ARG");
+    expect(getSelectedCountry()?.isFavorite).toBe(false);
+  });
+});
+
+// ====================================================
+// GRUPO F: Sort
+// ====================================================
+describe("setSort", () => {
+  beforeEach(async () => {
+    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
+    await loadCountries([]);
+  });
+
+  it("should sort by population descending", () => {
+    setSort("population-desc");
+    const countries = getCountries();
+    expect(countries[0].cca3).toBe("COL"); // 51M
+    expect(countries[1].cca3).toBe("ESP"); // 47M
+    expect(countries[2].cca3).toBe("ARG"); // 45M
+  });
+
+  it("should sort by area descending", () => {
+    setSort("area-desc");
+    const countries = getCountries();
+    expect(countries[0].cca3).toBe("ARG"); // 2.78M km²
+    expect(countries[1].cca3).toBe("COL"); // 1.14M km²
+    expect(countries[2].cca3).toBe("ESP"); // 505k km²
+  });
+
+  it("should sort by name ascending", () => {
+    setSort("name-asc");
+    const countries = getCountries();
+    expect(countries[0].name).toBe("Argentina");
+    expect(countries[1].name).toBe("Colombia");
+    expect(countries[2].name).toBe("Spain");
+  });
+
+  it("should update currentSort", () => {
+    setSort("name-asc");
+    expect(getSort()).toBe("name-asc");
+  });
+});
+
+// ====================================================
+// GRUPO G: getBorderNames
+// ====================================================
+describe("getBorderNames", () => {
+  beforeEach(async () => {
+    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
+    await loadCountries([]);
+  });
+
+  it("should translate cca3 codes to country names", () => {
+    const names = getBorderNames(["COL", "ARG"]);
+    expect(names).toEqual(["Colombia", "Argentina"]);
+  });
+
+  it("should return the code as fallback when country not found", () => {
+    const names = getBorderNames(["ZZZ"]);
+    expect(names).toEqual(["ZZZ"]);
+  });
+
+  it("should return empty array for empty input", () => {
+    const names = getBorderNames([]);
+    expect(names).toEqual([]);
+  });
+});
+
+// ====================================================
+// GRUPO H: Filters
+// ====================================================
+
+describe("filters", () => {
+  beforeEach(async () => {
+    fakeResult = Promise.resolve(ok(mockCountries));
+    await loadCountries([]);
+  });
+
+  describe("setSearchQuery", () => {
+    it("should filter countries by name", () => {
+      setSearchQuery("colombia");
+      expect(getFilteredTotal()).toBe(1);
+      expect(getCountries()[0].name).toBe("Colombia");
     });
 
-    describe("setSearchQuery", () => {
-      it("should filter countries by name", () => {
-        setSearchQuery("colombia");
-        expect(getFilteredTotal()).toBe(1);
-        expect(getCountries()[0].name).toBe("Colombia");
-      });
-
-      it("should return all countries when query is empty", () => {
-        setSearchQuery("colombia");
-        setSearchQuery("");
-        expect(getFilteredTotal()).toBe(3);
-      });
-
-      it("should be case insensitive", () => {
-        setSearchQuery("SPAIN");
-        expect(getFilteredTotal()).toBe(1);
-        expect(getCountries()[0].name).toBe("Spain");
-      });
-
-      it("should return empty when no match found", () => {
-        setSearchQuery("zzzzz");
-        expect(getFilteredTotal()).toBe(0);
-      });
+    it("should return all countries when query is empty", () => {
+      setSearchQuery("colombia");
+      setSearchQuery("");
+      expect(getFilteredTotal()).toBe(3);
     });
 
-    describe("setRegionFilter", () => {
-      it("should filter countries by region", () => {
-        setRegionFilter("Europe");
-        expect(getFilteredTotal()).toBe(1);
-        expect(getCountries()[0].name).toBe("Spain");
-      });
-
-      it("should return all countries when region is empty", () => {
-        setRegionFilter("Europe");
-        setRegionFilter("");
-        expect(getFilteredTotal()).toBe(3);
-      });
-
-      it("should return empty when no countries match region", () => {
-        setRegionFilter("Africa");
-        expect(getFilteredTotal()).toBe(0);
-      });
+    it("should be case insensitive", () => {
+      setSearchQuery("SPAIN");
+      expect(getFilteredTotal()).toBe(1);
+      expect(getCountries()[0].name).toBe("Spain");
     });
 
-    describe("toggleShowFavorites", () => {
-      it("should show only favorites when active", () => {
-        toggleShowFavorites();
-        // Solo ARG tiene isFavorite: true en el fixture
-        expect(getFilteredTotal()).toBe(1);
-        expect(getCountries()[0].cca3).toBe("ARG");
-      });
-
-      it("should show all countries when toggled back", () => {
-        toggleShowFavorites();
-        toggleShowFavorites();
-        expect(getFilteredTotal()).toBe(3);
-      });
+    it("should return empty when no match found", () => {
+      setSearchQuery("zzzzz");
+      expect(getFilteredTotal()).toBe(0);
     });
   });
 
-  // ====================================================
-  // GRUPO C: Paginación
-  // ====================================================
-  describe("pagination", () => {
-    it("should return only visibleCount countries", async () => {
-      // Creamos 25 países falsos para superar el límite de 20
-      const manyCountries: Country[] = Array.from({ length: 25 }, (_, i) => ({
-        ...mockCountries[0],
-        cca3: `C${i.toString().padStart(2, "0")}`,
-        name: `Country ${i}`,
-      }));
-
-      fakeRepository.getAll = () => Promise.resolve(ok(manyCountries));
-      await loadCountries([]);
-
-      // Assert — solo muestra 20 aunque haya 25
-      expect(getCountries()).toHaveLength(20);
+  describe("setRegionFilter", () => {
+    it("should filter countries by region", () => {
+      setRegionFilter("Europe");
+      expect(getFilteredTotal()).toBe(1);
+      expect(getCountries()[0].name).toBe("Spain");
     });
 
-    it("hasMore should return true when there are more countries", async () => {
-      const manyCountries: Country[] = Array.from({ length: 25 }, (_, i) => ({
-        ...mockCountries[0],
-        cca3: `C${i.toString().padStart(2, "0")}`,
-        name: `Country ${i}`,
-      }));
-
-      fakeRepository.getAll = () => Promise.resolve(ok(manyCountries));
-      await loadCountries([]);
-
-      expect(hasMore()).toBe(true);
+    it("should return all countries when region is empty", () => {
+      setRegionFilter("Europe");
+      setRegionFilter("");
+      expect(getFilteredTotal()).toBe(3);
     });
 
-    it("hasMore should return false when all countries are visible", async () => {
-      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
-      await loadCountries([]);
-
-      // Solo 3 países — todos visibles
-      expect(hasMore()).toBe(false);
-    });
-
-    it("loadMore should increase visible count by 20", async () => {
-      const manyCountries: Country[] = Array.from({ length: 45 }, (_, i) => ({
-        ...mockCountries[0],
-        cca3: `C${i.toString().padStart(2, "0")}`,
-        name: `Country ${i}`,
-      }));
-
-      fakeRepository.getAll = () => Promise.resolve(ok(manyCountries));
-      await loadCountries([]);
-
-      // Primero vemos 20
-      expect(getCountries()).toHaveLength(20);
-
-      // Después de loadMore vemos 40
-      loadMore();
-      expect(getCountries()).toHaveLength(40);
+    it("should return empty when no countries match region", () => {
+      setRegionFilter("Africa");
+      expect(getFilteredTotal()).toBe(0);
     });
   });
 
-  // ====================================================
-  // GRUPO D: Modal
-  // ====================================================
-  describe("modal", () => {
-    beforeEach(async () => {
-      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
-      await loadCountries([]);
+  describe("toggleShowFavorites", () => {
+    it("should show only favorites when active", () => {
+      toggleShowFavorites();
+      expect(getFilteredTotal()).toBe(1);
+      expect(getCountries()[0].cca3).toBe("ARG");
     });
 
-    it("should set selectedCountry when opening modal", () => {
-      openCountryModal("COL");
-      expect(getSelectedCountry()?.cca3).toBe("COL");
-    });
-
-    it("should clear selectedCountry when closing modal", () => {
-      openCountryModal("COL");
-      closeCountryModal();
-      expect(getSelectedCountry()).toBeNull();
-    });
-
-    it("should not set selectedCountry for unknown cca3", () => {
-      openCountryModal("ZZZ");
-      expect(getSelectedCountry()).toBeNull();
+    it("should show all countries when toggled back", () => {
+      toggleShowFavorites();
+      toggleShowFavorites();
+      expect(getFilteredTotal()).toBe(3);
     });
   });
+});
 
-  // ====================================================
-  // GRUPO E: Favoritos
-  // ====================================================
-  describe("toggleCountryFavorite", () => {
-    beforeEach(async () => {
-      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
-      await loadCountries([]);
-    });
+// ====================================================
+// GRUPO H: subscribe
+// ====================================================
+describe("subscribe", () => {
+  it("should call listener when state changes", async () => {
+    const listener = vi.fn();
+    subscribe(listener);
 
-    it("should toggle isFavorite to true", () => {
-      vi.mocked(toggleFavoritePersistence).mockReturnValue(true);
+    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
+    await loadCountries([]);
 
-      toggleCountryFavorite("COL");
-
-      const col = getCountries().find((c) => c.cca3 === "COL");
-      expect(col?.isFavorite).toBe(true);
-    });
-
-    it("should toggle isFavorite to false", () => {
-      vi.mocked(toggleFavoritePersistence).mockReturnValue(false);
-
-      toggleCountryFavorite("ARG");
-
-      // ARG no aparece en el slice visible porque está fuera del filtro
-      // buscamos en todos usando getBorderNames como proxy — mejor abrir modal
-      openCountryModal("ARG");
-      expect(getSelectedCountry()?.isFavorite).toBe(false);
-    });
+    // notify() se llama varias veces durante loadCountries
+    expect(listener).toHaveBeenCalled();
   });
 
-  // ====================================================
-  // GRUPO F: Sort
-  // ====================================================
-  describe("setSort", () => {
-    beforeEach(async () => {
-      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
-      await loadCountries([]);
-    });
+  it("should stop calling listener after unsubscribe", async () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribe(listener);
 
-    it("should sort by population descending", () => {
-      setSort("population-desc");
-      const countries = getCountries();
-      expect(countries[0].cca3).toBe("COL"); // 51M
-      expect(countries[1].cca3).toBe("ESP"); // 47M
-      expect(countries[2].cca3).toBe("ARG"); // 45M
-    });
+    unsubscribe();
+    listener.mockClear();
 
-    it("should sort by name ascending", () => {
-      setSort("name-asc");
-      const countries = getCountries();
-      expect(countries[0].name).toBe("Argentina");
-      expect(countries[1].name).toBe("Colombia");
-      expect(countries[2].name).toBe("Spain");
-    });
+    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
+    await loadCountries([]);
 
-    it("should update currentSort", () => {
-      setSort("name-asc");
-      expect(getSort()).toBe("name-asc");
-    });
-  });
-
-  // ====================================================
-  // GRUPO G: getBorderNames
-  // ====================================================
-  describe("getBorderNames", () => {
-    beforeEach(async () => {
-      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
-      await loadCountries([]);
-    });
-
-    it("should translate cca3 codes to country names", () => {
-      const names = getBorderNames(["COL", "ARG"]);
-      expect(names).toEqual(["Colombia", "Argentina"]);
-    });
-
-    it("should return the code as fallback when country not found", () => {
-      const names = getBorderNames(["ZZZ"]);
-      expect(names).toEqual(["ZZZ"]);
-    });
-
-    it("should return empty array for empty input", () => {
-      const names = getBorderNames([]);
-      expect(names).toEqual([]);
-    });
-  });
-
-  // ====================================================
-  // GRUPO H: subscribe
-  // ====================================================
-  describe("subscribe", () => {
-    it("should call listener when state changes", async () => {
-      const listener = vi.fn();
-      subscribe(listener);
-
-      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
-      await loadCountries([]);
-
-      // notify() se llama varias veces durante loadCountries
-      expect(listener).toHaveBeenCalled();
-    });
-
-    it("should stop calling listener after unsubscribe", async () => {
-      const listener = vi.fn();
-      const unsubscribe = subscribe(listener);
-
-      unsubscribe();
-      listener.mockClear();
-
-      fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
-      await loadCountries([]);
-
-      expect(listener).not.toHaveBeenCalled();
-    });
+    expect(listener).not.toHaveBeenCalled();
   });
 });

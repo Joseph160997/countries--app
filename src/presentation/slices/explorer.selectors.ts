@@ -35,6 +35,8 @@ const sortCountries = (list: Country[], sort: SortCriteria): Country[] => {
     copy.sort((a, b) => b.population - a.population);
   } else if (sort === "name-asc") {
     copy.sort((a, b) => a.name.localeCompare(b.name));
+  } else if (sort === "area-desc") {
+    copy.sort((a, b) => (b.areaKm2 ?? 0) - (a.areaKm2 ?? 0));
   }
   return copy;
 };
