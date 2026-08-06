@@ -4,17 +4,18 @@
  */
 const renderSkeletonCard = (): string => {
   return `
-<div class="bg-paper-card dark:bg-space-card rounded-2xl border border-slate-200/60 dark:border-starlight-faint/15 shadow-md overflow-hidden flex flex-col">
+<div class="bg-paper-card dark:bg-space-card rounded-xl border border-slate-200/60 dark:border-starlight-faint/10 shadow-sm overflow-hidden flex flex-col">
+  <div class="h-1 bg-paper-deep dark:bg-space-deep"></div>
   <div class="h-40 bg-paper-deep dark:bg-space-deep animate-pulse"></div>
   <div class="p-5 flex flex-col gap-3">
     <div class="h-5 w-3/4 bg-paper-deep dark:bg-space-deep rounded-md animate-pulse"></div>
-    <div class="space-y-2 mt-1">
-      <div class="h-3 w-full bg-paper-deep dark:bg-space-deep rounded animate-pulse"></div>
-      <div class="h-3 w-5/6 bg-paper-deep dark:bg-space-deep rounded animate-pulse"></div>
-      <div class="h-3 w-4/6 bg-paper-deep dark:bg-space-deep rounded animate-pulse"></div>
+    <div class="h-3 w-1/2 bg-paper-deep dark:bg-space-deep rounded animate-pulse"></div>
+    <div class="grid grid-cols-2 gap-2 mt-2">
+      <div class="h-12 bg-paper-deep dark:bg-space-deep rounded-lg animate-pulse"></div>
+      <div class="h-12 bg-paper-deep dark:bg-space-deep rounded-lg animate-pulse"></div>
     </div>
-    <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-200/60 dark:border-starlight-faint/15">
-      <div class="h-5 w-10 bg-paper-deep dark:bg-space-deep rounded-md animate-pulse"></div>
+    <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-200/50 dark:border-starlight-faint/10">
+      <div class="h-4 w-16 bg-paper-deep dark:bg-space-deep rounded animate-pulse"></div>
       <div class="h-6 w-6 bg-paper-deep dark:bg-space-deep rounded-full animate-pulse"></div>
     </div>
   </div>

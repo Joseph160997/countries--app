@@ -5,18 +5,28 @@ import type { AsyncStatus } from "@/presentation/slices/modal.slice";
 
 export const getRegionBadgeClasses = (region: string): string => {
   const classes: Record<string, string> = {
-    Americas:
-      "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300",
-    Europe: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300",
-    Asia: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300",
-    Africa:
-      "bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300",
-    Oceania: "bg-cyan-50 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300",
+    Africa: "bg-region-africa/10 text-region-africa",
+    Americas: "bg-region-americas/10 text-region-americas",
+    Asia: "bg-region-asia/10 text-region-asia",
+    Europe: "bg-region-europe/10 text-region-europe",
+    Oceania: "bg-region-oceania/10 text-region-oceania",
   };
   return (
-    classes[region] ||
-    "bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300"
+    classes[region] ??
+    "bg-ink-faint/10 text-ink-soft dark:bg-starlight-faint/15 dark:text-starlight-soft"
   );
+};
+
+/** Color de acento por región — la "pestaña de atlas". */
+export const getRegionAccentClass = (region: string): string => {
+  const accents: Record<string, string> = {
+    Africa: "bg-region-africa",
+    Americas: "bg-region-americas",
+    Asia: "bg-region-asia",
+    Europe: "bg-region-europe",
+    Oceania: "bg-region-oceania",
+  };
+  return accents[region] ?? "bg-ink-faint dark:bg-starlight-faint";
 };
 
 /**
@@ -26,27 +36,44 @@ export const getRegionBadgeClasses = (region: string): string => {
  */
 export const renderCountryCard = (country: Country): string => {
   return `
-<article data-id="${country.cca3}" class="country-card bg-paper-card dark:bg-space-card rounded-xl border border-slate-200/60 dark:border-starlight-faint/15 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col group">
+<article data-id="${country.cca3}" class="country-card bg-paper-card dark:bg-space-card rounded-xl border border-slate-200/60 dark:border-starlight-faint/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col group">
+  <!-- Pestaña de atlas: identidad de región -->
+  <div class="h-1 ${getRegionAccentClass(country.region)}"></div>
+
+  <!-- Bandera + etiqueta cartográfica -->
   <div class="overflow-hidden h-40 bg-paper-deep dark:bg-space-deep relative">
     <img src="${country.flag}" alt="Flag of ${country.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+    <span class="absolute bottom-2 left-2 font-mono text-[10px] font-bold tracking-wider bg-ink/75 dark:bg-space-deep/85 text-starlight px-2 py-0.5 rounded backdrop-blur-sm">${country.cca3}</span>
   </div>
+
   <div class="p-5 grow flex flex-col justify-between">
     <div>
-      <h3 class="font-display text-lg font-bold text-ink dark:text-starlight mb-3 tracking-tight group-hover:text-accent dark:group-hover:text-gold transition-colors">
+      <h3 class="font-display text-lg font-bold text-ink dark:text-starlight tracking-tight mb-1 group-hover:text-accent dark:group-hover:text-gold transition-colors">
         ${country.name}
       </h3>
-      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold mt-1 ${getRegionBadgeClasses(country.region)}">
-        ${country.region}
-      </span>
-      <div class="space-y-1.5 text-xs font-medium text-ink-soft dark:text-starlight-soft mt-3">
-        <p><span class="text-ink-faint dark:text-starlight-faint">Population:</span> ${country.population.toLocaleString()}</p>
-        <p><span class="text-ink-faint dark:text-starlight-faint">Region:</span> ${country.region}</p>
-        <p><span class="text-ink-faint dark:text-starlight-faint">Capital:</span> ${country.capital}</p>
+      <p class="text-xs text-ink-faint dark:text-starlight-faint mb-4">
+        Capital · <span class="font-medium text-ink-soft dark:text-starlight-soft">${country.capital}</span>
+      </p>
+
+      <!-- Mini-stats: los números siempre en mono -->
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-paper-deep/70 dark:bg-space-deep/70 rounded-lg px-3 py-2">
+          <p class="text-[9px] font-bold uppercase tracking-wider text-ink-faint dark:text-starlight-faint mb-0.5">Population</p>
+          <p class="font-mono text-[11px] font-bold text-ink dark:text-starlight">${country.population.toLocaleString()}</p>
+        </div>
+        <div class="bg-paper-deep/70 dark:bg-space-deep/70 rounded-lg px-3 py-2">
+          <p class="text-[9px] font-bold uppercase tracking-wider text-ink-faint dark:text-starlight-faint mb-0.5">Area</p>
+          <p class="font-mono text-[11px] font-bold text-ink dark:text-starlight">${country.areaKm2 ? `${country.areaKm2.toLocaleString()} km²` : "N/A"}</p>
+        </div>
       </div>
     </div>
-    <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/60 dark:border-starlight-faint/15">
-      <span class="font-mono text-[10px] bg-paper-deep dark:bg-space-deep text-ink-soft dark:text-starlight-soft px-2 py-1 rounded-md font-semibold tracking-wider">${country.cca3}</span>
-      <button data-id="${country.cca3}" class="btn-fav text-xl hover:scale-110 transition-transform duration-200 cursor-pointer p-1 text-ink-faint dark:text-starlight-faint hover:text-accent dark:hover:text-gold">
+
+    <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-starlight-faint/10">
+      <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-ink-soft dark:text-starlight-soft">
+        <span class="w-2 h-2 rounded-full ${getRegionAccentClass(country.region)}"></span>
+        ${country.region}
+      </span>
+      <button data-id="${country.cca3}" class="btn-fav text-lg hover:scale-110 transition-transform duration-200 cursor-pointer p-1">
         ${country.isFavorite ? "❤️" : "🤍"}
       </button>
     </div>
