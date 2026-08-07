@@ -7,6 +7,10 @@ import {
   initWikiProvider,
   loadCountries,
 } from "@/presentation/state/countryState";
+import {
+  consumePendingHash,
+  initRouter,
+} from "@/presentation/controllers/router.controller";
 import { RestCountriesRepository } from "@/infrastructure/api/restCountries/country.repository";
 import { getFavoriteCodes } from "@/presentation/services/favoriteService";
 import { isErr, unwrapOr } from "@/shared/result";
@@ -40,6 +44,7 @@ initModalController();
 initPaginationController();
 initThemeController();
 initHeroCarousel();
+initRouter();
 
 // ========================================================
 // 3. BOOTSTRAP
@@ -58,6 +63,7 @@ const startApp = async (): Promise<void> => {
 
   try {
     await loadCountries(savedFavorites);
+    consumePendingHash();
   } catch (error) {
     console.error("[Main] Error crítico durante el arranque:", error);
   }

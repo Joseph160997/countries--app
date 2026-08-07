@@ -114,6 +114,9 @@ export const setPage = (page: number): void => {
 
 export const getFilteredTotal = (): number => filteredCountries.length;
 
+export const getAllCountriesCount = (): number =>
+  countriesStore.getState().all.length;
+
 export const getSelectedCountry = (): Country | null =>
   modalStore.getState().selectedCountry;
 
