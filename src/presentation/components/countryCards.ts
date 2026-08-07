@@ -125,10 +125,10 @@ export const renderCountryDetailModal = (
 
   return `
   <div class="relative w-full max-w-4xl max-h-[90vh] bg-paper-card dark:bg-space-card rounded-2xl shadow-2xl shadow-slate-300/50 dark:shadow-space-deep overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 animate-fade-in-up flex flex-col">
-    <!-- Pestaña de atlas -->
+    <!-- Pestaña de región (cohesión con cards) -->
     <div class="h-1.5 shrink-0 ${getRegionAccentClass(country.region)}"></div>
 
-    <!-- Cerrar -->
+    <!-- Botón cerrar -->
     <button
       id="close-modal"
       aria-label="Close modal"
@@ -139,16 +139,32 @@ export const renderCountryDetailModal = (
       </svg>
     </button>
 
-    <!-- CUERPO: flex-1 + min-h-0 es la llave del scroll interno en desktop -->
+    <!-- Cuerpo: min-h-0 es la llave del scroll interno en flex -->
     <div class="min-h-0 flex-1 flex flex-col md:flex-row">
-      <!-- BANDERA: h-56 en móvil (altura fija), h-full en desktop (se estira) -->
-      <div class="relative md:w-2/5 h-56 md:h-full shrink-0 overflow-hidden bg-paper-deep dark:bg-space-deep">
-        <img src="${country.flag}" alt="Flag of ${country.name}" loading="eager" class="modal-flag w-full h-full object-cover"/>
-        <div class="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-ink/60 to-transparent dark:from-space-deep/80 pointer-events-none"></div>
-        <span class="absolute bottom-3 left-3 font-mono text-[11px] font-bold tracking-wider bg-ink/70 dark:bg-space-deep/85 text-starlight px-2.5 py-1 rounded backdrop-blur-sm">${country.cca3}</span>
+      <!-- ═══ COLUMNA IZQUIERDA: carnet (bandera + links) ═══ -->
+      <div class="md:w-2/5 shrink-0 p-6 flex flex-col gap-4 bg-paper-deep/40 dark:bg-space-deep/40">
+        <!-- Bandera en proporción natural, como foto de carnet -->
+        <div class="relative rounded-xl overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 shadow-md bg-paper-card dark:bg-space-card">
+          <img
+            src="${country.flag}"
+            alt="Flag of ${country.name}"
+            loading="eager"
+            class="modal-flag w-full aspect-3/2 object-contain"
+          />
+        </div>
+
+        <!-- Chip cartográfico centrado -->
+        <div class="text-center">
+          <span class="inline-block font-mono text-[11px] font-bold tracking-wider bg-ink/80 dark:bg-space-deep text-starlight px-3 py-1 rounded">
+            ${country.cca3}
+          </span>
+        </div>
+
+        <!-- Links externos apilados bajo la bandera -->
+        ${renderSideLinks(country)}
       </div>
 
-      <!-- CONTENIDO: min-h-0 + overflow-y-auto → scroll interno funciona -->
+      <!-- ═══ COLUMNA DERECHA: contenido con scroll propio ═══ -->
       <div class="md:w-3/5 min-h-0 md:overflow-y-auto p-6 lg:p-8">
         <h2 class="font-display text-2xl lg:text-3xl font-extrabold text-ink dark:text-starlight tracking-tight mb-3">${country.name}</h2>
         <div class="flex flex-wrap items-center gap-2 mb-6">
@@ -189,14 +205,11 @@ export const renderCountryDetailModal = (
         </div>
 
         ${renderWikiWidget(wiki, wikiStatus)}
-
-        ${renderExploreLinks(country)}
       </div>
     </div>
   </div>
   `;
 };
-
 // ========================================================
 // FASE 3 — Helpers de la ficha de país
 // ========================================================
@@ -280,7 +293,11 @@ const renderFactsGrid = (country: Country): string => {
   return `<div class="grid grid-cols-2 gap-2 mb-5">${cells}</div>`;
 };
 
-const renderExploreLinks = (country: Country): string => {
+/**
+ * Links externos apilados en la columna izquierda del modal (debajo de la bandera).
+ * Estilo "carnet": botones de ancho completo con icono y flecha.
+ */
+const renderSideLinks = (country: Country): string => {
   const links = country.links;
   if (!links) return "";
   const items: Array<{ href: string; label: string; icon: string }> = [];
@@ -299,17 +316,19 @@ const renderExploreLinks = (country: Country): string => {
   const buttons = items
     .map(
       (item) => `
-            <a href="${item.href}" target="_blank" rel="noopener noreferrer"
-         class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-paper-deep dark:bg-space-deep/60 hover:bg-accent hover:text-white dark:hover:bg-gold dark:hover:text-space text-ink dark:text-starlight text-xs font-bold transition-all border border-slate-200/60 dark:border-starlight-faint/15">
-        <span>${item.icon}</span> ${item.label}
+      <a href="${item.href}" target="_blank" rel="noopener noreferrer"
+         class="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-lg bg-paper-card dark:bg-space-card hover:bg-accent hover:text-white dark:hover:bg-gold dark:hover:text-space text-ink dark:text-starlight text-xs font-bold transition-all border border-slate-200/60 dark:border-starlight-faint/15 hover:border-accent dark:hover:border-gold">
+        <span class="flex items-center gap-2"><span>${item.icon}</span> ${item.label}</span>
+        <span aria-hidden="true" class="opacity-50">→</span>
       </a>
     `,
     )
     .join("");
+
   return `
-    <div class="mt-6 pt-5 border-t border-slate-100 dark:border-slate-700/50">
-      <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Explore More</h4>
-      <div class="flex flex-col sm:flex-row gap-2">${buttons}</div>
+    <div class="mt-auto pt-2 border-t border-slate-200/50 dark:border-starlight-faint/10">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-ink-faint dark:text-starlight-faint mb-2">Explore more</p>
+      <div class="flex flex-col gap-2">${buttons}</div>
     </div>
   `;
 };

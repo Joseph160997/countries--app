@@ -14,7 +14,7 @@ export const renderHero = (slides: HeroSlide[]): string => {
       return `
       <div class="hero-slide absolute inset-0 ${index === 0 ? "is-active" : ""}" data-slide="${index}" aria-hidden="${index !== 0}">
         <img src="${country.flag}" alt="Flag of ${country.name}" loading="${index === 0 ? "eager" : "lazy"}" class="hero-flag absolute inset-0 w-full h-full object-cover"/>
-        <div class="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/45 to-ink/10 dark:from-space-deep/95 dark:via-space-deep/55 dark:to-space-deep/10"></div>
+        <div class="absolute inset-0 bg-linear-to-t from-ink/95 via-ink/45 to-ink/10 dark:from-space-deep/95 dark:via-space-deep/55 dark:to-space-deep/10"></div>
 
         <div class="absolute inset-x-0 bottom-0 p-6 md:p-10 max-w-3xl">
           <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] bg-gold text-space mb-4 shadow-md">
@@ -51,7 +51,7 @@ export const renderHero = (slides: HeroSlide[]): string => {
     .join("");
 
   return `
-  <div class="relative h-[440px] md:h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-slate-300/50 dark:shadow-space-deep border border-slate-200/60 dark:border-starlight-faint/10 bg-space-deep">
+  <div class="relative h-110 md:h-130 rounded-3xl overflow-hidden shadow-2xl shadow-slate-300/50 dark:shadow-space-deep border border-slate-200/60 dark:border-starlight-faint/10 bg-space-deep">
     ${slidesHTML}
 
     <button data-hero-prev aria-label="Previous slide"
@@ -72,5 +72,5 @@ export const renderHero = (slides: HeroSlide[]): string => {
 
 /** Placeholder mientras cargan los países. */
 export const renderHeroSkeleton = (): string => `
-  <div class="h-[440px] md:h-[520px] rounded-3xl bg-paper-deep dark:bg-space-deep animate-pulse border border-slate-200/60 dark:border-starlight-faint/10"></div>
+  <div class="h-110 md:h-130 rounded-3xl bg-paper-deep dark:bg-space-deep animate-pulse border border-slate-200/60 dark:border-starlight-faint/10"></div>
 `;

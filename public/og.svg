@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Terra Atlas — premium social preview</title>
+  <desc id="desc">A premium dark vector illustration for Terra Atlas with elegant gradients, gold accents and stylized country flags.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07111f" />
+      <stop offset="55%" stop-color="#0d1728" />
+      <stop offset="100%" stop-color="#111c31" />
+    </linearGradient>
+    <linearGradient id="panel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10192c" stop-opacity="0.98" />
+      <stop offset="100%" stop-color="#0b1424" stop-opacity="0.98" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fce7a3" />
+      <stop offset="50%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.26" />
+      <stop offset="70%" stop-color="#fbbf24" stop-opacity="0" />
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="26" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+    <pattern id="grid" width="120" height="120" patternUnits="userSpaceOnUse">
+      <path d="M0 60H120M60 0V120" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1" />
+      <path d="M0 0L120 120M120 0L0 120" stroke="#ffffff" stroke-opacity="0.025" stroke-width="1" />
+    </pattern>
+    <pattern id="topo" width="220" height="220" patternUnits="userSpaceOnUse">
+      <path d="M0 80C46 48 78 68 120 40C150 20 176 26 220 58" fill="none" stroke="#f5efe6" stroke-opacity="0.045" stroke-width="2" />
+      <path d="M0 132C40 98 76 122 118 100C154 82 180 90 220 120" fill="none" stroke="#f5efe6" stroke-opacity="0.045" stroke-width="2" />
+      <path d="M0 180C44 156 72 168 112 148C154 126 184 132 220 170" fill="none" stroke="#f5efe6" stroke-opacity="0.045" stroke-width="2" />
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#grid)" />
+  <circle cx="1060" cy="124" r="320" fill="url(#glow)" />
+  <rect x="62" y="52" width="1076" height="526" rx="32" fill="url(#panel)" filter="url(#shadow)" />
+  <rect x="62" y="52" width="1076" height="526" rx="32" fill="url(#topo)" opacity="0.9" />
+
+  <path d="M0 0L100 0L180 90L280 20L360 100L470 30L560 110L660 60L760 120L860 70L1000 130L1200 20L1200 0Z" fill="#0a1220" opacity="0.45" />
+  <path d="M95 470C170 420 220 440 300 420C380 400 430 330 530 340C640 352 720 430 820 420C900 412 980 360 1080 380" fill="none" stroke="url(#gold)" stroke-opacity="0.25" stroke-width="3" />
+
+  <g transform="translate(108 136)">
+    <rect x="0" y="0" width="208" height="28" rx="14" fill="#0f172a" stroke="#fbbf24" stroke-opacity="0.35" />
+    <text x="104" y="19" text-anchor="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="13" font-weight="700" letter-spacing="3" fill="#fbbf24" text-transform="uppercase">★ Interactive Atlas</text>
+
+    <text x="0" y="92" font-family="'Bricolage Grotesque', 'Segoe UI', sans-serif" font-size="84" font-weight="800" fill="#f8f5eb" letter-spacing="-2">Terra<tspan fill="#fbbf24">.</tspan></text>
+    <text x="0" y="156" font-family="'Inter', 'Segoe UI', sans-serif" font-size="24" font-weight="500" fill="#bdb7ab">Explore countries with live weather,</text>
+    <text x="0" y="188" font-family="'Inter', 'Segoe UI', sans-serif" font-size="24" font-weight="500" fill="#bdb7ab">Wikipedia context, and elegant data views.</text>
+  </g>
+
+  <g transform="translate(690 110)">
+    <g transform="translate(0 0)">
+      <rect x="0" y="0" width="148" height="102" rx="16" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" />
+      <rect x="0" y="0" width="48" height="102" fill="#0055a4" />
+      <rect x="48" y="0" width="52" height="102" fill="#ffffff" />
+      <rect x="100" y="0" width="48" height="102" fill="#ef4135" />
+    </g>
+    <g transform="translate(156 0)">
+      <rect x="0" y="0" width="148" height="102" rx="16" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" />
+      <circle cx="74" cy="51" r="28" fill="#bc002d" />
+    </g>
+    <g transform="translate(312 0)">
+      <rect x="0" y="0" width="148" height="102" rx="16" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" />
+      <path d="M0 0h148v102H0z" fill="#009c3b" />
+      <path d="M0 0l74 51 74-51v102L74 51 0 102z" fill="#ffdf00" />
+      <circle cx="74" cy="51" r="24" fill="#002776" />
+    </g>
+    <g transform="translate(0 118)">
+      <rect x="0" y="0" width="148" height="102" rx="16" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" />
+      <rect x="0" y="0" width="48" height="102" fill="#008c45" />
+      <rect x="48" y="0" width="52" height="102" fill="#ffffff" />
+      <rect x="100" y="0" width="48" height="102" fill="#cd212a" />
+    </g>
+    <g transform="translate(156 118)">
+      <rect x="0" y="0" width="148" height="102" rx="16" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" />
+      <rect x="0" y="0" width="148" height="102" fill="#02529c" />
+      <rect x="0" y="0" width="148" height="102" fill="#ffffff" opacity="0.18" />
+      <rect x="36" y="0" width="20" height="102" fill="#ed2939" />
+      <rect x="0" y="42" width="148" height="18" fill="#ed2939" />
+      <path d="M0 0h148v102H0z" fill="none" stroke="#ffffff" stroke-width="10" opacity="0.55" />
+    </g>
+    <g transform="translate(312 118)">
+      <rect x="0" y="0" width="148" height="102" rx="16" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" />
+      <rect x="0" y="0" width="148" height="102" fill="#fcd116" />
+      <rect x="0" y="0" width="148" height="34" fill="#003893" />
+      <rect x="0" y="68" width="148" height="34" fill="#ce1126" />
+    </g>
+  </g>
+
+  <g transform="translate(108 472)">
+    <circle cx="0" cy="0" r="8" fill="url(#gold)" />
+    <rect x="20" y="-8" width="170" height="16" rx="8" fill="#f5efe6" opacity="0.16" />
+    <text x="20" y="4" font-family="'Inter', 'Segoe UI', sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#f5efe6" text-transform="uppercase">Live • rich • elegant</text>
+  </g>
+</svg>

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Terra · Atlas — OG Image Generator</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Instrument Sans", system-ui, sans-serif;
+        background: #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 40px;
+      }
+      .card {
+        width: 1200px;
+        height: 630px;
+        background: linear-gradient(135deg, #0a0e1a 0%, #0e1a30 100%);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        padding: 80px 100px;
+        border-radius: 24px;
+      }
+      /* Textura topográfica sutil de fondo */
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='none' stroke='%23e9eff8' stroke-opacity='0.04'%3E%3Cpath d='M0 36c30-14 60 10 90-4s60-22 90-8 40 18 60 12'/%3E%3Cpath d='M0 92c34-18 62 6 94-8s58-18 88-6 38 14 58 10'/%3E%3Cpath d='M0 148c28-12 58 8 92-6s62-16 90-4 36 12 58 8'/%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
+      }
+      /* Glow dorado superior derecho */
+      .card::after {
+        content: "";
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(
+          circle,
+          rgba(251, 191, 36, 0.18) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+      .content {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+      }
+      .badge {
+        display: inline-block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+        font-weight: 700;
+        color: #fbbf24;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+      }
+      h1 {
+        font-family: "Bricolage Grotesque", sans-serif;
+        font-weight: 800;
+        font-size: 92px;
+        line-height: 1;
+        color: #f5efe6;
+        letter-spacing: -0.02em;
+        margin-bottom: 24px;
+      }
+      h1 .dot {
+        color: #fbbf24;
+      }
+      .subtitle {
+        font-size: 24px;
+        color: #a8a39b;
+        line-height: 1.5;
+        max-width: 640px;
+      }
+      .flags {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        width: 360px;
+        margin-left: 24px;
+        margin-right: 24px;
+      }
+      .flag {
+        aspect-ratio: 3/2;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        transform: rotate(-3deg);
+        transition: transform 0.3s;
+      }
+      .flag:nth-child(2) {
+        transform: rotate(2deg) translateY(-10px);
+      }
+      .flag:nth-child(3) {
+        transform: rotate(-1deg);
+      }
+      .flag:nth-child(4) {
+        transform: rotate(3deg) translateY(10px);
+      }
+      .flag:nth-child(5) {
+        transform: rotate(-2deg);
+      }
+      .flag:nth-child(6) {
+        transform: rotate(1deg) translateY(-5px);
+      }
+      .flag img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .footer {
+        position: absolute;
+        bottom: 40px;
+        left: 100px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 1;
+      }
+      .footer-logo {
+        font-family: "Bricolage Grotesque", sans-serif;
+        font-size: 20px;
+        font-weight: 800;
+        color: #f5efe6;
+      }
+      .footer-logo .dot {
+        color: #fbbf24;
+      }
+      .footer-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: #6b6960;
+      }
+      .instructions {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: white;
+        color: #1a1a1a;
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.6;
+        max-width: 320px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+      .instructions strong {
+        color: #059669;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="content">
+        <span class="badge">★ An interactive atlas</span>
+        <h1>Terra<span class="dot">.</span></h1>
+        <p class="subtitle">
+          Every country on Earth — live weather, Wikipedia summaries,
+          demographics and a beautiful day-to-night experience.
+        </p>
+      </div>
+
+      <div class="flags">
+        <div class="flag">
+          <img src="https://flagcdn.com/w320/fr.png" alt="" />
+        </div>
+        <div class="flag">
+          <img src="https://flagcdn.com/w320/jp.png" alt="" />
+        </div>
+        <div class="flag">
+          <img src="https://flagcdn.com/w320/br.png" alt="" />
+        </div>
+        <div class="flag">
+          <img src="https://flagcdn.com/w320/it.png" alt="" />
+        </div>
+        <div class="flag">
+          <img src="https://flagcdn.com/w320/is.png" alt="" />
+        </div>
+        <div class="flag">
+          <img src="https://flagcdn.com/w320/co.png" alt="" />
+        </div>
+      </div>
+
+      <div class="footer">
+        <span class="footer-logo">Terra<span class="dot">.</span></span>
+        <span class="footer-tag">Atlas</span>
+      </div>
+    </div>
+  </body>
+</html>

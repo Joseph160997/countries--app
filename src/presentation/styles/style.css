@@ -136,6 +136,19 @@ img[loading="lazy"] {
   }
 }
 
+/* Bandera del modal: sutil zoom de asentamiento al abrir */
+@keyframes modal-flag-settle {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.modal-flag {
+  animation: modal-flag-settle 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
 /* =========================================================
    TARJETAS Y MODAL
    ========================================================= */

@@ -4,18 +4,107 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Terra · Atlas</title>
 
+    <!-- ═══ SEO BÁSICO ═══ -->
+    <!-- 60-70 caracteres. Es lo que aparece en los resultados de Google.
+       [Nombre producto] · [Propuesta de valor corta] -->
+    <title>Terra · Atlas — Every country on Earth, one atlas</title>
+
+    <!-- 150-160 caracteres. Es lo que aparece en los resultados de Google. -->
+    <meta
+      name="description"
+      content="Explore every country on Earth with live weather, Wikipedia summaries, demographic data and beautifully designed interactive maps. A modern atlas built with TypeScript and clean architecture."
+    />
+
+    <!-- Palabras clave: ya no las usa Google, pero sí otros motores. No duele tenerlas. -->
+    <meta
+      name="keywords"
+      content="world atlas, country explorer, demographics, world map, TypeScript project, clean architecture, vanilla TypeScript, web application"
+    />
+
+    <!-- Permite que los buscadores indexen la página -->
+    <meta name="robots" content="index, follow" />
+
+    <!-- Autoría y canonical URL (evita contenido duplicado si hay varios dominios) -->
+    <meta name="author" content="Joseph Ortega" />
+    <link
+      rel="canonical"
+      href="https://joseph160997.github.io/countries--app/"
+    />
+
+    <!-- ═══ OPEN GRAPH (Facebook, LinkedIn, WhatsApp, Telegram) ═══ -->
+    <!-- Cuando alguien comparte tu link, estos tags definen la "tarjeta" que se ve -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://joseph160997.github.io/countries--app/"
+    />
+    <meta
+      property="og:title"
+      content="Terra · Atlas — Every country on Earth"
+    />
+    <meta
+      property="og:description"
+      content="Explore every country on Earth with live weather, Wikipedia summaries and a beautifully designed atlas. Built with TypeScript and clean architecture."
+    />
+    <!-- La imagen OG: 1200×630px es el estándar recomendado -->
+    <meta
+      property="og:image"
+      content="https://joseph160997.github.io/countries--app/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Terra · Atlas — A modern atlas of every country on Earth"
+    />
+    <meta property="og:site_name" content="Terra" />
+
+    <!-- ═══ TWITTER CARD ═══ -->
+    <!-- Twitter/X usa su propio set de tags (aunque ahora también lee OG) -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Terra · Atlas — Every country on Earth"
+    />
+    <meta
+      name="twitter:description"
+      content="Explore every country on Earth with live weather, Wikipedia summaries and a beautifully designed atlas."
+    />
+    <meta
+      name="twitter:image"
+      content="https://joseph160997.github.io/countries--app/og-image.png"
+    />
+
+    <!-- ═══ FAVICON (SVG escalable, moderno) ═══ -->
+    <link rel="icon" type="image/svg+xml" href="/countries--app/favicon.svg" />
+    <!-- Fallback para navegadores viejos que no soportan SVG favicons -->
+    <link rel="icon" type="image/png" href="/countries--app/favicon.png" />
+    <link rel="apple-touch-icon" href="/countries--app/apple-touch-icon.png" />
+
+    <!-- ═══ PERFORMANCE ═══ -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- ═══ THEME COLOR ═══ -->
+    <!-- El color que usa el navegador para la barra de URL en móvil -->
+    <meta
+      name="theme-color"
+      content="#f0f4f7"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#0a0e1a"
+      media="(prefers-color-scheme: dark)"
+    />
+
+    <!-- Anti-FOUC script -->
     <script>
-      // Anti-FOUC: aplica el tema guardado ANTES del primer render.
-      // storageService serializa con JSON.stringify, así que el valor
-      // guardado viene con comillas: '"dark"' → hay que parsearlo igual.
       (function () {
         try {
           var stored = JSON.parse(localStorage.getItem("app_theme") || "null");
