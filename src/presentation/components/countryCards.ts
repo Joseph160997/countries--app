@@ -88,6 +88,7 @@ Renderiza el modal de detalle de un país.
 @param borderNames Nombres de países fronterizos
 @returns HTML del modal
 */
+
 export const renderCountryDetailModal = (
   country: Country,
   borderNames: string[],
@@ -111,6 +112,7 @@ export const renderCountryDetailModal = (
       ? borderNames
           .map((name, index) => {
             const borderCode = country.borders?.[index] ?? "";
+
             return `
               <span
                 class="border-chip inline-block px-3 py-1.5 bg-accent-soft dark:bg-gold/10 text-accent dark:text-gold rounded-full text-xs font-semibold transition-colors cursor-pointer hover:bg-accent hover:text-white dark:hover:bg-gold dark:hover:text-space"
@@ -124,92 +126,169 @@ export const renderCountryDetailModal = (
       : `<span class="text-ink-faint dark:text-starlight-faint italic text-sm">No border countries</span>`;
 
   return `
-  <div class="relative w-full max-w-4xl max-h-[90vh] bg-paper-card dark:bg-space-card rounded-2xl shadow-2xl shadow-slate-300/50 dark:shadow-space-deep overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 animate-fade-in-up flex flex-col">
-    <!-- Pestaña de región (cohesión con cards) -->
-    <div class="h-1.5 shrink-0 ${getRegionAccentClass(country.region)}"></div>
-
-    <!-- Botón cerrar -->
-    <button
-      id="close-modal"
-      aria-label="Close modal"
-      class="absolute top-4 right-4 z-20 p-2 rounded-full bg-paper-card/90 dark:bg-space-deep/90 hover:bg-accent-soft dark:hover:bg-gold/20 text-ink-soft dark:text-starlight-soft transition-colors cursor-pointer backdrop-blur-sm shadow-md"
+    <div
+      class="relative w-full max-w-5xl max-h-[95vh] bg-paper-card dark:bg-space-card rounded-2xl shadow-2xl shadow-slate-300/50 dark:shadow-space-deep border border-slate-200/60 dark:border-starlight-faint/15 animate-fade-in-up flex flex-col overflow-hidden"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-      </svg>
-    </button>
+      <!-- Pestaña de región -->
+      <div class="h-1.5 shrink-0 ${getRegionAccentClass(country.region)}"></div>
 
-    <!-- Cuerpo: min-h-0 es la llave del scroll interno en flex -->
-    <div class="min-h-0 flex-1 flex flex-col md:flex-row">
-      <!-- ═══ COLUMNA IZQUIERDA: carnet (bandera + links) ═══ -->
-      <div class="md:w-2/5 shrink-0 p-6 flex flex-col gap-4 bg-paper-deep/40 dark:bg-space-deep/40">
-        <!-- Bandera en proporción natural, como foto de carnet -->
-        <div class="relative rounded-xl overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 shadow-md bg-paper-card dark:bg-space-card">
-          <img
-            src="${country.flag}"
-            alt="Flag of ${country.name}"
-            loading="eager"
-            class="modal-flag w-full aspect-3/2 object-contain"
+      <!-- Botón cerrar -->
+      <button
+        id="close-modal"
+        aria-label="Close modal"
+        class="absolute top-4 right-4 z-30 p-2 rounded-full bg-paper-card/90 dark:bg-space-deep/90 hover:bg-accent-soft dark:hover:bg-gold/20 text-ink-soft dark:text-starlight-soft transition-colors cursor-pointer backdrop-blur-sm shadow-md"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2.5"
+          stroke="currentColor"
+          class="w-5 h-5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18 18 6M6 6l12 12"
           />
-        </div>
+        </svg>
+      </button>
 
-        <!-- Chip cartográfico centrado -->
-        <div class="text-center">
-          <span class="inline-block font-mono text-[11px] font-bold tracking-wider bg-ink/80 dark:bg-space-deep text-starlight px-3 py-1 rounded">
-            ${country.cca3}
-          </span>
-        </div>
+      <!--
+        Contenedor principal.
+        En móvil el modal completo hace scroll.
+      -->
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        <div class="flex flex-col md:flex-row">
 
-        <!-- Links externos apilados bajo la bandera -->
-        ${renderSideLinks(country)}
-      </div>
+          <!-- ═══ COLUMNA IZQUIERDA: bandera + enlaces ═══ -->
+          <div
+            class="md:w-2/5 shrink-0 p-5 sm:p-6 lg:p-8 flex flex-col bg-paper-deep/40 dark:bg-space-deep/40"
+          >
+            <!-- Bandera grande -->
+            <div
+              class="relative w-full rounded-xl overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 shadow-md bg-paper-card dark:bg-space-card"
+            >
+              <img
+                src="${country.flag}"
+                alt="Flag of ${country.name}"
+                loading="eager"
+                class="modal-flag block w-full h-auto min-h-45 sm:min-h-55 md:min-h-65 lg:min-h-75 object-contain"
+              />
+            </div>
 
-      <!-- ═══ COLUMNA DERECHA: contenido con scroll propio ═══ -->
-      <div class="md:w-3/5 min-h-0 md:overflow-y-auto p-6 lg:p-8">
-        <h2 class="font-display text-2xl lg:text-3xl font-extrabold text-ink dark:text-starlight tracking-tight mb-3">${country.name}</h2>
-        <div class="flex flex-wrap items-center gap-2 mb-6">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getRegionBadgeClasses(country.region)}">${country.region}</span>
-          <span class="text-sm text-ink-soft dark:text-starlight-soft">${subregion}</span>
-        </div>
+            <!-- Código del país -->
+            <div class="text-center mt-3">
+              <span
+                class="inline-block font-mono text-[11px] font-bold tracking-wider bg-ink/80 dark:bg-space-deep text-starlight px-3 py-1 rounded"
+              >
+                ${country.cca3}
+              </span>
+            </div>
 
-        ${renderWeatherWidget(weather, weatherStatus, capital)}
-
-        <div class="grid grid-cols-2 gap-3 mb-6">
-          ${renderStatBox("Population", population)}
-          ${renderStatBox("Capital", capital)}
-          ${renderStatBox("Area", formatArea(country.areaKm2))}
-          ${renderStatBox("Density", formatDensity(country.density))}
-        </div>
-
-        ${renderMemberships(country.memberships)}
-        ${renderFactsGrid(country)}
-
-        <div class="space-y-4">
-          <div>
-            <p class="text-xs font-semibold text-ink-faint dark:text-starlight-faint uppercase tracking-wider mb-1">Top Level Domain</p>
-            <p class="font-mono text-sm bg-paper-deep dark:bg-space-deep px-2 py-1 rounded truncate">${formattedTld}</p>
+            <!-- Links externos -->
+            <div class="mt-4">
+              ${renderSideLinks(country)}
+            </div>
           </div>
-          <div>
-            <p class="text-xs font-semibold text-ink-faint dark:text-starlight-faint uppercase tracking-wider mb-1">Currencies</p>
-            <p class="font-medium text-ink dark:text-starlight">${formattedCurrencies}</p>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-ink-faint dark:text-starlight-faint uppercase tracking-wider mb-1">Languages</p>
-            <p class="font-medium text-ink dark:text-starlight">${formattedLanguages}</p>
+
+          <!-- ═══ COLUMNA DERECHA: contenido ═══ -->
+          <div
+            class="md:w-3/5 min-w-0 p-5 sm:p-6 lg:p-8"
+          >
+            <h2
+              class="font-display text-2xl lg:text-3xl font-extrabold text-ink dark:text-starlight tracking-tight mb-3 pr-8"
+            >
+              ${country.name}
+            </h2>
+
+            <div class="flex flex-wrap items-center gap-2 mb-6">
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getRegionBadgeClasses(country.region)}"
+              >
+                ${country.region}
+              </span>
+
+              <span class="text-sm text-ink-soft dark:text-starlight-soft">
+                ${subregion}
+              </span>
+            </div>
+
+            ${renderWeatherWidget(weather, weatherStatus, capital)}
+
+            <div class="grid grid-cols-2 gap-3 mb-6">
+              ${renderStatBox("Population", population)}
+              ${renderStatBox("Capital", capital)}
+              ${renderStatBox("Area", formatArea(country.areaKm2))}
+              ${renderStatBox("Density", formatDensity(country.density))}
+            </div>
+
+            ${renderMemberships(country.memberships)}
+
+            ${renderFactsGrid(country)}
+
+            <div class="space-y-4">
+              <div>
+                <p
+                  class="text-xs font-semibold text-ink-faint dark:text-starlight-faint uppercase tracking-wider mb-1"
+                >
+                  Top Level Domain
+                </p>
+
+                <p
+                  class="font-mono text-sm bg-paper-deep dark:bg-space-deep px-2 py-1 rounded truncate"
+                >
+                  ${formattedTld}
+                </p>
+              </div>
+
+              <div>
+                <p
+                  class="text-xs font-semibold text-ink-faint dark:text-starlight-faint uppercase tracking-wider mb-1"
+                >
+                  Currencies
+                </p>
+
+                <p class="font-medium text-ink dark:text-starlight">
+                  ${formattedCurrencies}
+                </p>
+              </div>
+
+              <div>
+                <p
+                  class="text-xs font-semibold text-ink-faint dark:text-starlight-faint uppercase tracking-wider mb-1"
+                >
+                  Languages
+                </p>
+
+                <p class="font-medium text-ink dark:text-starlight">
+                  ${formattedLanguages}
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="mt-8 pt-6 border-t border-slate-200/50 dark:border-starlight-faint/15"
+            >
+              <h4
+                class="text-sm font-bold text-ink dark:text-starlight mb-3"
+              >
+                Border Countries
+              </h4>
+
+              <div class="flex flex-wrap gap-2">
+                ${bordersHTML}
+              </div>
+            </div>
+
+            ${renderWikiWidget(wiki, wikiStatus)}
           </div>
         </div>
-
-        <div class="mt-8 pt-6 border-t border-slate-200/50 dark:border-starlight-faint/15">
-          <h4 class="text-sm font-bold text-ink dark:text-starlight mb-3">Border Countries</h4>
-          <div class="flex flex-wrap gap-2">${bordersHTML}</div>
-        </div>
-
-        ${renderWikiWidget(wiki, wikiStatus)}
       </div>
     </div>
-  </div>
   `;
 };
+
 // ========================================================
 // FASE 3 — Helpers de la ficha de país
 // ========================================================
