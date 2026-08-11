@@ -275,3 +275,68 @@ export const resetState = (): void => {
   filteredCountries = [];
   listeners = [];
 };
+
+/**
+ * Selecciona un cca3 aleatorio del catálogo cargado.
+ *
+ * Retorna `string | null`:
+ * - `null` cuando el catálogo está vacío (cargando o error).
+ *   El caller decide qué hacer (no-op, deshabilitar botón, etc.)
+ *
+ * Heurística anti-repetición:
+ * - Si hay un país abierto en el modal, lo excluye del pool
+ *   para que clicks consecutivos no devuelvan el mismo país.
+ * - Si solo queda 1 país en el pool (catálogo de 1), lo devuelve igual.
+ *
+ * Nota: usamos Math.random() porque esto es exploración visual,
+ * no seguridad. crypto.getRandomValues sería over-engineering.
+ */
+export const getRandomCca3 = (): string | null => {
+  const { all } = countriesStore.getState();
+
+  // Catálogo vacío → no hay nada que elegir.
+  // Devolvemos null (valor) en vez de lanzar excepción (flujo esperado).
+  if (all.length === 0) return null;
+
+  // Catálogo con 1 solo país → siempre devuelve ese.
+  // No aplicamos el filtro anti-repetición porque el pool quedaría vacío.
+  if (all.length === 1) return all[0].cca3;
+
+  // Excluimos el país actualmente abierto (si hay uno).
+  // `modalStore.getState().selectedCountry?.cca3` usa optional chaining
+  // porque selectedCountry puede ser null (modal cerrado).
+  const currentCca3 = modalStore.getState().selectedCountry?.cca3;
+
+  // filter() crea un nuevo array — no mutamos `all`.
+  // Inmutabilidad: principio base de nuestro store.
+  const pool = all.filter((c) => c.cca3 !== currentCca3);
+
+  // Si el filter vació el pool (imposible con length > 1, pero
+  // defensivamente), caemos al catálogo completo.
+  const target = pool.length > 0 ? pool : all;
+
+  // Índice aleatorio: Math.floor trunca hacia abajo,
+  // Math.random() ∈ [0, 1) → nunca llega a target.length.
+  const index = Math.floor(Math.random() * target.length);
+  return target[index].cca3;
+};
+
+/**
+ * Acción: elige un país aleatorio y abre el modal.
+ *
+ * Separamos selector y acción por responsabilidad:
+ * - `getRandomCca3()` → deriva datos (puro, testeable)
+ * - `openRandomCountry()` → muta estado (abre el modal)
+ *
+ * El controller solo llama a esta función. No conoce
+ * la lógica de selección ni el pool anti-repetición.
+ */
+export const openRandomCountry = (): void => {
+  const cca3 = getRandomCca3();
+  // Si es null (catálogo vacío), simplemente no hacemos nada.
+  // El botón puede estar deshabilitado visualmente en el futuro.
+  if (cca3) openCountryModal(cca3);
+};
+
+// Solo para tests: acceso directo al store para forzar estados
+export const __countriesStoreForTest = countriesStore;

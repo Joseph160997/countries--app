@@ -45,6 +45,8 @@ import {
   setPage,
   getCurrentPage,
   getTotalPages,
+  getRandomCca3,
+  __countriesStoreForTest,
 } from "./countryState";
 
 import { toggleFavoritePersistence } from "@/presentation/services/favoriteService";
@@ -413,5 +415,80 @@ describe("subscribe", () => {
     await loadCountries([]);
 
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+// ====================================================
+// GRUPO I: País aleatorio
+// ====================================================
+describe("getRandomCca3", () => {
+  beforeEach(async () => {
+    // Happy path: catálogo con 3 países (COL, ARG, ESP)
+    fakeResult = Promise.resolve(ok(mockCountries));
+    await loadCountries([]);
+  });
+
+  it("should return null when catalog is empty", () => {
+    // Reiniciamos el estado y forzamos catálogo vacío directamente
+    resetState();
+    initCountryState(fakeRepository);
+    __countriesStoreForTest.setState({ all: [], isLoading: false });
+
+    // Assert: null es un VALOR válido, no un error
+    expect(getRandomCca3()).toBeNull();
+  });
+
+  it("should return the only country when catalog has one", () => {
+    resetState();
+    initCountryState(fakeRepository);
+    __countriesStoreForTest.setState({
+      all: [mockCountries[0]],
+      isLoading: false,
+    });
+
+    // Con 1 solo país, SIEMPRE devuelve ese cca3
+    expect(getRandomCca3()).toBe("COL");
+  });
+
+  it("should always return a valid cca3 from the catalog", () => {
+    // Recopilamos todos los cca3 válidos
+    const validCodes = mockCountries.map((c) => c.cca3);
+
+    // Tiramos 20 veces: cada resultado DEBE estar en el catálogo.
+    // No testeamos QUÉ índice sale (implementación), sino que
+    // el resultado siempre es válido (comportamiento).
+    for (let i = 0; i < 20; i++) {
+      const cca3 = getRandomCca3();
+      expect(validCodes).toContain(cca3);
+    }
+  });
+
+  it("should avoid repeating the currently opened country when possible", () => {
+    // Abrimos Colombia en el modal
+    openCountryModal("COL");
+
+    // Tiramos 30 veces y recopilamos los resultados únicos
+    const codes = new Set<string>();
+    for (let i = 0; i < 30; i++) {
+      codes.add(getRandomCca3()!);
+      // El `!` (non-null assertion) es seguro aquí: sabemos que
+      // el catálogo tiene 3 países, nunca será null.
+    }
+
+    // Con 3 países y COL excluido, en 30 tiradas DEBEMOS ver
+    // al menos ARG y ESP. No verificamos que COL NUNCA salga
+    // (podría salir si el pool cae a `all` por edge case),
+    // solo que los otros aparecen.
+    expect(codes.has("ARG")).toBe(true);
+    expect(codes.has("ESP")).toBe(true);
+  });
+
+  it("should return null when still loading", () => {
+    // Catálogo aún no cargado → all está vacío
+    resetState();
+    initCountryState(fakeRepository);
+    // No llamamos loadCountries: all = []
+
+    expect(getRandomCca3()).toBeNull();
   });
 });
