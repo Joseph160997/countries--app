@@ -21,6 +21,10 @@ import {
 import { createModalSlice, type ModalStore } from "../slices/modal.slice";
 import type { WeatherProvider } from "@/domain/ports/weather.provider";
 import type { WikiProvider } from "@/domain/ports/wiki.provider";
+import {
+  createComparisonSlice,
+  type ComparisonStore,
+} from "../slices/comparison.slice";
 
 // ========================================================
 // 1. DEPENDENCIA + SLICES (el estado ya no vive aquí)
@@ -32,8 +36,9 @@ let wikiProvider: WikiProvider | null = null;
 const countriesStore: CountriesStore = createCountriesSlice();
 const filtersStore: FiltersStore = createFiltersSlice();
 
-// Modal y favoritos aún viven aquí — el Step 2.3 los extrae a sus propios slices.
 const modalStore: ModalStore = createModalSlice();
+
+const comparisonStore: ComparisonStore = createComparisonSlice();
 
 /** Caché del resultado derivado — se recalcula en cada cambio relevante. */
 let filteredCountries: Country[] = [];
@@ -277,10 +282,88 @@ export const getBorderNames = (codes: string[]): string[] =>
     return found ? found.name : code;
   });
 
+// ========================================================
+// 8. COMPARACIÓN — estado y acciones
+// ========================================================
+
+const COMPARISON_MAX = 3;
+
+/** Selector: códigos seleccionados para comparar. */
+export const getComparisonCodes = (): readonly string[] =>
+  comparisonStore.getState().selectedCodes;
+
+/** Selector: cuántos países hay seleccionados. */
+export const getComparisonCount = (): number =>
+  comparisonStore.getState().selectedCodes.length;
+
+/** Selector: ¿la vista de comparación está abierta? */
+export const getIsComparisonActive = (): boolean =>
+  comparisonStore.getState().isActive;
+
+/** Selector: ¿puedo añadir más países a la comparación? */
+export const canAddToComparison = (): boolean =>
+  comparisonStore.getState().selectedCodes.length < COMPARISON_MAX;
+
+/** Selector: ¿este país ya está en la comparación? */
+export const isInComparison = (cca3: string): boolean =>
+  comparisonStore.getState().selectedCodes.includes(cca3);
+
+/**
+ * Acción: togglea un país en la lista de comparación.
+ * - Si ya está, lo quita.
+ * - Si no está y hay espacio (<3), lo añade.
+ * - Si no hay espacio, no hace nada (el controller mostrará un toast).
+ */
+export const toggleComparisonCountry = (cca3: string): void => {
+  const { selectedCodes } = comparisonStore.getState();
+  const isAlreadyIn = selectedCodes.includes(cca3);
+
+  if (isAlreadyIn) {
+    comparisonStore.setState({
+      selectedCodes: selectedCodes.filter((code) => code !== cca3),
+    });
+    notify();
+    return;
+  }
+
+  if (selectedCodes.length >= COMPARISON_MAX) {
+    // Límite alcanzado. El controller decidirá si muestra un toast.
+    // El estado NO hace side effects (toasts, alertas). Solo reporta.
+    return;
+  }
+
+  comparisonStore.setState({
+    selectedCodes: [...selectedCodes, cca3],
+  });
+  notify();
+};
+
+/** Acción: vacía la selección de comparación. */
+export const clearComparison = (): void => {
+  comparisonStore.setState({ selectedCodes: [], isActive: false });
+  notify();
+};
+
+/** Acción: abre la vista de comparación. */
+export const openComparisonView = (): void => {
+  const { selectedCodes } = comparisonStore.getState();
+  // Solo abrir si hay al menos 2 países para comparar.
+  if (selectedCodes.length < 2) return;
+  comparisonStore.setState({ isActive: true });
+  notify();
+};
+
+/** Acción: cierra la vista de comparación sin vaciar la selección. */
+export const closeComparisonView = (): void => {
+  comparisonStore.setState({ isActive: false });
+  notify();
+};
+
 export const resetState = (): void => {
   countriesStore.reset();
   filtersStore.reset();
   modalStore.reset();
+  comparisonStore.reset();
   filteredCountries = [];
   listeners = [];
 };

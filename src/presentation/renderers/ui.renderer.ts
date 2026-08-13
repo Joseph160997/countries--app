@@ -100,7 +100,7 @@ const syncButtonState = (
 let lastGridFingerprint: string | null = null;
 let lastModalCca3: string | null = null;
 let heroRendered = false;
-let comparisonBarRendered = false;
+let lastFavoritesSet: Set<string> | null = null;
 let lastComparisonCca3s: string | null = null;
 
 // ========================================================
@@ -117,16 +117,18 @@ const renderGrid = (): void => {
   if (getIsLoading()) {
     fingerprint = "loading";
     html = renderSkeletonGrid(20);
+    // Reset de tracking de favoritos al cargar
+    lastFavoritesSet = null;
   } else {
     const visible = getCountries();
     const comparisonCodes = getComparisonCodes();
 
-    // La huella incluye TODO lo que afecta visualmente al grid:
-    // qué países están visibles, sus favoritos, qué vista está activa
-    // y qué países están en la comparación.
+    // Fingerprint BASE: qué países están visibles + comparación
+    // NOTA: ya NO incluimos isFavorite aquí. Los favoritos se
+    // parchean selectivamente abajo, sin re-renderizar el grid.
     fingerprint =
       `${isShowingFavoritesActive() ? "favs" : "all"}:` +
-      (visible.map((c) => `${c.cca3}:${c.isFavorite}`).join("|") || "empty") +
+      (visible.map((c) => c.cca3).join("|") || "empty") +
       `:cmp:${comparisonCodes.join(",")}`;
 
     if (visible.length === 0) {
@@ -145,16 +147,72 @@ const renderGrid = (): void => {
               showButton: false,
             },
       );
+      lastFavoritesSet = null;
     } else {
       html = visible.map((c) => renderCountryCard(c, comparisonCodes)).join("");
     }
   }
 
-  // Nada cambió → el DOM NO se toca (las imágenes y animaciones no se reinician)
-  if (fingerprint === lastGridFingerprint) return;
-  lastGridFingerprint = fingerprint;
+  // ─── ¿Cambio el fingerprint base? → re-render completo ───
+  if (fingerprint !== lastGridFingerprint) {
+    lastGridFingerprint = fingerprint;
+    lastFavoritesSet = null; // Forzar sync de favoritos en el próximo paso
+    resultsContainer.innerHTML = html;
+  }
 
-  resultsContainer.innerHTML = html;
+  // ─── Patch selectivo de favoritos (sin re-render) ───
+  if (!getIsLoading()) {
+    patchFavoritesOnly();
+  }
+};
+
+/**
+ * Actualiza solo los botones de favorito en el DOM, sin destruir las cards.
+ * Esto evita que las banderas se re-animen cuando solo cambia isFavorite.
+ *
+ * Compara el set actual de favoritos con el último conocido.
+ * Solo toca los botones cuyo estado realmente cambió.
+ */
+const patchFavoritesOnly = (): void => {
+  const visible = getCountries();
+  const currentFavSet = new Set(
+    visible.filter((c) => c.isFavorite).map((c) => c.cca3),
+  );
+
+  // Primera ejecución después de un re-render completo → sincronizar todo
+  if (lastFavoritesSet === null) {
+    lastFavoritesSet = currentFavSet;
+    visible.forEach((c) => updateFavoriteButton(c.cca3, c.isFavorite));
+    return;
+  }
+
+  // Detectar cambios: países que entraron o salieron del set de favoritos
+  for (const cca3 of currentFavSet) {
+    if (!lastFavoritesSet.has(cca3)) {
+      // Nuevo favorito
+      updateFavoriteButton(cca3, true);
+    }
+  }
+  for (const cca3 of lastFavoritesSet) {
+    if (!currentFavSet.has(cca3)) {
+      // Dejó de ser favorito
+      updateFavoriteButton(cca3, false);
+    }
+  }
+
+  lastFavoritesSet = currentFavSet;
+};
+
+/**
+ * Actualiza un solo botón de favorito en el DOM por su cca3.
+ * Busca el botón con querySelector y cambia su innerHTML.
+ */
+const updateFavoriteButton = (cca3: string, isFavorite: boolean): void => {
+  const btn = resultsContainer?.querySelector<HTMLButtonElement>(
+    `.btn-fav[data-id="${cca3}"]`,
+  );
+  if (!btn) return;
+  btn.innerHTML = isFavorite ? "❤️" : "🤍";
 };
 
 // ─── Paginación ───
@@ -272,6 +330,8 @@ const renderHeroSection = (): void => {
 };
 
 // ─── Barra flotante de comparación ───
+let lastBarFingerprint: string | null = null;
+
 const renderComparisonBarSection = (): void => {
   const existingBar = document.getElementById("comparison-bar");
   const count = getComparisonCount();
@@ -280,20 +340,21 @@ const renderComparisonBarSection = (): void => {
   // Sin países seleccionados → destruir la barra si existe
   if (count === 0) {
     if (existingBar) existingBar.remove();
-    comparisonBarRendered = false;
+    lastBarFingerprint = null;
     return;
   }
 
-  // Si la barra ya existe y el count no cambió, no re-renderizamos.
-  // Evitamos repintados innecesarios que reiniciarían la animación.
-  if (comparisonBarRendered && existingBar) {
-    // Actualizar solo el texto del contador
-    const counter = existingBar.querySelector("span.font-mono");
-    if (counter) counter.textContent = `${count} selected`;
+  // Fingerprint: combina count + canCompare para detectar cambios relevantes
+  const fingerprint = `${count}:${canCompare}`;
+
+  // Si el fingerprint no cambió, no hay nada que hacer
+  if (fingerprint === lastBarFingerprint && existingBar) {
     return;
   }
 
-  // Crear o reemplazar la barra
+  lastBarFingerprint = fingerprint;
+
+  // Fingerprint cambió → re-renderizar la barra completa
   if (existingBar) existingBar.remove();
 
   const html = renderComparisonBar({
@@ -309,7 +370,6 @@ const renderComparisonBarSection = (): void => {
   const bar = template.content.firstElementChild as HTMLElement;
   if (bar) {
     document.body.appendChild(bar);
-    comparisonBarRendered = true;
   }
 };
 

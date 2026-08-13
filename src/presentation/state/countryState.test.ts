@@ -47,6 +47,15 @@ import {
   getTotalPages,
   getRandomCca3,
   __countriesStoreForTest,
+  getComparisonCodes,
+  getComparisonCount,
+  getIsComparisonActive,
+  canAddToComparison,
+  isInComparison,
+  toggleComparisonCountry,
+  clearComparison,
+  openComparisonView,
+  closeComparisonView,
 } from "./countryState";
 
 import { toggleFavoritePersistence } from "@/presentation/services/favoriteService";
@@ -490,5 +499,118 @@ describe("getRandomCca3", () => {
     // No llamamos loadCountries: all = []
 
     expect(getRandomCca3()).toBeNull();
+  });
+});
+
+// ====================================================
+// GRUPO J: Comparación
+// ====================================================
+describe("comparison", () => {
+  beforeEach(async () => {
+    fakeRepository.getAll = () => Promise.resolve(ok(mockCountries));
+    await loadCountries([]);
+  });
+
+  describe("toggleComparisonCountry", () => {
+    it("should add a country to the comparison list", () => {
+      toggleComparisonCountry("COL");
+      expect(getComparisonCodes()).toEqual(["COL"]);
+      expect(getComparisonCount()).toBe(1);
+    });
+
+    it("should remove a country if already in the list", () => {
+      toggleComparisonCountry("COL");
+      toggleComparisonCountry("COL");
+      expect(getComparisonCodes()).toEqual([]);
+      expect(getComparisonCount()).toBe(0);
+    });
+
+    it("should allow up to 3 countries", () => {
+      toggleComparisonCountry("COL");
+      toggleComparisonCountry("ARG");
+      toggleComparisonCountry("ESP");
+      expect(getComparisonCount()).toBe(3);
+      expect(getComparisonCodes()).toEqual(["COL", "ARG", "ESP"]);
+    });
+
+    it("should not add a 4th country when limit is reached", () => {
+      toggleComparisonCountry("COL");
+      toggleComparisonCountry("ARG");
+      toggleComparisonCountry("ESP");
+      // Intentar añadir un 4º (usando un código que no existe en el fixture,
+      // pero toggleComparisonCountry no valida existencia en el catálogo,
+      // solo el límite)
+      toggleComparisonCountry("ZZZ");
+      expect(getComparisonCount()).toBe(3);
+      expect(getComparisonCodes()).toEqual(["COL", "ARG", "ESP"]);
+    });
+
+    it("should report canAddToComparison correctly", () => {
+      expect(canAddToComparison()).toBe(true);
+      toggleComparisonCountry("COL");
+      toggleComparisonCountry("ARG");
+      toggleComparisonCountry("ESP");
+      expect(canAddToComparison()).toBe(false);
+    });
+
+    it("should report isInComparison correctly", () => {
+      toggleComparisonCountry("COL");
+      expect(isInComparison("COL")).toBe(true);
+      expect(isInComparison("ARG")).toBe(false);
+    });
+  });
+
+  describe("clearComparison", () => {
+    it("should empty the list and close the view", () => {
+      toggleComparisonCountry("COL");
+      toggleComparisonCountry("ARG");
+      openComparisonView();
+      clearComparison();
+
+      expect(getComparisonCodes()).toEqual([]);
+      expect(getComparisonCount()).toBe(0);
+      expect(getIsComparisonActive()).toBe(false);
+    });
+  });
+
+  describe("openComparisonView / closeComparisonView", () => {
+    it("should not open with fewer than 2 countries", () => {
+      toggleComparisonCountry("COL");
+      openComparisonView();
+      expect(getIsComparisonActive()).toBe(false);
+    });
+
+    it("should open with 2 or more countries", () => {
+      toggleComparisonCountry("COL");
+      toggleComparisonCountry("ARG");
+      openComparisonView();
+      expect(getIsComparisonActive()).toBe(true);
+    });
+
+    it("should close without clearing the selection", () => {
+      toggleComparisonCountry("COL");
+      toggleComparisonCountry("ARG");
+      openComparisonView();
+      closeComparisonView();
+
+      expect(getIsComparisonActive()).toBe(false);
+      // La selección se mantiene
+      expect(getComparisonCount()).toBe(2);
+    });
+  });
+
+  describe("resetState", () => {
+    it("should clear comparison state on reset", () => {
+      toggleComparisonCountry("COL");
+      toggleComparisonCountry("ARG");
+      openComparisonView();
+
+      resetState();
+      // Re-init para que countryState funcione de nuevo
+      initCountryState(fakeRepository);
+
+      expect(getComparisonCodes()).toEqual([]);
+      expect(getIsComparisonActive()).toBe(false);
+    });
   });
 });
