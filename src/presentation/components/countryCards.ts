@@ -34,7 +34,11 @@ export const getRegionAccentClass = (region: string): string => {
  * @param country - Objeto con los datos del país a renderizar.
  * @returns String de HTML estructurado con Tailwind CSS.
  */
-export const renderCountryCard = (country: Country): string => {
+export const renderCountryCard = (
+  country: Country,
+  comparisonCodes: readonly string[] = [],
+): string => {
+  const isInComparison = comparisonCodes.includes(country.cca3);
   return `
 <article data-id="${country.cca3}" class="country-card bg-paper-card dark:bg-space-card rounded-xl border border-slate-200/60 dark:border-starlight-faint/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col group">
   <!-- Pestaña de atlas: identidad de región -->
@@ -73,9 +77,14 @@ export const renderCountryCard = (country: Country): string => {
         <span class="w-2 h-2 rounded-full ${getRegionAccentClass(country.region)}"></span>
         ${country.region}
       </span>
-      <button data-id="${country.cca3}" class="btn-fav text-lg hover:scale-110 transition-transform duration-200 cursor-pointer p-1">
-        ${country.isFavorite ? "❤️" : "🤍"}
-      </button>
+      <div class="flex items-center gap-1.5">
+  <button data-id="${country.cca3}" class="btn-compare p-1 text-sm transition-transform duration-200 cursor-pointer ${isInComparison ? "opacity-100 scale-110" : "opacity-50 hover:opacity-100"}" title="Compare">
+    ⚖️
+  </button>
+  <button data-id="${country.cca3}" class="btn-fav text-lg hover:scale-110 transition-transform duration-200 cursor-pointer p-1">
+    ${country.isFavorite ? "❤️" : "🤍"}
+  </button>
+</div>
     </div>
   </div>
 </article>
