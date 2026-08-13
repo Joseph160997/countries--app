@@ -26,6 +26,7 @@ import { WikipediaProvider } from "@/infrastructure/api/wikipedia/wikipedia.prov
 import { initHeroCarousel } from "./presentation/controllers/hero.controller";
 import { initRandomController } from "@/presentation/controllers/random.controller";
 import { initCommandPaletteController } from "@/presentation/controllers/commandPalette.controller";
+import { initComparisonController } from "@/presentation/controllers/comparison.controller";
 
 // ========================================================
 // 1. LAYOUT + COMPOSITION ROOT
@@ -46,6 +47,7 @@ initModalController();
 initPaginationController();
 initThemeController();
 initRandomController();
+initComparisonController();
 initHeroCarousel();
 initRouter();
 initCommandPaletteController();
