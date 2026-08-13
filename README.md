@@ -68,15 +68,30 @@ Durante el desarrollo se aplicaron conceptos como:
 
 ## ✨ Características
 
+### Exploración
+
 - 🔍 **Búsqueda en tiempo real** con debounce optimizado (350ms).
 - 🌎 **Filtrado por región** (África, Américas, Asia, Europa, Oceanía) con badge de color.
 - 🔠 **Ordenación** por población, nombre A-Z o área (persistida entre sesiones).
 - ⭐ **Favoritos** guardados en `localStorage`, sin necesidad de backend.
 - 📄 **Paginación numerada** con elipsis en desktop y ventana compacta en móvil.
+- 🎠 **Hero carrusel** con País del Día + destacados curados, efecto Ken Burns y crossfade.
+
+### Detalle y comparación
+
 - 🪟 **Modal de detalle** estilo carnet: bandera en proporción natural, clima en vivo, extracto de Wikipedia, membresías y navegación entre países fronterizos.
 - 🌤️ **Clima en vivo** vía Open-Meteo para la capital de cada país (sin API key).
 - 📖 **Resumen de Wikipedia** con thumbnail y link directo al artículo.
-- 🎠 **Hero carrusel** con País del Día + destacados curados, efecto Ken Burns y crossfade.
+- ⚖️ **Modo Comparación** — selecciona hasta 3 países y compáralos lado a lado en 14 atributos.
+
+### Navegación avanzada
+
+- 🔗 **Hash routing** (`#/country/:cca3`) — deep links compartibles al modal de cualquier país.
+- 🎲 **País aleatorio** — un click y el atlas te sorprende.
+- ⌨️ **Command Palette** (`Ctrl+K`) — búsqueda instantánea con navegación por teclado, estilo VS Code / Spotlight.
+
+### Experiencia
+
 - 🌓 **Modo oscuro / claro** con detección automática de preferencia del sistema y anti-FOUC.
 - 📦 **Caché offline** — estrategia _cache-first_ con IndexedDB (TTL: 24h) y fallback a caché expirado.
 - 💀 **Skeleton loading** — feedback visual durante la carga inicial.
@@ -335,6 +350,54 @@ Cuando el usuario abre un país, se disparan fetches asíncronos (clima + wiki).
 
 ---
 
+## 🧗 Engineering Challenges
+
+Los problemas más difíciles que encontramos durante el desarrollo y cómo los resolvimos. Cada uno representa una lección de arquitectura, CSS o JavaScript que no está en ningún tutorial.
+
+### 1. Modal sin scroll en móvil
+
+**Problema:** El contenido del modal se cortaba en pantallas pequeñas sin posibilidad de hacer scroll.
+**Causa raíz:** La columna derecha tenía `md:overflow-y-auto`, lo que significaba que en móvil no tenía scroll. Además, la columna izquierda tenía `shrink-0`, impidiendo que se encogiera y empujando el contenido fuera de la vista.
+**Solución:** Quitar el breakpoint `md:` del overflow, añadir `flex-1` a la columna derecha, y cambiar `shrink-0` a `md:shrink-0` para que solo sea rígida en desktop.
+**Lección:** Cuando uses flexbox con `overflow`, verifica SIEMPRE el comportamiento sin breakpoints. `md:overflow-y-auto` ≠ `overflow-y-auto` en móvil.
+
+### 2. Parpadeo de banderas al hacer favorito
+
+**Problema:** Al hacer click en ❤️, todas las banderas del grid parpadeaban como si la app se reiniciara.
+**Causa raíz:** El fingerprint del grid incluía `isFavorite`. Cambiar un favorito invalidaba el fingerprint → re-render completo → las imágenes con `loading="lazy"` re-disparaban su animación de entrada.
+**Solución:** Sacar `isFavorite` del fingerprint y añadir `patchFavoritesOnly()`: compara el set actual de favoritos con el anterior y solo actualiza los botones que cambiaron, sin tocar las cards ni las banderas.
+**Lección:** El fingerprint debe incluir solo lo que afecta VISUALMENTE al layout. Los cambios de estado interno (favoritos) pueden parchearse selectivamente sin re-render completo.
+
+### 3. Barra de comparación no mostraba el botón "Compare"
+
+**Problema:** Con 2+ países seleccionados, la barra seguía mostrando "Select at least 2 to compare" en vez del botón de Compare.
+**Causa raíz:** El renderer usaba un boolean (`comparisonBarRendered`) que solo trackeaba existencia, no contenido. Cuando `canCompare` cambiaba de `false` a `true`, solo se actualizaba el contador de texto, no el botón.
+**Solución:** Reemplazar el boolean por un fingerprint string (`count:canCompare`). Si cualquiera de los dos valores cambia, la barra se re-renderiza completa.
+**Lección:** Un flag boolean de "ya rendericé" es insuficiente cuando el contenido puede cambiar sin que el elemento desaparezca. Usa un fingerprint que capture el estado relevante.
+
+### 4. Click en ⚖️ abría el modal del país
+
+**Problema:** Al hacer click en el botón de comparación de una card, se abría el modal del país en vez de solo marcarlo para comparar.
+**Causa raíz:** El botón `.btn-compare` está dentro de `.country-card`. El event listener del grid busca `.btn-fav` (early return), pero no `.btn-compare`. El evento burbujaba hasta el handler de `.country-card` y abría el modal.
+**Solución:** Añadir un early return para `.btn-compare` en el grid controller, idéntico al que ya existía para `.btn-fav`.
+**Lección:** Cuando añades un nuevo elemento interactivo dentro de un contenedor que ya tiene event delegation, SIEMPRE verifica que el evento no burbujee hasta handlers no deseados.
+
+### 5. Race conditions en fetch de clima y Wikipedia
+
+**Problema:** Si el usuario abría un país, cerraba el modal y abría otro antes de que el fetch de clima terminara, el resultado llegaba a un modal que ya no correspondía.
+**Causa raíz:** Los fetch de clima y wiki son asíncronos. Si el usuario navega rápido, la respuesta puede llegar cuando el modal ya muestra otro país.
+**Solución:** Race guard: antes de aplicar el resultado, verificar que `modalStore.getState().selectedCountry?.cca3` sigue siendo el país que disparó el fetch. Si no, descartar el resultado.
+**Lección:** En cualquier fetch disparado por una acción del usuario, SIEMPRE verifica que el estado actual sigue siendo el que originó la petición antes de aplicar el resultado.
+
+### 6. FOUC (Flash of Unstyled Content) en el tema
+
+**Problema:** Al recargar la página, se veía un flash del tema incorrecto antes de que JavaScript aplicara el tema guardado.
+**Causa raíz:** El script que aplica el tema estaba en el bundle de Vite, que se carga al final del HTML. Entre el render inicial y la ejecución del JS, el usuario veía el tema default.
+**Solución:** Mover la detección del tema a un script inline en el `<head>` del HTML, que se ejecuta síncronamente antes de que el navegador pinte el body.
+**Lección:** La lógica que afecta el primer render (tema, idioma, layout) debe ir en el `<head>` como script inline, no en el bundle de JavaScript.
+
+---
+
 ## 🛣️ Roadmap
 
 - [x] **Fase 0** — Emergencia: key rotada, FOUC fix, eliminación de regex hacks.
@@ -342,7 +405,7 @@ Cuando el usuario abre un país, se disparan fetches asíncronos (clima + wiki).
 - [x] **Fase 2** — Estado: eliminación del God Object, slices tipados, selectores puros.
 - [x] **Fase 3** — Datos: modelo enriquecido, Open-Meteo, Wikipedia.
 - [x] **Fase 4** — Visual: branding "Terra · Atlas", temas, hero carrusel, paginación, modal carnet.
-- [ ] **Fase 5** — Features: hash routing (`#/country/:cca3`), modo comparación (hasta 3), command palette (`Ctrl+K`), botón aleatorio 🎲.
+- [x] **Fase 5** — Features: hash routing (`#/country/:cca3`), modo comparación (hasta 3), command palette (`Ctrl+K`), botón aleatorio 🎲.
 - [ ] **Fase 6** — Calidad: tests e2e con Playwright, MSW para mockear APIs, auditoría de accesibilidad.
 - [ ] **Fase 7** — Envío: PWA (Service Worker, instalable), i18n (Español/Inglés).
 
@@ -370,12 +433,11 @@ Cuando el usuario abre un país, se disparan fetches asíncronos (clima + wiki).
 
 - 🐙 GitHub: [@joseph160997](https://github.com/joseph160997)
 - 💼 LinkedIn: [linkedin.com/in/joseph160997](https://linkedin.com/in/joseph160997)
-- 🌐 Portfolio: [joseph160997.github.io](https://joseph160997.github.io)
+- 🌐 Portfolio: [joseph160997.github.io](https://github.com/Joseph160997)
 
 ---
 
 <p align="center">Este proyecto fue construido como una oportunidad para aprender, experimentar y comprender cómo funcionan las aplicaciones frontend modernas desde sus fundamentos.</p>
 <p align="center">"Diseñado para comprender cómo funcionan internamente las aplicaciones front-end modernas." Con mucho café ☕</p>
-```
 
 ---
