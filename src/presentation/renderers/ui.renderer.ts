@@ -14,6 +14,9 @@ import {
   getTotalPages,
   getCurrentPage,
   getHeroSlides,
+  getComparisonCodes,
+  getIsComparisonActive,
+  getComparisonCount,
 } from "@/presentation/state/countryState";
 import {
   renderCountryCard,
@@ -27,6 +30,12 @@ import { getFavoriteCodes } from "@/presentation/services/favoriteService";
 import { unwrapOr } from "@/shared/result";
 import { renderPagination } from "../components/pagination";
 import { renderHero, renderHeroSkeleton } from "@/presentation/components/hero";
+import { renderComparisonView } from "../components/comparisonView";
+import {
+  buildComparisonRows,
+  getComparisonCountries,
+} from "../slices/comparison.selectors";
+import { renderComparisonBar } from "../components/comparisonBar";
 
 // ========================================================
 // ELEMENTOS DEL DOM (capturados en initRenderer, no al importar)
@@ -86,10 +95,19 @@ const syncButtonState = (
 };
 
 // ========================================================
-// RENDERIZADO — cada función pinta UN aspecto del estado
+// ESTADO DEL RENDERER (fingerprints para evitar repintados)
 // ========================================================
 let lastGridFingerprint: string | null = null;
+let lastModalCca3: string | null = null;
+let heroRendered = false;
+let comparisonBarRendered = false;
+let lastComparisonCca3s: string | null = null;
 
+// ========================================================
+// RENDERIZADO — cada función pinta UN aspecto del estado
+// ========================================================
+
+// ─── Grid de países ───
 const renderGrid = (): void => {
   if (!resultsContainer) return;
 
@@ -101,12 +119,15 @@ const renderGrid = (): void => {
     html = renderSkeletonGrid(20);
   } else {
     const visible = getCountries();
+    const comparisonCodes = getComparisonCodes();
 
     // La huella incluye TODO lo que afecta visualmente al grid:
-    // qué países están visibles, sus favoritos y qué vista está activa.
+    // qué países están visibles, sus favoritos, qué vista está activa
+    // y qué países están en la comparación.
     fingerprint =
       `${isShowingFavoritesActive() ? "favs" : "all"}:` +
-      (visible.map((c) => `${c.cca3}:${c.isFavorite}`).join("|") || "empty");
+      (visible.map((c) => `${c.cca3}:${c.isFavorite}`).join("|") || "empty") +
+      `:cmp:${comparisonCodes.join(",")}`;
 
     if (visible.length === 0) {
       const isFavsView = isShowingFavoritesActive();
@@ -125,7 +146,7 @@ const renderGrid = (): void => {
             },
       );
     } else {
-      html = visible.map(renderCountryCard).join("");
+      html = visible.map((c) => renderCountryCard(c, comparisonCodes)).join("");
     }
   }
 
@@ -136,6 +157,7 @@ const renderGrid = (): void => {
   resultsContainer.innerHTML = html;
 };
 
+// ─── Paginación ───
 const renderPaginationSection = (): void => {
   const container = document.getElementById("pagination-container");
   if (!container) return;
@@ -152,8 +174,7 @@ const renderPaginationSection = (): void => {
   });
 };
 
-let lastModalCca3: string | null = null;
-
+// ─── Modal de detalle ───
 const renderModal = (): void => {
   if (!modalContainer) return;
   const selected = getSelectedCountry();
@@ -200,6 +221,7 @@ const renderModal = (): void => {
   document.body.style.overflow = "hidden";
 };
 
+// ─── Widgets del header (contador de favoritos, botones de sort) ───
 const renderHeaderWidgets = (): void => {
   if (favsCounter) {
     favsCounter.textContent = unwrapOr(
@@ -232,8 +254,7 @@ const renderHeaderWidgets = (): void => {
   syncButtonState(btnSortName, sort === "name-asc", SORT_ACTIVE, SORT_INACTIVE);
 };
 
-let heroRendered = false;
-
+// ─── Hero carrusel ───
 const renderHeroSection = (): void => {
   const container = document.getElementById("hero-container");
   if (!container || heroRendered) return;
@@ -250,12 +271,94 @@ const renderHeroSection = (): void => {
   heroRendered = true;
 };
 
+// ─── Barra flotante de comparación ───
+const renderComparisonBarSection = (): void => {
+  const existingBar = document.getElementById("comparison-bar");
+  const count = getComparisonCount();
+  const canCompare = count >= 2;
+
+  // Sin países seleccionados → destruir la barra si existe
+  if (count === 0) {
+    if (existingBar) existingBar.remove();
+    comparisonBarRendered = false;
+    return;
+  }
+
+  // Si la barra ya existe y el count no cambió, no re-renderizamos.
+  // Evitamos repintados innecesarios que reiniciarían la animación.
+  if (comparisonBarRendered && existingBar) {
+    // Actualizar solo el texto del contador
+    const counter = existingBar.querySelector("span.font-mono");
+    if (counter) counter.textContent = `${count} selected`;
+    return;
+  }
+
+  // Crear o reemplazar la barra
+  if (existingBar) existingBar.remove();
+
+  const html = renderComparisonBar({
+    count,
+    maxCount: 3,
+    canCompare,
+  });
+
+  if (!html) return;
+
+  const template = document.createElement("template");
+  template.innerHTML = html.trim();
+  const bar = template.content.firstElementChild as HTMLElement;
+  if (bar) {
+    document.body.appendChild(bar);
+    comparisonBarRendered = true;
+  }
+};
+
+// ─── Vista de comparación (overlay) ───
+const renderComparisonSection = (): void => {
+  const existingOverlay = document.getElementById("comparison-overlay");
+  const isActive = getIsComparisonActive();
+
+  // Vista cerrada → destruir el overlay si existe
+  if (!isActive) {
+    if (existingOverlay) {
+      existingOverlay.remove();
+      lastComparisonCca3s = null;
+      document.body.style.overflow = "auto";
+    }
+    return;
+  }
+
+  // Vista abierta → construir datos y renderizar
+  const countries = getComparisonCountries();
+  const rows = buildComparisonRows(countries);
+  const cca3Key = countries.map((c) => c.cca3).join(",");
+
+  // Si ya está abierta con los mismos países, no re-renderizamos
+  if (lastComparisonCca3s === cca3Key && existingOverlay) return;
+
+  lastComparisonCca3s = cca3Key;
+
+  if (existingOverlay) existingOverlay.remove();
+
+  const html = renderComparisonView({ countries, rows });
+  const template = document.createElement("template");
+  template.innerHTML = html.trim();
+  const overlay = template.content.firstElementChild as HTMLElement;
+  if (overlay) {
+    document.body.appendChild(overlay);
+    document.body.style.overflow = "hidden";
+  }
+};
+
+// ─── Orquestador: llama a todas las funciones de renderizado ───
 const renderUI = (): void => {
   renderGrid();
   renderPaginationSection();
   renderModal();
   renderHeaderWidgets();
   renderHeroSection();
+  renderComparisonBarSection();
+  renderComparisonSection();
 };
 
 // ========================================================
