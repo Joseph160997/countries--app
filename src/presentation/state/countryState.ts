@@ -90,6 +90,15 @@ export const subscribe = (callback: () => void): (() => void) => {
 // ========================================================
 // 4. SELECTORES
 // ========================================================
+
+/**
+ * Selector: catálogo completo de países (sin filtros del grid).
+ * El Command Palette necesita buscar en TODOS los países,
+ * no solo en los que pasan los filtros de región/favoritos.
+ */
+export const getAllCountries = (): readonly Country[] =>
+  countriesStore.getState().all;
+
 export const getIsLoading = (): boolean => countriesStore.getState().isLoading;
 
 export const getCountries = (): Country[] => {

@@ -25,6 +25,7 @@ import { OpenMeteoProvider } from "@/infrastructure/api/openMeteo/openMeteo.prov
 import { WikipediaProvider } from "@/infrastructure/api/wikipedia/wikipedia.provider";
 import { initHeroCarousel } from "./presentation/controllers/hero.controller";
 import { initRandomController } from "@/presentation/controllers/random.controller";
+import { initCommandPaletteController } from "@/presentation/controllers/commandPalette.controller";
 
 // ========================================================
 // 1. LAYOUT + COMPOSITION ROOT
@@ -47,6 +48,7 @@ initThemeController();
 initRandomController();
 initHeroCarousel();
 initRouter();
+initCommandPaletteController();
 
 // ========================================================
 // 3. BOOTSTRAP
