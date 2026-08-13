@@ -15,6 +15,7 @@ export const initGridController = (): void => {
     ?.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
 
+      // ─── Botón de favorito ───
       const btnFav = target.closest(".btn-fav");
       if (btnFav) {
         const id = (btnFav as HTMLElement).dataset.id;
@@ -22,14 +23,22 @@ export const initGridController = (): void => {
         return;
       }
 
-      // "Go Back Exploring" del empty state de favoritos.
-      // Antes este handler también repintaba el botón del header a mano;
-      // ahora el renderer lo sincroniza solo en el próximo notify().
+      // ─── Botón de comparación ───
+      // Early return: el comparison.controller se encarga de este click.
+      // Sin esto, el click burbujearía hasta el caso de .country-card
+      // y abriría el modal accidentalmente.
+      const btnCompare = target.closest(".btn-compare");
+      if (btnCompare) {
+        return;
+      }
+
+      // "Go Back Exploring" del empty state
       if (target.closest("#btn-empty-state-explore")) {
         toggleShowFavorites();
         return;
       }
 
+      // Click en la card (no en un botón interno) → abrir modal
       const card = target.closest(".country-card");
       if (card) {
         const id = (card as HTMLElement).dataset.id;
