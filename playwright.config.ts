@@ -1,4 +1,10 @@
 import { defineConfig } from "@playwright/test";
+import process from "process";
+import { config } from "dotenv";
+
+config();
+
+const chromePath = process.env.CHROMIUM_PATH || undefined;
 
 /**
  * Configuración de Playwright para tests e2e.
@@ -16,8 +22,9 @@ import { defineConfig } from "@playwright/test";
  * - timeout: 30s por test. La API de REST Countries puede tardar
  *   3-5 segundos en responder. Con 5 tests, 30s es holgado.
  * - Solo Chromium: no necesitamos Firefox ni WebKit para portafolio.
- * - launchOptions.executablePath: apunta directamente al ejecutable de Chrome
- *   descomprimido en el Escritorio.
+ * - CHROMIUM_PATH es opcional: si existe en la máquina local, se usa;
+ *   si no existe, Playwright usa su Chromium gestionado. Esto hace que
+ *   el proyecto sea portable en CI y en GitHub Actions.
  */
 export default defineConfig({
   testDir: "./e2e",
@@ -27,10 +34,7 @@ export default defineConfig({
     baseURL: "http://localhost:5173/countries--app/",
     headless: true,
     screenshot: "only-on-failure",
-    /* Especificamos la ruta del ejecutable de Chrome en el Escritorio */
-    launchOptions: {
-      executablePath: "C:/Users/USER/Desktop/chrome-win64/chrome.exe",
-    },
+    launchOptions: chromePath ? { executablePath: chromePath } : undefined,
   },
   webServer: {
     command: "npm run dev",
