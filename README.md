@@ -396,6 +396,24 @@ Los problemas más difíciles que encontramos durante el desarrollo y cómo los 
 **Solución:** Mover la detección del tema a un script inline en el `<head>` del HTML, que se ejecuta síncronamente antes de que el navegador pinte el body.
 **Lección:** La lógica que afecta el primer render (tema, idioma, layout) debe ir en el `<head>` como script inline, no en el bundle de JavaScript.
 
+### 7. Tests e2e: eventos que burbujean abren modales no deseados
+
+**Problema:** El test de comparación fallaba porque hacer click en ⚖️ abría el modal del país en vez de solo marcarlo para comparar.
+**Causa raíz:** El botón `.btn-compare` está dentro de `.country-card`. El event listener del grid busca `.btn-fav` (early return), pero no `.btn-compare`. El evento burbujaba hasta el handler de `.country-card` y abría el modal.
+**Solución:** Añadir un early return para `.btn-compare` en el grid controller, idéntico al que ya existía para `.btn-fav`.
+**Lección:** Cuando añades un nuevo elemento interactivo dentro de un contenedor que ya tiene event delegation, SIEMPRE verifica que el evento no burbujee hasta handlers no deseados. Un `e.stopPropagation()` o un early return previene bugs silenciosos.
+
+### 8. Tests e2e: alcance consciente (qué NO testear)
+
+**Problema:** ¿Debemos mockear la API con MSW? ¿Testear responsive en múltiples viewports? ¿Auditar accesibilidad con axe-core?
+**Decisión:** Para 5 tests de portafolio, NO mockear la API, NO testear responsive, NO testear accesibilidad con herramientas especializadas.
+**Por qué:**
+
+- **MSW**: Requiere configuración de handlers para cada endpoint. Para 5 tests que corren en 2-3 segundos cada uno, la complejidad añadida no justifica el retorno. Si la API de REST Countries está caída, los tests fallan — es un riesgo aceptable para un portafolio.
+- **Responsive**: Playwright puede hacerlo con `page.setViewportSize()`, pero para 5 tests no aporta suficiente valor. La responsividad ya se verifica manualmente durante el desarrollo.
+- **Accesibilidad**: Ya se cubre con Lighthouse CLI + pa11y en el Paso 3. Añadir axe-core en los tests e2e sería redundante.
+  **Lección:** En testing, más cobertura no siempre es mejor. Decide conscientemente QUÉ testear y QUÉ NO testear, y documenta las exclusiones con su justificación. Un reclutador valora más 5 tests bien elegidos que cubran el happy path que 50 tests que incluyen edge cases irrelevantes para el producto.
+
 ---
 
 ## 🛣️ Roadmap
