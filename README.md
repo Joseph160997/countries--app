@@ -36,16 +36,19 @@ Durante el desarrollo se aplicaron conceptos como:
 - [🚀 Demo y Capturas](#-demo-y-capturas)
 - [✨ Características](#-características)
 - [🏗️ Arquitectura](#-arquitectura)
-- [🔄 Flujo de Datos](#-flujo-de-datos)
-- [🛠️ Stack Técnico](#-stack-técnico)
-- [💻 Instalación y Scripts](#-instalación-y-scripts)
+- [🔄 Flujo de datos](#-flujo-de-datos)
+- [🧰 Stack técnico](#-stack-técnico)
+- [⚙️ Instalación](#-instalación)
+- [📊 Lighthouse Scores](#-lighthouse-scores)
+- [📜 Scripts disponibles](#-scripts-disponibles)
 - [🛡️ Guardrails (Git Hooks)](#-guardrails-git-hooks)
 - [🧪 Testing](#-testing)
-- [⚙️ CI/CD](#-cicd)
-- [💡 Decisiones Técnicas](#-decisiones-técnicas)
-- [🗺️ Roadmap](#-roadmap)
-- [🧠 Lecciones Aprendidas](#-lecciones-aprendidas)
-- [👨‍💻 Autor](#-autor)
+- [🔁 CI/CD](#-cicd)
+- [🧠 Decisiones técnicas](#-decisiones-técnicas)
+- [🧗 Engineering Challenges](#-engineering-challenges)
+- [🛣️ Roadmap](#-roadmap)
+- [💡 Lecciones aprendidas](#-lecciones-aprendidas)
+- [👤 Autor](#-autor)
 
 ---
 
@@ -237,6 +240,19 @@ Puedes obtener una API key gratuita en [api.restcountries.com](https://api.restc
 
 ---
 
+## 📊 Lighthouse Scores
+
+| Categoría      | Score |
+| -------------- | ----- |
+| Performance    | 70    |
+| Accessibility  | 100   |
+| Best Practices | 81    |
+| SEO            | 100   |
+
+_Nota: Performance medido con CPU throttled 4x (emulación móvil). En un equipo con mejor CPU el score es superior. Best Practices penalizado por un warning CORS de la API externa REST Countries, fuera de nuestro control._
+
+---
+
 ## 📜 Scripts disponibles
 
 ```bash
@@ -396,14 +412,7 @@ Los problemas más difíciles que encontramos durante el desarrollo y cómo los 
 **Solución:** Mover la detección del tema a un script inline en el `<head>` del HTML, que se ejecuta síncronamente antes de que el navegador pinte el body.
 **Lección:** La lógica que afecta el primer render (tema, idioma, layout) debe ir en el `<head>` como script inline, no en el bundle de JavaScript.
 
-### 7. Tests e2e: eventos que burbujean abren modales no deseados
-
-**Problema:** El test de comparación fallaba porque hacer click en ⚖️ abría el modal del país en vez de solo marcarlo para comparar.
-**Causa raíz:** El botón `.btn-compare` está dentro de `.country-card`. El event listener del grid busca `.btn-fav` (early return), pero no `.btn-compare`. El evento burbujaba hasta el handler de `.country-card` y abría el modal.
-**Solución:** Añadir un early return para `.btn-compare` en el grid controller, idéntico al que ya existía para `.btn-fav`.
-**Lección:** Cuando añades un nuevo elemento interactivo dentro de un contenedor que ya tiene event delegation, SIEMPRE verifica que el evento no burbujee hasta handlers no deseados. Un `e.stopPropagation()` o un early return previene bugs silenciosos.
-
-### 8. Tests e2e: alcance consciente (qué NO testear)
+### 7. Tests e2e: alcance consciente (qué NO testear)
 
 **Problema:** ¿Debemos mockear la API con MSW? ¿Testear responsive en múltiples viewports? ¿Auditar accesibilidad con axe-core?
 **Decisión:** Para 5 tests de portafolio, NO mockear la API, NO testear responsive, NO testear accesibilidad con herramientas especializadas.
