@@ -19,7 +19,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "audit:lighthouse": "lighthouse http://localhost:4173/countries--app/ --output=json --output=html --output-path=./lighthouse-report --chrome-flags=\"--headless\" --only-categories=performance,accessibility,best-practices,seo"
   },
   "lint-staged": {
     "src/**/*.ts": [
@@ -44,6 +45,7 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
+    "lighthouse": "^13.4.1",
     "lint-staged": "^17.3.0",
     "prettier": "^3.8.4",
     "typescript": "~5.9.3",

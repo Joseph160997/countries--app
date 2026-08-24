@@ -19,7 +19,7 @@ const renderHeader = (): string => {
       </span>
     </h1>
     <div class="flex items-center gap-3">
-      <button id="btn-show-favorites" aria-label="Show favorites" class="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-paper-card dark:bg-space-card text-accent dark:text-gold font-semibold text-sm border border-slate-200/60 dark:border-starlight-faint/15 hover:border-accent dark:hover:border-gold transition-all duration-200 cursor-pointer shadow-xs active:scale-95">
+      <button id="btn-show-favorites" class="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-paper-card dark:bg-space-card text-accent dark:text-gold font-semibold text-sm border border-slate-200/60 dark:border-starlight-faint/15 hover:border-accent dark:hover:border-gold transition-all duration-200 cursor-pointer shadow-xs active:scale-95">
         <span class="transform group-hover:scale-110 transition-transform">❤️</span>
         <span>Favs</span>
         <span id="favs-count-display" class="ml-1 px-2 py-0.5 text-xs font-bold text-white bg-accent dark:bg-gold dark:text-space rounded-full min-w-5 text-center">0</span>
@@ -58,7 +58,7 @@ const renderMain = (): string => {
   </section>
 
   <!-- Hero carrusel (lo llena el renderer) -->
-  <div id="hero-container" class="mb-12"></div>
+ <div id="hero-container" class="mb-12 min-h-110 md:min-h-130"></div>
 
   <!-- Toolbar: orden + región -->
   <section class="mb-8">
@@ -75,7 +75,7 @@ const renderMain = (): string => {
             📐 Sort By Area
           </button>
         </div>
-        <select id="filter-region" class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-paper-deep dark:bg-space-deep text-ink-soft dark:text-starlight-soft text-xs font-bold uppercase tracking-wider border border-slate-200/60 dark:border-starlight-faint/15 outline-none focus:ring-2 focus:ring-accent/60 dark:focus:ring-gold/60 cursor-pointer shadow-xs">
+        <select id="filter-region" aria-label="Filter by region" class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-paper-deep dark:bg-space-deep text-ink-soft dark:text-starlight-soft text-xs font-bold uppercase tracking-wider border border-slate-200/60 dark:border-starlight-faint/15 outline-none focus:ring-2 focus:ring-accent/60 dark:focus:ring-gold/60 cursor-pointer shadow-xs">
           <option value="">All Regions</option>
           <option value="Africa">Africa</option>
           <option value="Americas">Americas</option>
@@ -133,7 +133,9 @@ const renderFooter = (): string => {
         </div>
         <form id="feedback-form" class="space-y-3">
           <div class="grid grid-cols-2 gap-2">
+            <label for="feedback-username" class="sr-only">Your name</label>
             <input type="text" id="feedback-username" placeholder="Your Name" required class="w-full p-2.5 rounded-lg bg-space-deep border border-starlight-faint/15 text-xs text-starlight placeholder-starlight-faint focus:outline-none focus:ring-1 focus:ring-gold transition-all"/>
+            <label for="feedback-rating" class="sr-only">Rating</label>
             <select id="feedback-rating" required class="w-full p-2.5 rounded-lg bg-space-deep border border-starlight-faint/15 text-xs text-starlight focus:outline-none focus:ring-1 focus:ring-gold transition-all cursor-pointer">
               <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
               <option value="4">⭐⭐⭐⭐ (4/5)</option>
@@ -143,6 +145,7 @@ const renderFooter = (): string => {
             </select>
           </div>
           <div class="relative">
+            <label for="feedback-comment" class="sr-only">Your recommendation</label>
             <textarea id="feedback-comment" rows="2" placeholder="Write your technical recommendations or feature requests..." required class="w-full p-2.5 rounded-lg bg-space-deep border border-starlight-faint/15 text-xs text-starlight placeholder-starlight-faint focus:outline-none focus:ring-1 focus:ring-gold resize-none transition-all"></textarea>
           </div>
           <button type="submit" class="w-full py-2 rounded-lg bg-gold hover:bg-gold-soft text-space font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md active:scale-[0.98]">

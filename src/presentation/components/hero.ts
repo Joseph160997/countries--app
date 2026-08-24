@@ -12,8 +12,11 @@ export const renderHero = (slides: HeroSlide[]): string => {
     .map((slide, index) => {
       const { country } = slide;
       return `
-      <div class="hero-slide absolute inset-0 ${index === 0 ? "is-active" : ""}" data-slide="${index}" aria-hidden="${index !== 0}">
-        <img src="${country.flag}" alt="Flag of ${country.name}" loading="${index === 0 ? "eager" : "lazy"}" class="hero-flag absolute inset-0 w-full h-full object-cover"/>
+<div class="hero-slide absolute inset-0 ${index === 0 ? "is-active" : ""}" data-slide="${index}" aria-hidden="${index !== 0}" ${index !== 0 ? "inert" : ""}>
+<img src="${country.flag}" alt="Flag of ${country.name}"
+     loading="${index === 0 ? "eager" : "lazy"}"
+     ${index === 0 ? 'fetchpriority="high"' : ""}
+     class="hero-flag absolute inset-0 w-full h-full object-cover"/>
         <div class="absolute inset-0 bg-linear-to-t from-ink/95 via-ink/45 to-ink/10 dark:from-space-deep/95 dark:via-space-deep/55 dark:to-space-deep/10"></div>
 
         <div class="absolute inset-x-0 bottom-0 p-6 md:p-10 max-w-3xl">
@@ -69,8 +72,3 @@ export const renderHero = (slides: HeroSlide[]): string => {
   </div>
   `;
 };
-
-/** Placeholder mientras cargan los países. */
-export const renderHeroSkeleton = (): string => `
-  <div class="h-110 md:h-130 rounded-3xl bg-paper-deep dark:bg-space-deep animate-pulse border border-slate-200/60 dark:border-starlight-faint/10"></div>
-`;

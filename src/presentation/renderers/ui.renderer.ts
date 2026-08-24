@@ -29,7 +29,7 @@ import { renderSkeletonGrid } from "@/presentation/components/skeleton";
 import { getFavoriteCodes } from "@/presentation/services/favoriteService";
 import { unwrapOr } from "@/shared/result";
 import { renderPagination } from "../components/pagination";
-import { renderHero, renderHeroSkeleton } from "@/presentation/components/hero";
+import { renderHero } from "@/presentation/components/hero";
 import { renderComparisonView } from "../components/comparisonView";
 import {
   buildComparisonRows,
@@ -62,8 +62,8 @@ const FAVS_ACTIVE = [
 const FAVS_INACTIVE = [
   "bg-rose-50",
   "dark:bg-rose-950/30",
-  "text-rose-600",
-  "dark:text-rose-400",
+  "text-rose-700",
+  "dark:text-rose-300",
   "border-rose-100",
   "dark:border-rose-900/40",
 ];
@@ -317,10 +317,11 @@ const renderHeroSection = (): void => {
   const container = document.getElementById("hero-container");
   if (!container || heroRendered) return;
 
-  if (getIsLoading()) {
-    container.innerHTML = renderHeroSkeleton();
-    return;
-  }
+  // NO pintar skeleton: esperar a los datos reales.
+  // Esto evita la "destrucción de LCP" que penaliza Lighthouse.
+  // Trade-off: el hero aparece un poco más tarde, pero cuando
+  // aparece, es la versión definitiva y no se re-carga.
+  if (getIsLoading()) return;
 
   const slides = getHeroSlides();
   if (slides.length === 0) return;

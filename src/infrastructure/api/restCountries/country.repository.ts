@@ -139,7 +139,20 @@ export class RestCountriesRepository implements CountryRepository {
       );
     }
 
-    return allDtos.map((dto) => mapToCountry(dto, favoriteCodes));
+    const CHUNK_SIZE = 50;
+    const countries: Country[] = [];
+
+    for (let i = 0; i < allDtos.length; i += CHUNK_SIZE) {
+      const chunk = allDtos.slice(i, i + CHUNK_SIZE);
+      countries.push(...chunk.map((dto) => mapToCountry(dto, favoriteCodes)));
+
+      // Ceder el hilo principal entre chunks
+      if (i + CHUNK_SIZE < allDtos.length) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
+
+    return countries;
   }
 
   /** El caché es válido si tiene menos de 24h. */

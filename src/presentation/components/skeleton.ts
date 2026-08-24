@@ -4,7 +4,7 @@
  */
 const renderSkeletonCard = (): string => {
   return `
-<div class="bg-paper-card dark:bg-space-card rounded-xl border border-slate-200/60 dark:border-starlight-faint/10 shadow-sm overflow-hidden flex flex-col">
+<div class="country-skeleton bg-paper-card dark:bg-space-card rounded-xl border border-slate-200/60 dark:border-starlight-faint/10 shadow-sm overflow-hidden flex flex-col">
   <div class="h-1 bg-paper-deep dark:bg-space-deep"></div>
   <div class="h-40 bg-paper-deep dark:bg-space-deep animate-pulse"></div>
   <div class="p-5 flex flex-col gap-3">

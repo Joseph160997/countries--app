@@ -45,8 +45,8 @@ export const renderCountryCard = (
   <div class="h-1 ${getRegionAccentClass(country.region)}"></div>
 
   <!-- Bandera + etiqueta cartográfica -->
-  <div class="overflow-hidden h-40 bg-paper-deep dark:bg-space-deep relative">
-    <img src="${country.flag}" alt="Flag of ${country.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+<div class="overflow-hidden h-40 bg-paper-deep dark:bg-space-deep relative aspect-3/2">
+    <img src="${country.flag}" alt="Flag of ${country.name}" loading="lazy" width="378" height="160" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
     <span class="absolute bottom-2 left-2 font-mono text-[10px] font-bold tracking-wider bg-ink/75 dark:bg-space-deep/85 text-starlight px-2 py-0.5 rounded backdrop-blur-sm">${country.cca3}</span>
   </div>
 
@@ -181,6 +181,8 @@ export const renderCountryDetailModal = (
               <img
                 src="${country.flag}"
                 alt="Flag of ${country.name}"
+                width="378"
+                height="160"
                 loading="eager"
                 class="modal-flag block w-full h-auto min-h-45 sm:min-h-55 md:min-h-65 lg:min-h-75 object-contain"
               />

@@ -34,3 +34,8 @@ test-results/
 # Env files
 .env
 !.env.example
+
+# Informes de auditoría generados (artefactos locales)
+lighthouse-report.report.html
+lighthouse-report.report.json
+lighthouse-final.html

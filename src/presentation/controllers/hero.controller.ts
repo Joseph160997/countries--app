@@ -25,8 +25,14 @@ const showSlide = (container: HTMLElement, index: number): void => {
   const next = ((index % slides.length) + slides.length) % slides.length;
 
   slides.forEach((slide, i) => {
-    slide.classList.toggle("is-active", i === next);
-    slide.setAttribute("aria-hidden", String(i !== next));
+    const isActive = i === next;
+    slide.classList.toggle("is-active", isActive);
+    slide.setAttribute("aria-hidden", String(!isActive));
+    if (isActive) {
+      slide.removeAttribute("inert");
+    } else {
+      slide.setAttribute("inert", "");
+    }
   });
   container.querySelectorAll<HTMLElement>("[data-dot]").forEach((dot, i) => {
     dot.classList.toggle("is-active", i === next);
