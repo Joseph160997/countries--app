@@ -261,3 +261,23 @@ img[loading="lazy"] {
   white-space: nowrap;
   border: 0;
 }
+
+/* =========================================================
+   COMPARISON — scroll horizontal con fade indicator
+   ========================================================= */
+.comparison-scroll {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-faint) transparent;
+}
+.comparison-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.comparison-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.comparison-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-ink-faint);
+  border-radius: 4px;
+}
+/* El fade se oculta automáticamente cuando el scroll llega al final.*/

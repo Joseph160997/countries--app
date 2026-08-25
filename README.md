@@ -242,14 +242,15 @@ Puedes obtener una API key gratuita en [api.restcountries.com](https://api.restc
 
 ## 📊 Lighthouse Scores
 
-| Categoría      | Score |
-| -------------- | ----- |
-| Performance    | 70    |
-| Accessibility  | 100   |
-| Best Practices | 81    |
-| SEO            | 100   |
+| Categoría        | Score |
+| ---------------- | ----- |
+| Performance      | 80    |
+| Accessibility    | 100   |
+| Best Practices   | 81    |
+| SEO              | 100   |
+| Agentic Browsing | 2/2   |
 
-_Nota: Performance medido con CPU throttled 4x (emulación móvil). En un equipo con mejor CPU el score es superior. Best Practices penalizado por un warning CORS de la API externa REST Countries, fuera de nuestro control._
+_Nota: Best Practices penalizado por un warning CORS de la API externa REST Countries, fuera de nuestro control._
 
 ---
 

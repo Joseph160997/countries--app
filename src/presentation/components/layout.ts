@@ -19,11 +19,11 @@ const renderHeader = (): string => {
       </span>
     </h1>
     <div class="flex items-center gap-3">
-      <button id="btn-show-favorites" class="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-paper-card dark:bg-space-card text-accent dark:text-gold font-semibold text-sm border border-slate-200/60 dark:border-starlight-faint/15 hover:border-accent dark:hover:border-gold transition-all duration-200 cursor-pointer shadow-xs active:scale-95">
-        <span class="transform group-hover:scale-110 transition-transform">❤️</span>
-        <span>Favs</span>
-        <span id="favs-count-display" class="ml-1 px-2 py-0.5 text-xs font-bold text-white bg-accent dark:bg-gold dark:text-space rounded-full min-w-5 text-center">0</span>
-      </button>
+<button id="btn-show-favorites" class="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-paper-card dark:bg-space-card text-accent dark:text-gold font-semibold text-sm border border-slate-200/60 dark:border-starlight-faint/15 hover:border-accent dark:hover:border-gold transition-all duration-200 cursor-pointer shadow-xs active:scale-95">
+<span class="transform group-hover:scale-110 transition-transform">❤️</span>
+<span class="hidden sm:inline">Favs</span>
+<span id="favs-count-display" class="ml-1 px-2 py-0.5 text-xs font-bold text-white bg-accent dark:bg-gold dark:text-space rounded-full min-w-5 text-center">0</span>
+</button>
       <button
   id="btn-random-country"
   aria-label="Open a random country"
