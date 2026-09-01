@@ -2,7 +2,10 @@ import { searchForPalette } from "@/presentation/slices/palette.selectors";
 import { openCountryModal } from "@/presentation/state/countryState";
 import { getIsLoading } from "@/presentation/state/countryState";
 import { getAllCountries } from "@/presentation/state/countryState";
-import { renderCommandPalette } from "@/presentation/components/commandPalette";
+import {
+  renderCommandPalette,
+  renderPaletteItem,
+} from "@/presentation/components/commandPalette";
 
 /**
  * Controller del Command Palette.
@@ -225,29 +228,9 @@ const updateResultsList = (): void => {
   }
 
   listElement.innerHTML = results
-    .map((country, index) => {
-      const isSelected = index === selectedIndex;
-      return `
-<li
-  role="option"
-  aria-selected="${isSelected}"
-  data-cca3="${country.cca3}"
-  class="palette-item flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors
-    ${
-      isSelected
-        ? "bg-accent/10 dark:bg-gold/10 text-accent dark:text-gold"
-        : "text-ink dark:text-starlight hover:bg-paper-deep dark:hover:bg-space-deep"
-    }"
->
-  <img src="${country.flag}" alt="" loading="lazy" class="w-8 h-6 rounded-sm object-cover border border-slate-200/40 dark:border-starlight-faint/10 shrink-0" />
-  <div class="min-w-0 flex-1">
-    <p class="text-sm font-semibold truncate">${country.name}</p>
-    <p class="text-xs text-ink-faint dark:text-starlight-faint truncate">${country.capital} · ${country.region}</p>
-  </div>
-  <span class="font-mono text-[10px] font-bold text-ink-faint dark:text-starlight-faint shrink-0">${country.cca3}</span>
-</li>
-      `;
-    })
+    .map((country, index) =>
+      renderPaletteItem(country, index === selectedIndex),
+    )
     .join("");
 };
 

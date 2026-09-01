@@ -1,6 +1,7 @@
 import type { Country } from "@/domain/country";
 import type { ComparisonRow } from "@/presentation/slices/comparison.selectors";
 import { getRegionAccentClass } from "@/presentation/components/countryCards";
+import { escapeHtml } from "../utils";
 
 export interface ComparisonViewData {
   readonly countries: readonly Country[];
@@ -16,11 +17,11 @@ export const renderComparisonView = (data: ComparisonViewData): string => {
       (country) => `
       <div class="flex flex-col items-center gap-2 min-w-35">
         <div class="relative w-20 h-14 rounded-lg overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 shadow-sm shrink-0">
-          <img src="${country.flag}" alt="Flag of ${country.name}" class="w-full h-full object-cover" />
+          <img src="${country.flag}" alt="Flag of ${escapeHtml(country.name)}" class="w-full h-full object-cover" />
           <div class="h-0.5 ${getRegionAccentClass(country.region)} absolute bottom-0 left-0 right-0"></div>
         </div>
-        <p class="font-display text-sm font-bold text-ink dark:text-starlight text-center leading-tight truncate w-24">${country.name}</p>
-        <span class="font-mono text-[10px] font-bold text-ink-faint dark:text-starlight-faint">${country.cca3}</span>
+        <p class="font-display text-sm font-bold text-ink dark:text-starlight text-center leading-tight truncate w-24">${escapeHtml(country.name)}</p>
+        <span class="font-mono text-[10px] font-bold text-ink-faint dark:text-starlight-faint">${escapeHtml(country.cca3)}</span>
       </div>
     `,
     )
@@ -33,7 +34,7 @@ export const renderComparisonView = (data: ComparisonViewData): string => {
         .map(
           (value) => `
           <td class="px-3 py-2.5 text-sm font-medium text-ink dark:text-starlight text-center border-b border-slate-200/50 dark:border-starlight-faint/10 min-w-35">
-            ${value}
+            ${escapeHtml(String(value))}
           </td>
         `,
         )
@@ -41,7 +42,7 @@ export const renderComparisonView = (data: ComparisonViewData): string => {
       return `
         <tr>
           <td class="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-ink-faint dark:text-starlight-faint border-b border-slate-200/50 dark:border-starlight-faint/10 whitespace-nowrap sticky left-0 bg-paper-card dark:bg-space-card z-10 min-w-30">
-            ${row.label}
+            ${escapeHtml(row.label)}
           </td>
           ${cells}
         </tr>

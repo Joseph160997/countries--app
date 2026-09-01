@@ -1,3 +1,5 @@
+import { escapeHtml } from "../utils";
+
 /**
  * Barra flotante de comparación.
  *
@@ -9,7 +11,6 @@
  * con el grid. El usuario puede seguir navegando y seleccionando
  * países mientras la barra está visible.
  */
-
 export interface ComparisonBarData {
   readonly count: number;
   readonly maxCount: number;
@@ -35,7 +36,7 @@ export const renderComparisonBar = (data: ComparisonBarData): string => {
   <div class="flex items-center gap-2">
     <span class="font-display text-sm font-bold text-ink dark:text-starlight">⚖️</span>
     <span class="font-mono text-xs font-bold text-ink-soft dark:text-starlight-soft">
-      ${count} selected
+      ${escapeHtml(count.toString())} selected
     </span>
   </div>
 

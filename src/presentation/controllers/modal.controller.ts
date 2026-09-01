@@ -16,13 +16,11 @@ export const initModalController = (): void => {
   modalContainer?.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
 
-    // Click en el backdrop (fuera de la tarjeta)
     if (e.target === modalContainer) {
       closeCountryModal();
       return;
     }
 
-    // Navegación entre países fronterizos
     const borderChip = target.closest(".border-chip");
     if (borderChip) {
       const nextCca3 = (borderChip as HTMLElement).dataset.cca3;
@@ -35,11 +33,52 @@ export const initModalController = (): void => {
     }
   });
 
-  // ⌨️ ESC cierra el modal — finding de accesibilidad de la Fase 0, resuelto.
-  // El guard evita repintados inútiles cuando no hay modal abierto.
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && getSelectedCountry()) {
       closeCountryModal();
+      return;
+    }
+
+    if (!getSelectedCountry()) return;
+
+    const dialog = document.querySelector<HTMLElement>(
+      "#modal-container [role='dialog']",
+    );
+    if (!dialog) return;
+
+    if (e.key !== "Tab") return;
+
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => !element.hasAttribute("disabled"));
+
+    if (focusable.length === 0) {
+      e.preventDefault();
+      dialog.focus();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const activeElement = document.activeElement as HTMLElement | null;
+
+    if (e.shiftKey && activeElement === first) {
+      e.preventDefault();
+      last.focus();
+      return;
+    }
+
+    if (!e.shiftKey && activeElement === last) {
+      e.preventDefault();
+      first.focus();
+      return;
+    }
+
+    if (!activeElement || !dialog.contains(activeElement)) {
+      e.preventDefault();
+      first.focus();
     }
   });
 };

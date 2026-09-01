@@ -2,6 +2,7 @@ import type { Country } from "@/domain/country";
 import type { WeatherData } from "@/domain/weather";
 import type { WikiSummary } from "@/domain/wiki";
 import type { AsyncStatus } from "@/presentation/slices/modal.slice";
+import { escapeHtml } from "../utils";
 
 export const getRegionBadgeClasses = (region: string): string => {
   const classes: Record<string, string> = {
@@ -39,24 +40,29 @@ export const renderCountryCard = (
   comparisonCodes: readonly string[] = [],
 ): string => {
   const isInComparison = comparisonCodes.includes(country.cca3);
+  const safeName = escapeHtml(country.name);
+  const safeCapital = escapeHtml(country.capital);
+  const safeRegion = escapeHtml(country.region);
+  const safeCca3 = escapeHtml(country.cca3);
+
   return `
-<article data-id="${country.cca3}" class="country-card bg-paper-card dark:bg-space-card rounded-xl border border-slate-200/60 dark:border-starlight-faint/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col group">
+<article data-id="${safeCca3}" tabindex="0" role="button" aria-label="Open country ${safeName}" class="country-card bg-paper-card dark:bg-space-card rounded-xl border border-slate-200/60 dark:border-starlight-faint/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col group">
   <!-- Pestaña de atlas: identidad de región -->
   <div class="h-1 ${getRegionAccentClass(country.region)}"></div>
 
   <!-- Bandera + etiqueta cartográfica -->
 <div class="overflow-hidden h-40 bg-paper-deep dark:bg-space-deep relative aspect-3/2">
-    <img src="${country.flag}" alt="Flag of ${country.name}" loading="lazy" width="378" height="160" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
-    <span class="absolute bottom-2 left-2 font-mono text-[10px] font-bold tracking-wider bg-ink/75 dark:bg-space-deep/85 text-starlight px-2 py-0.5 rounded backdrop-blur-sm">${country.cca3}</span>
+    <img src="${country.flag}" alt="Flag of ${safeName}" loading="lazy" width="378" height="160" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+    <span class="absolute bottom-2 left-2 font-mono text-[10px] font-bold tracking-wider bg-ink/75 dark:bg-space-deep/85 text-starlight px-2 py-0.5 rounded backdrop-blur-sm">${safeCca3}</span>
   </div>
 
   <div class="p-5 grow flex flex-col justify-between">
     <div>
       <h3 class="font-display text-lg font-bold text-ink dark:text-starlight tracking-tight mb-1 group-hover:text-accent dark:group-hover:text-gold transition-colors">
-        ${country.name}
+        ${safeName}
       </h3>
       <p class="text-xs text-ink-faint dark:text-starlight-faint mb-4">
-        Capital · <span class="font-medium text-ink-soft dark:text-starlight-soft">${country.capital}</span>
+        Capital · <span class="font-medium text-ink-soft dark:text-starlight-soft">${safeCapital}</span>
       </p>
 
       <!-- Mini-stats: los números siempre en mono -->
@@ -75,13 +81,13 @@ export const renderCountryCard = (
     <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-starlight-faint/10">
       <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-ink-soft dark:text-starlight-soft">
         <span class="w-2 h-2 rounded-full ${getRegionAccentClass(country.region)}"></span>
-        ${country.region}
+        ${safeRegion}
       </span>
       <div class="flex items-center gap-1.5">
-  <button data-id="${country.cca3}" class="btn-compare p-1 text-sm transition-transform duration-200 cursor-pointer ${isInComparison ? "opacity-100 scale-110" : "opacity-50 hover:opacity-100"}" title="Compare">
+  <button data-id="${safeCca3}" aria-label="Compare ${safeName}" class="btn-compare p-1 text-sm transition-transform duration-200 cursor-pointer ${isInComparison ? "opacity-100 scale-110" : "opacity-50 hover:opacity-100"}" title="Compare">
     ⚖️
   </button>
-  <button data-id="${country.cca3}" class="btn-fav text-lg hover:scale-110 transition-transform duration-200 cursor-pointer p-1">
+  <button data-id="${safeCca3}" aria-label="Toggle favorite for ${safeName}" class="btn-fav text-lg hover:scale-110 transition-transform duration-200 cursor-pointer p-1">
     ${country.isFavorite ? "❤️" : "🤍"}
   </button>
 </div>
@@ -107,13 +113,13 @@ export const renderCountryDetailModal = (
   wikiStatus: AsyncStatus = "idle",
 ): string => {
   const formatArray = (items: string[]): string =>
-    items.length > 0 ? items.join(", ") : "N/A";
+    items.length > 0 ? items.map((item) => escapeHtml(item)).join(", ") : "N/A";
 
   const formattedLanguages = formatArray(country.languages);
   const formattedCurrencies = formatArray(country.currencies);
   const formattedTld = formatArray(country.tld);
-  const capital = country.capital || "N/A";
-  const subregion = country.subregion || "N/A";
+  const capital = escapeHtml(country.capital || "N/A");
+  const subregion = escapeHtml(country.subregion || "N/A");
   const population = country.population?.toLocaleString() ?? "N/A";
 
   const bordersHTML =
@@ -125,9 +131,9 @@ export const renderCountryDetailModal = (
             return `
               <span
                 class="border-chip inline-block px-3 py-1.5 bg-accent-soft dark:bg-gold/10 text-accent dark:text-gold rounded-full text-xs font-semibold transition-colors cursor-pointer hover:bg-accent hover:text-white dark:hover:bg-gold dark:hover:text-space"
-                data-cca3="${borderCode}"
+                data-cca3="${escapeHtml(borderCode)}"
               >
-                ${name.trim()}
+                ${escapeHtml(name.trim())}
               </span>
             `;
           })
@@ -136,6 +142,10 @@ export const renderCountryDetailModal = (
 
   return `
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="country-modal-title"
+      aria-label="Country details for ${escapeHtml(country.name)}"
       class="relative w-full max-w-5xl max-h-[95vh] bg-paper-card dark:bg-space-card rounded-2xl shadow-2xl shadow-slate-300/50 dark:shadow-space-deep border border-slate-200/60 dark:border-starlight-faint/15 animate-fade-in-up flex flex-col overflow-hidden"
     >
       <!-- Pestaña de región -->
@@ -179,8 +189,8 @@ export const renderCountryDetailModal = (
               class="relative w-full rounded-xl overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 shadow-md bg-paper-card dark:bg-space-card"
             >
               <img
-                src="${country.flag}"
-                alt="Flag of ${country.name}"
+                src="${escapeHtml(country.flag)}"
+                alt="Flag of ${escapeHtml(country.name)}"
                 width="378"
                 height="160"
                 loading="eager"
@@ -193,7 +203,7 @@ export const renderCountryDetailModal = (
               <span
                 class="inline-block font-mono text-[11px] font-bold tracking-wider bg-ink/80 dark:bg-space-deep text-starlight px-3 py-1 rounded"
               >
-                ${country.cca3}
+                ${escapeHtml(country.cca3)}
               </span>
             </div>
 
@@ -208,16 +218,17 @@ export const renderCountryDetailModal = (
             class="md:w-3/5 min-w-0 p-5 sm:p-6 lg:p-8"
           >
             <h2
+              id="country-modal-title"
               class="font-display text-2xl lg:text-3xl font-extrabold text-ink dark:text-starlight tracking-tight mb-3 pr-8"
             >
-              ${country.name}
+              ${escapeHtml(country.name)}
             </h2>
 
             <div class="flex flex-wrap items-center gap-2 mb-6">
               <span
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getRegionBadgeClasses(country.region)}"
               >
-                ${country.region}
+                ${escapeHtml(country.region)}
               </span>
 
               <span class="text-sm text-ink-soft dark:text-starlight-soft">
@@ -406,9 +417,9 @@ const renderSideLinks = (country: Country): string => {
   const buttons = items
     .map(
       (item) => `
-      <a href="${item.href}" target="_blank" rel="noopener noreferrer"
+      <a href="${escapeHtml(item.href)}" target="_blank" rel="noopener noreferrer"
          class="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-lg bg-paper-card dark:bg-space-card hover:bg-accent hover:text-white dark:hover:bg-gold dark:hover:text-space text-ink dark:text-starlight text-xs font-bold transition-all border border-slate-200/60 dark:border-starlight-faint/15 hover:border-accent dark:hover:border-gold">
-        <span class="flex items-center gap-2"><span>${item.icon}</span> ${item.label}</span>
+        <span class="flex items-center gap-2"><span>${item.icon}</span> ${escapeHtml(item.label)}</span>
         <span aria-hidden="true" class="opacity-50">→</span>
       </a>
     `,
@@ -451,7 +462,7 @@ export const renderWeatherWidget = (
               ${Math.round(weather.temperatureC)}°C
               <span class="text-sm font-semibold text-ink-soft dark:text-starlight-soft">in ${capital}</span>
             </p>
-            <p class="text-xs font-semibold text-ink-soft dark:text-starlight-soft">${weather.condition}</p>
+            <p class="text-xs font-semibold text-ink-soft dark:text-starlight-soft">${escapeHtml(weather.condition)}</p>
             <p class="text-[11px] text-ink-faint dark:text-starlight-faint mt-0.5">
               💧 ${weather.humidity}% · 💨 ${Math.round(weather.windSpeedKmh)} km/h
             </p>
@@ -483,17 +494,20 @@ export const renderWikiWidget = (
         </div>
       </div>`;
   } else if (status === "ready" && wiki && wiki.extract) {
-    const thumbnail = wiki.thumbnail
-      ? `<img src="${wiki.thumbnail}" alt="Wikipedia thumbnail" loading="lazy" class="w-20 h-20 shrink-0 rounded-lg object-cover border border-slate-200/60 dark:border-slate-600/60"/>`
+    const safeExtract = escapeHtml(wiki.extract);
+    const safePageUrl = escapeHtml(wiki.pageUrl);
+    const safeThumbnail = wiki.thumbnail ? escapeHtml(wiki.thumbnail) : "";
+    const thumbnail = safeThumbnail
+      ? `<img src="${safeThumbnail}" alt="Wikipedia thumbnail" loading="lazy" class="w-20 h-20 shrink-0 rounded-lg object-cover border border-slate-200/60 dark:border-slate-600/60"/>`
       : "";
     content = `
       <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/40 animate-fade-in-up">
         <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5">About</p>
         <div class="flex gap-3">
           ${thumbnail}
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-5">${wiki.extract}</p>
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-5">${safeExtract}</p>
         </div>
-        <a href="${wiki.pageUrl}" target="_blank" rel="noopener noreferrer"
+        <a href="${safePageUrl}" target="_blank" rel="noopener noreferrer"
            class="inline-flex items-center gap-1 mt-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
           Read more on Wikipedia →
         </a>

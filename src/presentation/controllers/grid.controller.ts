@@ -10,39 +10,49 @@ import {
  * @returns void
  */
 export const initGridController = (): void => {
-  document
-    .querySelector<HTMLDivElement>("#result-container")
-    ?.addEventListener("click", (e) => {
-      const target = e.target as HTMLElement;
+  const resultsContainer =
+    document.querySelector<HTMLDivElement>("#result-container");
 
-      // ─── Botón de favorito ───
-      const btnFav = target.closest(".btn-fav");
-      if (btnFav) {
-        const id = (btnFav as HTMLElement).dataset.id;
-        if (id) toggleCountryFavorite(id);
-        return;
-      }
+  resultsContainer?.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
 
-      // ─── Botón de comparación ───
-      // Early return: el comparison.controller se encarga de este click.
-      // Sin esto, el click burbujearía hasta el caso de .country-card
-      // y abriría el modal accidentalmente.
-      const btnCompare = target.closest(".btn-compare");
-      if (btnCompare) {
-        return;
-      }
+    const btnFav = target.closest(".btn-fav");
+    if (btnFav) {
+      const id = (btnFav as HTMLElement).dataset.id;
+      if (id) toggleCountryFavorite(id);
+      return;
+    }
 
-      // "Go Back Exploring" del empty state
-      if (target.closest("#btn-empty-state-explore")) {
-        toggleShowFavorites();
-        return;
-      }
+    const btnCompare = target.closest(".btn-compare");
+    if (btnCompare) {
+      return;
+    }
 
-      // Click en la card (no en un botón interno) → abrir modal
-      const card = target.closest(".country-card");
-      if (card) {
-        const id = (card as HTMLElement).dataset.id;
-        if (id) openCountryModal(id);
-      }
-    });
+    if (target.closest("#btn-empty-state-explore")) {
+      toggleShowFavorites();
+      return;
+    }
+
+    const card = target.closest(".country-card");
+    if (card) {
+      const id = (card as HTMLElement).dataset.id;
+      if (id) openCountryModal(id);
+    }
+  });
+
+  resultsContainer?.addEventListener("keydown", (e) => {
+    const target = e.target as HTMLElement;
+    const btnFav = target.closest(".btn-fav");
+    const btnCompare = target.closest(".btn-compare");
+    if (btnFav || btnCompare) return;
+
+    const card = target.closest(".country-card");
+    if (!card) return;
+
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      const id = (card as HTMLElement).dataset.id;
+      if (id) openCountryModal(id);
+    }
+  });
 };

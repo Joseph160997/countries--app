@@ -1,4 +1,5 @@
 import type { Country } from "@/domain/country";
+import { escapeHtml } from "../utils";
 
 /**
  * Componente del Command Palette.
@@ -94,11 +95,14 @@ export const renderCommandPalette = (data: PaletteRenderData): string => {
  * `aria-selected` + `data-selected` mantienen el estado visual
  * y de accesibilidad sincronizados.
  */
-const renderPaletteItem = (country: Country, isSelected: boolean): string => `
+export const renderPaletteItem = (
+  country: Country,
+  isSelected: boolean,
+): string => `
 <li
   role="option"
   aria-selected="${isSelected}"
-  data-cca3="${country.cca3}"
+  data-cca3="${escapeHtml(country.cca3)}"
   class="palette-item flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors
     ${
       isSelected
@@ -108,25 +112,9 @@ const renderPaletteItem = (country: Country, isSelected: boolean): string => `
 >
   <img src="${country.flag}" alt="" loading="lazy" class="w-8 h-6 rounded-sm object-cover border border-slate-200/40 dark:border-starlight-faint/10 shrink-0" />
   <div class="min-w-0 flex-1">
-    <p class="text-sm font-semibold truncate">${country.name}</p>
-    <p class="text-xs text-ink-faint dark:text-starlight-faint truncate">${country.capital} · ${country.region}</p>
+    <p class="text-sm font-semibold truncate">${escapeHtml(country.name)}</p>
+    <p class="text-xs text-ink-faint dark:text-starlight-faint truncate">${escapeHtml(country.capital)} · ${escapeHtml(country.region)}</p>
   </div>
-  <span class="font-mono text-[10px] font-bold text-ink-faint dark:text-starlight-faint shrink-0">${country.cca3}</span>
+  <span class="font-mono text-[10px] font-bold text-ink-faint dark:text-starlight-faint shrink-0">${escapeHtml(country.cca3)}</span>
 </li>
 `;
-
-/**
- * Escapa caracteres HTML peligrosos en strings de usuario.
- * Previene XSS si el query contiene `<script>` o similar.
- *
- * ¿Por qué no usamos DOMPurify? Porque el único dato de usuario
- * que se interpola es el query del input, y solo necesita escapar
- * 5 caracteres. Una librería externa sería over-engineering.
- */
-const escapeHtml = (str: string): string =>
-  str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
