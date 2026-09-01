@@ -50,32 +50,22 @@ describe("pickCountryOfTheDay", () => {
 import { buildHeroSlides } from "./explorer.selectors";
 
 describe("buildHeroSlides", () => {
-  it("should put the country of the day first", () => {
+  it("should return only the country of the day", () => {
     const date = new Date("2026-08-06");
     const slides = buildHeroSlides(sample, [], date);
+    expect(slides).toHaveLength(1);
     expect(slides[0].badge).toBe("Country of the Day");
     expect(slides[0].country.cca3).toBe(
       pickCountryOfTheDay(sample, date)?.cca3,
     );
   });
 
-  it("should add featured countries that exist in the list", () => {
+  it("should ignore featured countries and keep only one slide", () => {
     const featured = [{ cca3: "ESP", badge: "Test", tagline: "t" }];
     const slides = buildHeroSlides(sample, featured, new Date("2026-08-06"));
-    expect(slides.some((s) => s.country.cca3 === "ESP")).toBe(true);
-  });
-
-  it("should skip featured countries missing from the list", () => {
-    const featured = [{ cca3: "ZZZ", badge: "X", tagline: "t" }];
-    const slides = buildHeroSlides(sample, featured, new Date("2026-08-06"));
-    expect(slides.every((s) => s.country.cca3 !== "ZZZ")).toBe(true);
-  });
-
-  it("should not duplicate the country of the day", () => {
-    const daily = pickCountryOfTheDay(sample, new Date("2026-08-06"));
-    const featured = [{ cca3: daily!.cca3, badge: "Dupe", tagline: "t" }];
-    const slides = buildHeroSlides(sample, featured, new Date("2026-08-06"));
-    const count = slides.filter((s) => s.country.cca3 === daily!.cca3).length;
-    expect(count).toBe(1);
+    expect(slides).toHaveLength(1);
+    expect(slides[0].country.cca3).toBe(
+      pickCountryOfTheDay(sample, new Date("2026-08-06"))?.cca3,
+    );
   });
 });

@@ -110,35 +110,24 @@ export const FEATURED_COUNTRIES: readonly FeaturedEntry[] = [
 ];
 
 /**
- * Construye los slides del hero: País del Día primero,
- * luego los destacados que existan en la lista cargada.
- * Sin duplicados si el país del día coincide con un destacado.
+ * Construye el hero con un único slide: el País del Día.
+ * Se eliminan los slides adicionales y la curaduría editorial.
  */
 export const buildHeroSlides = (
   all: readonly Country[],
-  featured: readonly FeaturedEntry[] = FEATURED_COUNTRIES,
+  _featured: readonly FeaturedEntry[] = FEATURED_COUNTRIES,
   now: Date = new Date(),
 ): HeroSlide[] => {
   if (all.length === 0) return [];
 
-  const slides: HeroSlide[] = [];
   const daily = pickCountryOfTheDay(all, now);
+  if (!daily) return [];
 
-  if (daily) {
-    slides.push({
+  return [
+    {
       country: daily,
       badge: "Country of the Day",
       tagline: "Today's featured destination — tomorrow brings a new one.",
-    });
-  }
-
-  for (const entry of featured) {
-    if (daily?.cca3 === entry.cca3) continue;
-    const country = all.find((c) => c.cca3 === entry.cca3);
-    if (country) {
-      slides.push({ country, badge: entry.badge, tagline: entry.tagline });
-    }
-  }
-
-  return slides;
+    },
+  ];
 };

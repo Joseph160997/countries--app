@@ -43,6 +43,9 @@ export const initHeroCarousel = (): void => {
   const container = document.querySelector<HTMLElement>("#hero-container");
   if (!container) return;
 
+  const slides = getSlides(container);
+  if (slides.length <= 1) return;
+
   // Delegación: explore, dots y flechas
   container.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
