@@ -14,6 +14,7 @@ import { isWikipediaSummary } from "./wikipedia.validator";
 export class WikipediaProvider implements WikiProvider {
   async getSummaryFromUrl(
     wikipediaUrl: string,
+    signal?: AbortSignal,
   ): Promise<Result<WikiSummary, AppError>> {
     const target = extractWikiTarget(wikipediaUrl);
     if (!target) {
@@ -30,7 +31,7 @@ export class WikipediaProvider implements WikiProvider {
     try {
       const response = await httpClient<WikipediaSummaryResponse>(
         url,
-        { validator: isWikipediaSummary },
+        { validator: isWikipediaSummary, signal },
         6000,
       );
       return ok(mapToWikiSummary(response, wikipediaUrl));

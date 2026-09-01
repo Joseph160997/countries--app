@@ -17,6 +17,7 @@ export class OpenMeteoProvider implements WeatherProvider {
   async getCurrentWeather(
     lat: number,
     lng: number,
+    signal?: AbortSignal,
   ): Promise<Result<WeatherData, AppError>> {
     const url =
       `${BASE_URL}?latitude=${lat}&longitude=${lng}` +
@@ -25,7 +26,7 @@ export class OpenMeteoProvider implements WeatherProvider {
     try {
       const response = await httpClient<OpenMeteoResponse>(
         url,
-        { validator: isOpenMeteoResponse },
+        { validator: isOpenMeteoResponse, signal },
         6000,
       );
       return ok(mapToWeatherData(response));

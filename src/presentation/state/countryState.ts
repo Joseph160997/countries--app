@@ -44,6 +44,7 @@ const comparisonStore: ComparisonStore = createComparisonSlice();
 let filteredCountries: Country[] = [];
 
 let listeners: Array<() => void> = [];
+let modalSessionController: AbortController | null = null;
 
 const SORT_KEY = "World_Explorer_Sort";
 
@@ -209,6 +210,10 @@ export const openCountryModal = (cca3: string): void => {
   const country = countriesStore.getState().all.find((c) => c.cca3 === cca3);
   if (!country) return;
 
+  modalSessionController?.abort();
+  modalSessionController = new AbortController();
+  const { signal } = modalSessionController;
+
   const willFetchWeather = Boolean(
     weatherProvider && country.capitalCoordinates,
   );
@@ -223,16 +228,19 @@ export const openCountryModal = (cca3: string): void => {
   });
   notify();
 
-  if (willFetchWeather) void loadWeather(country);
-  if (willFetchWiki) void loadWiki(country);
+  if (willFetchWeather) void loadWeather(country, signal);
+  if (willFetchWiki) void loadWiki(country, signal);
 };
 
-const loadWiki = async (country: Country): Promise<void> => {
+const loadWiki = async (
+  country: Country,
+  signal: AbortSignal,
+): Promise<void> => {
   const url = country.links?.wikipedia;
   if (!wikiProvider || !url) return;
-  const result = await wikiProvider.getSummaryFromUrl(url);
+  const result = await wikiProvider.getSummaryFromUrl(url, signal);
 
-  // Guard de carrera — mismo principio que con el clima
+  if (signal.aborted) return;
   if (modalStore.getState().selectedCountry?.cca3 !== country.cca3) return;
 
   if (isOk(result)) {
@@ -244,6 +252,9 @@ const loadWiki = async (country: Country): Promise<void> => {
 };
 
 export const closeCountryModal = (): void => {
+  modalSessionController?.abort();
+  modalSessionController = null;
+
   modalStore.setState({
     selectedCountry: null,
     weather: null,
@@ -259,13 +270,15 @@ export const getWikiStatus = () => modalStore.getState().wikiStatus;
 export const getWeather = () => modalStore.getState().weather;
 export const getWeatherStatus = () => modalStore.getState().weatherStatus;
 
-const loadWeather = async (country: Country): Promise<void> => {
+const loadWeather = async (
+  country: Country,
+  signal: AbortSignal,
+): Promise<void> => {
   if (!weatherProvider || !country.capitalCoordinates) return;
   const { lat, lng } = country.capitalCoordinates;
-  const result = await weatherProvider.getCurrentWeather(lat, lng);
+  const result = await weatherProvider.getCurrentWeather(lat, lng, signal);
 
-  // Guard de carrera: el usuario pudo cerrar o abrir OTRO país
-  // mientras el fetch volaba. Si ya no es el mismo país, descartamos.
+  if (signal.aborted) return;
   if (modalStore.getState().selectedCountry?.cca3 !== country.cca3) return;
 
   if (isOk(result)) {
