@@ -52,20 +52,11 @@ import { buildHeroSlides } from "./explorer.selectors";
 describe("buildHeroSlides", () => {
   it("should return only the country of the day", () => {
     const date = new Date("2026-08-06");
-    const slides = buildHeroSlides(sample, [], date);
+    const slides = buildHeroSlides(sample, date);
     expect(slides).toHaveLength(1);
     expect(slides[0].badge).toBe("Country of the Day");
     expect(slides[0].country.cca3).toBe(
       pickCountryOfTheDay(sample, date)?.cca3,
-    );
-  });
-
-  it("should ignore featured countries and keep only one slide", () => {
-    const featured = [{ cca3: "ESP", badge: "Test", tagline: "t" }];
-    const slides = buildHeroSlides(sample, featured, new Date("2026-08-06"));
-    expect(slides).toHaveLength(1);
-    expect(slides[0].country.cca3).toBe(
-      pickCountryOfTheDay(sample, new Date("2026-08-06"))?.cca3,
     );
   });
 });

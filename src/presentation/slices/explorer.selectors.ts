@@ -60,13 +60,6 @@ export const pickCountryOfTheDay = (
   return sorted[dayOfYear % sorted.length];
 };
 
-/** Entrada curada del carrusel. */
-export interface FeaturedEntry {
-  readonly cca3: string;
-  readonly badge: string;
-  readonly tagline: string;
-}
-
 /** Slide resuelto: país real + etiqueta editorial. */
 export interface HeroSlide {
   readonly country: Country;
@@ -75,47 +68,11 @@ export interface HeroSlide {
 }
 
 /**
- * Contenido editorial curado del hero.
- * Sin datos de turismo en la API, la curaduría es el camino honesto.
- */
-export const FEATURED_COUNTRIES: readonly FeaturedEntry[] = [
-  {
-    cca3: "FRA",
-    badge: "Most Touristic",
-    tagline:
-      "The world's most visited destination — art, gastronomy and the City of Light.",
-  },
-  {
-    cca3: "JPN",
-    badge: "Cultural Icon",
-    tagline:
-      "Ancient temples and neon skylines — the planet's most fascinating contrast.",
-  },
-  {
-    cca3: "ISL",
-    badge: "Hidden Gem",
-    tagline:
-      "Volcanoes, glaciers and northern lights on one impossible island.",
-  },
-  {
-    cca3: "BRA",
-    badge: "Natural Wonder",
-    tagline: "Home to the Amazon — the most biodiverse country on Earth.",
-  },
-  {
-    cca3: "ITA",
-    badge: "Heritage Giant",
-    tagline: "More UNESCO World Heritage sites than any other country.",
-  },
-];
-
-/**
  * Construye el hero con un único slide: el País del Día.
  * Se eliminan los slides adicionales y la curaduría editorial.
  */
 export const buildHeroSlides = (
   all: readonly Country[],
-  _featured: readonly FeaturedEntry[] = FEATURED_COUNTRIES,
   now: Date = new Date(),
 ): HeroSlide[] => {
   if (all.length === 0) return [];
