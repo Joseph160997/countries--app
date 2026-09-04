@@ -18,3 +18,41 @@ export const escapeHtml = (str: string): string =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+
+/**
+ * Valida y normaliza URLs antes de inyectarlas en HTML.
+ * Acepta solo HTTP(S) o rutas relativas; rechaza javascript:, data: y otros
+ * esquemas peligrosos que pudieran ejecutar código al hacer clic o cargar.
+ */
+export const sanitizeUrl = (value: string | null | undefined): string => {
+  if (typeof value !== "string") return "";
+
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  const normalized = trimmed.replace(/\s+/g, "");
+
+  if (
+    normalized === "" ||
+    normalized.startsWith("javascript:") ||
+    normalized.startsWith("data:") ||
+    normalized.startsWith("vbscript:") ||
+    normalized.startsWith("file:")
+  ) {
+    return "";
+  }
+
+  if (
+    normalized.startsWith("http://") ||
+    normalized.startsWith("https://") ||
+    normalized.startsWith("/") ||
+    normalized.startsWith("./") ||
+    normalized.startsWith("../") ||
+    normalized.startsWith("#") ||
+    normalized.startsWith("//")
+  ) {
+    return normalized;
+  }
+
+  return "";
+};

@@ -2,7 +2,7 @@ import type { Country } from "@/domain/country";
 import type { WeatherData } from "@/domain/weather";
 import type { WikiSummary } from "@/domain/wiki";
 import type { AsyncStatus } from "@/presentation/slices/modal.slice";
-import { escapeHtml } from "../utils";
+import { escapeHtml, sanitizeUrl } from "../utils";
 
 export const getRegionBadgeClasses = (region: string): string => {
   const classes: Record<string, string> = {
@@ -45,6 +45,8 @@ export const renderCountryCard = (
   const safeRegion = escapeHtml(country.region);
   const safeCca3 = escapeHtml(country.cca3);
 
+  const safeFlagSrc = escapeHtml(sanitizeUrl(country.flag));
+
   return `
 <article data-id="${safeCca3}" tabindex="0" role="button" aria-label="Open country ${safeName}" class="country-card bg-paper-card dark:bg-space-card rounded-xl border border-slate-200/60 dark:border-starlight-faint/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col group">
   <!-- Pestaña de atlas: identidad de región -->
@@ -52,7 +54,7 @@ export const renderCountryCard = (
 
   <!-- Bandera + etiqueta cartográfica -->
 <div class="overflow-hidden h-40 bg-paper-deep dark:bg-space-deep relative aspect-3/2">
-    <img src="${country.flag}" alt="Flag of ${safeName}" loading="lazy" width="378" height="160" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+    <img src="${safeFlagSrc}" alt="Flag of ${safeName}" loading="lazy" width="378" height="160" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
     <span class="absolute bottom-2 left-2 font-mono text-[10px] font-bold tracking-wider bg-ink/75 dark:bg-space-deep/85 text-starlight px-2 py-0.5 rounded backdrop-blur-sm">${safeCca3}</span>
   </div>
 
@@ -118,7 +120,7 @@ export const renderCountryDetailModal = (
   const formattedLanguages = formatArray(country.languages);
   const formattedCurrencies = formatArray(country.currencies);
   const formattedTld = formatArray(country.tld);
-  const capital = escapeHtml(country.capital || "N/A");
+  const capital = country.capital || "N/A";
   const subregion = escapeHtml(country.subregion || "N/A");
   const population = country.population?.toLocaleString() ?? "N/A";
 
@@ -139,6 +141,8 @@ export const renderCountryDetailModal = (
           })
           .join("")
       : `<span class="text-ink-faint dark:text-starlight-faint italic text-sm">No border countries</span>`;
+
+  const safeFlagSrc = escapeHtml(sanitizeUrl(country.flag));
 
   return `
     <div
@@ -189,7 +193,7 @@ export const renderCountryDetailModal = (
               class="relative w-full rounded-xl overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 shadow-md bg-paper-card dark:bg-space-card"
             >
               <img
-                src="${escapeHtml(country.flag)}"
+                src="${safeFlagSrc}"
                 alt="Flag of ${escapeHtml(country.name)}"
                 width="378"
                 height="160"
@@ -415,15 +419,17 @@ const renderSideLinks = (country: Country): string => {
   if (items.length === 0) return "";
 
   const buttons = items
-    .map(
-      (item) => `
-      <a href="${escapeHtml(item.href)}" target="_blank" rel="noopener noreferrer"
+    .map((item) => {
+      const safeHref = escapeHtml(sanitizeUrl(item.href));
+
+      return `
+      <a href="${safeHref}" target="_blank" rel="noopener noreferrer"
          class="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-lg bg-paper-card dark:bg-space-card hover:bg-accent hover:text-white dark:hover:bg-gold dark:hover:text-space text-ink dark:text-starlight text-xs font-bold transition-all border border-slate-200/60 dark:border-starlight-faint/15 hover:border-accent dark:hover:border-gold">
         <span class="flex items-center gap-2"><span>${item.icon}</span> ${escapeHtml(item.label)}</span>
         <span aria-hidden="true" class="opacity-50">→</span>
       </a>
-    `,
-    )
+    `;
+    })
     .join("");
 
   return `
@@ -440,6 +446,7 @@ export const renderWeatherWidget = (
   capital: string,
 ): string => {
   let content = "";
+  const safeCapital = escapeHtml(capital);
 
   if (status === "loading") {
     content = `
@@ -450,17 +457,19 @@ export const renderWeatherWidget = (
   } else if (status === "error" || !weather) {
     content = `
       <div class="p-3 rounded-xl bg-paper-deep dark:bg-space-deep/40 text-xs text-ink-faint dark:text-starlight-faint italic">
-        Weather unavailable for ${capital}
+        Weather unavailable for ${safeCapital}
       </div>`;
   } else {
+    const safeIcon = escapeHtml(weather.icon);
+
     content = `
       <div class="p-4 rounded-xl bg-linear-to-r from-sky-50 to-blue-50 dark:from-sky-950/40 dark:to-space-deep border border-sky-100 dark:border-sky-900/30">
         <div class="flex items-center gap-4">
-          <span class="text-4xl">${weather.icon}</span>
+          <span class="text-4xl">${safeIcon}</span>
           <div class="min-w-0">
             <p class="text-xl font-bold text-ink dark:text-starlight">
               ${Math.round(weather.temperatureC)}°C
-              <span class="text-sm font-semibold text-ink-soft dark:text-starlight-soft">in ${capital}</span>
+              <span class="text-sm font-semibold text-ink-soft dark:text-starlight-soft">in ${safeCapital}</span>
             </p>
             <p class="text-xs font-semibold text-ink-soft dark:text-starlight-soft">${escapeHtml(weather.condition)}</p>
             <p class="text-[11px] text-ink-faint dark:text-starlight-faint mt-0.5">
@@ -495,8 +504,10 @@ export const renderWikiWidget = (
       </div>`;
   } else if (status === "ready" && wiki && wiki.extract) {
     const safeExtract = escapeHtml(wiki.extract);
-    const safePageUrl = escapeHtml(wiki.pageUrl);
-    const safeThumbnail = wiki.thumbnail ? escapeHtml(wiki.thumbnail) : "";
+    const safePageUrl = escapeHtml(sanitizeUrl(wiki.pageUrl));
+    const safeThumbnail = wiki.thumbnail
+      ? escapeHtml(sanitizeUrl(wiki.thumbnail))
+      : "";
     const thumbnail = safeThumbnail
       ? `<img src="${safeThumbnail}" alt="Wikipedia thumbnail" loading="lazy" class="w-20 h-20 shrink-0 rounded-lg object-cover border border-slate-200/60 dark:border-slate-600/60"/>`
       : "";

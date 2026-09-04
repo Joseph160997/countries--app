@@ -1,7 +1,7 @@
 import type { Country } from "@/domain/country";
 import type { ComparisonRow } from "@/presentation/slices/comparison.selectors";
 import { getRegionAccentClass } from "@/presentation/components/countryCards";
-import { escapeHtml } from "../utils";
+import { escapeHtml, sanitizeUrl } from "../utils";
 
 export interface ComparisonViewData {
   readonly countries: readonly Country[];
@@ -17,7 +17,7 @@ export const renderComparisonView = (data: ComparisonViewData): string => {
       (country) => `
       <div class="flex flex-col items-center gap-2 min-w-35">
         <div class="relative w-20 h-14 rounded-lg overflow-hidden border border-slate-200/60 dark:border-starlight-faint/15 shadow-sm shrink-0">
-          <img src="${country.flag}" alt="Flag of ${escapeHtml(country.name)}" class="w-full h-full object-cover" />
+          <img src="${escapeHtml(sanitizeUrl(country.flag))}" alt="Flag of ${escapeHtml(country.name)}" class="w-full h-full object-cover" />
           <div class="h-0.5 ${getRegionAccentClass(country.region)} absolute bottom-0 left-0 right-0"></div>
         </div>
         <p class="font-display text-sm font-bold text-ink dark:text-starlight text-center leading-tight truncate w-24">${escapeHtml(country.name)}</p>

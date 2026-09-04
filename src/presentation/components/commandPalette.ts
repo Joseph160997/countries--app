@@ -1,5 +1,5 @@
 import type { Country } from "@/domain/country";
-import { escapeHtml } from "../utils";
+import { escapeHtml, sanitizeUrl } from "../utils";
 
 /**
  * Componente del Command Palette.
@@ -98,7 +98,10 @@ export const renderCommandPalette = (data: PaletteRenderData): string => {
 export const renderPaletteItem = (
   country: Country,
   isSelected: boolean,
-): string => `
+): string => {
+  const safeFlagSrc = escapeHtml(sanitizeUrl(country.flag));
+
+  return `
 <li
   role="option"
   aria-selected="${isSelected}"
@@ -110,7 +113,7 @@ export const renderPaletteItem = (
         : "text-ink dark:text-starlight hover:bg-paper-deep dark:hover:bg-space-deep"
     }"
 >
-  <img src="${country.flag}" alt="" loading="lazy" class="w-8 h-6 rounded-sm object-cover border border-slate-200/40 dark:border-starlight-faint/10 shrink-0" />
+  <img src="${safeFlagSrc}" alt="" loading="lazy" class="w-8 h-6 rounded-sm object-cover border border-slate-200/40 dark:border-starlight-faint/10 shrink-0" />
   <div class="min-w-0 flex-1">
     <p class="text-sm font-semibold truncate">${escapeHtml(country.name)}</p>
     <p class="text-xs text-ink-faint dark:text-starlight-faint truncate">${escapeHtml(country.capital)} · ${escapeHtml(country.region)}</p>
@@ -118,3 +121,4 @@ export const renderPaletteItem = (
   <span class="font-mono text-[10px] font-bold text-ink-faint dark:text-starlight-faint shrink-0">${escapeHtml(country.cca3)}</span>
 </li>
 `;
+};

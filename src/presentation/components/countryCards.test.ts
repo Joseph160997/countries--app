@@ -100,4 +100,49 @@ describe("HTML escaping in renderers", () => {
       'href="https://en.wikipedia.org/wiki/Test?x=&lt;script&gt;"',
     );
   });
+
+  it("drops unsafe URLs before embedding them in HTML", () => {
+    const cardHtml = renderCountryCard(
+      makeCountry({
+        flag: "javascript:alert(1)",
+        name: "Evil <b>Country</b>",
+      }),
+    );
+
+    expect(cardHtml).toContain('src=""');
+    expect(cardHtml).toContain("Evil &lt;b&gt;Country&lt;/b&gt;");
+
+    const modalHtml = renderCountryDetailModal(
+      makeCountry({
+        name: "XSS Country",
+        links: {
+          googleMaps: "javascript:alert(1)",
+          openStreetMaps: "https://example.com/map",
+          wikipedia: "data:text/html,<script>alert(1)</script>",
+        },
+      }),
+      ["Neighbor"],
+      {
+        temperatureC: 20,
+        humidity: 50,
+        windSpeedKmh: 10,
+        condition: "Sunny",
+        icon: '<svg onload="alert(1)"></svg>',
+      },
+      "ready",
+      {
+        extract: "Wiki summary",
+        pageUrl: "javascript:alert(2)",
+        thumbnail: "javascript:alert(3)",
+      },
+      "ready",
+    );
+
+    expect(modalHtml).not.toContain("javascript:alert");
+    expect(modalHtml).not.toContain("data:text/html");
+    expect(modalHtml).toContain(
+      "&lt;svg onload=&quot;alert(1)&quot;&gt;&lt;/svg&gt;",
+    );
+    expect(modalHtml).not.toContain('href="javascript:alert(2)"');
+  });
 });

@@ -42,6 +42,7 @@ Durante el desarrollo se aplicaron conceptos como:
 - [📊 Lighthouse Scores](#-lighthouse-scores)
 - [📜 Scripts disponibles](#-scripts-disponibles)
 - [🛡️ Guardrails (Git Hooks)](#-guardrails-git-hooks)
+- [🛡️ Seguridad del render y XSS](#-seguridad-del-render-y-xss)
 - [🧪 Testing](#-testing)
 - [🔁 CI/CD](#-cicd)
 - [🧠 Decisiones técnicas](#-decisiones-técnicas)
@@ -283,6 +284,26 @@ npm run format:check   # Verificar formato sin cambiar
 Los hooks se instalan solos con `npm install` (script `prepare`).
 
 CI sigue siendo la última barrera: los hooks te protegen a ti, el pipeline protege al equipo.
+
+---
+
+## 🛡️ Seguridad del render y XSS
+
+El render de la UI no asume que los datos externos son seguros. Antes de inyectar cualquier texto o enlace en HTML, el proyecto sanitiza los valores y descarta esquemas peligrosos como `javascript:`, `data:` o `vbscript:`.
+
+Esto se aplica sobre todo en:
+
+- banderas y recursos de imagen renderizados dentro del DOM
+- enlaces externos de países, Wikipedia y mapas
+- textos de clima, extractos y atributos HTML generados dinámicamente
+
+La estrategia combina:
+
+- `escapeHtml()` para strings de texto que van a aparecer en el DOM
+- `sanitizeUrl()` para validar enlaces antes de usarlos en `href` o `src`
+- tests de regresión para asegurar que payloads maliciosos no vuelvan a romper el render
+
+La idea no es “bloquear todo”, sino aceptar solo entradas seguras y mantener la app resistente a XSS sin perder la experiencia de usuario.
 
 ---
 
