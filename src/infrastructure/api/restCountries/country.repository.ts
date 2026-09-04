@@ -9,6 +9,10 @@ import { isRestCountriesResponse } from "./restCountries.validator";
 import { httpClient } from "@/infrastructure/http/http.client";
 import { storage } from "@/infrastructure/persistence/indexedDb.store";
 import { storageService } from "@/infrastructure/persistence/localStorage.store";
+import {
+  isCountry,
+  MAX_CACHED_COUNTRIES,
+} from "@/infrastructure/persistence/country.validator";
 
 const CACHE_KEY = "countries_last_fetch";
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24h
@@ -104,8 +108,16 @@ export class RestCountriesRepository implements CountryRepository {
     try {
       const cached = await storage.get<Country>("countries");
       const list = Array.isArray(cached) ? cached : [cached];
-      if (list.length === 0) return null;
-      return list.map((c) => ({
+      const validCountries = list
+        .filter(isCountry)
+        .slice(0, MAX_CACHED_COUNTRIES);
+
+      if (validCountries.length === 0) {
+        await storage.clear("countries");
+        return null;
+      }
+
+      return validCountries.map((c) => ({
         ...c,
         isFavorite: favoriteCodes.includes(c.cca3),
       }));
