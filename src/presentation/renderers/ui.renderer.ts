@@ -208,8 +208,12 @@ const patchFavoritesOnly = (): void => {
  * Busca el botón con querySelector y cambia su innerHTML.
  */
 const updateFavoriteButton = (cca3: string, isFavorite: boolean): void => {
+  const escapedCca3 =
+    typeof CSS !== "undefined" && typeof CSS.escape === "function"
+      ? CSS.escape(cca3)
+      : cca3;
   const btn = resultsContainer?.querySelector<HTMLButtonElement>(
-    `.btn-fav[data-id="${cca3}"]`,
+    `.btn-fav[data-id="${escapedCca3}"]`,
   );
   if (!btn) return;
   btn.innerHTML = isFavorite ? "❤️" : "🤍";

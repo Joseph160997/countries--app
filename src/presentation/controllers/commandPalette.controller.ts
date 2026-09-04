@@ -111,10 +111,8 @@ const openPalette = (): void => {
 
   // Focus en el input después de que el DOM esté listo
   requestAnimationFrame(() => {
-    const input = document.getElementById(
-      "palette-input",
-    ) as HTMLInputElement | null;
-    input?.focus();
+    const input = document.getElementById("palette-input");
+    if (input instanceof HTMLInputElement) input.focus();
   });
 };
 
@@ -152,8 +150,8 @@ const selectCurrent = (): void => {
 // ─── Búsqueda ───
 
 const handleSearchInput = (event: Event): void => {
-  const input = event.target as HTMLInputElement;
-  query = input.value;
+  if (!(event.currentTarget instanceof HTMLInputElement)) return;
+  query = event.currentTarget.value;
   selectedIndex = 0; // Resetear selección al cambiar la query
 
   const catalog = getAllCountries();
@@ -248,7 +246,8 @@ const scrollToSelected = (): void => {
 // ─── Event delegation para clicks ───
 
 const handleOverlayClick = (event: MouseEvent): void => {
-  const target = event.target as HTMLElement;
+  if (!(event.target instanceof HTMLElement)) return;
+  const target = event.target;
 
   // Click en el backdrop (fuera del panel) → cerrar
   if (target.id === "command-palette-overlay") {

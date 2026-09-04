@@ -27,7 +27,8 @@ export const initComparisonController = (): void => {
   document
     .querySelector("#result-container")
     ?.addEventListener("click", (e) => {
-      const target = e.target as HTMLElement;
+      if (!(e.target instanceof HTMLElement)) return;
+      const target = e.target;
       const btn = target.closest<HTMLButtonElement>(".btn-compare");
       if (!btn) return;
 
@@ -42,7 +43,8 @@ export const initComparisonController = (): void => {
   // dinámicamente por el renderer. No podemos poner listeners directos
   // porque los elementos no existen al momento de init.
   document.body.addEventListener("click", (e) => {
-    const target = e.target as HTMLElement;
+    if (!(e.target instanceof HTMLElement)) return;
+    const target = e.target;
 
     // "Compare" en la barra flotante
     if (target.closest("#btn-open-comparison")) {

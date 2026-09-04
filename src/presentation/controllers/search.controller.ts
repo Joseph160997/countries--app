@@ -11,6 +11,7 @@ export const initSearchController = (): void => {
 
   const optimizedSearch = debounce((text: string) => setSearchQuery(text), 350);
   inputSearch.addEventListener("input", (e) => {
-    optimizedSearch((e.target as HTMLInputElement).value);
+    if (!(e.currentTarget instanceof HTMLInputElement)) return;
+    optimizedSearch(e.currentTarget.value);
   });
 };

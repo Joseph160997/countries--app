@@ -14,16 +14,17 @@ export const initModalController = (): void => {
     document.querySelector<HTMLDivElement>("#modal-container");
 
   modalContainer?.addEventListener("click", (e) => {
-    const target = e.target as HTMLElement;
+    if (!(e.target instanceof HTMLElement)) return;
+    const target = e.target;
 
     if (e.target === modalContainer) {
       closeCountryModal();
       return;
     }
 
-    const borderChip = target.closest(".border-chip");
+    const borderChip = target.closest<HTMLElement>(".border-chip");
     if (borderChip) {
-      const nextCca3 = (borderChip as HTMLElement).dataset.cca3;
+      const nextCca3 = borderChip.dataset.cca3;
       if (nextCca3) openCountryModal(nextCca3);
       return;
     }
@@ -62,7 +63,10 @@ export const initModalController = (): void => {
 
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
-    const activeElement = document.activeElement as HTMLElement | null;
+    const activeElement =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
 
     if (e.shiftKey && activeElement === first) {
       e.preventDefault();

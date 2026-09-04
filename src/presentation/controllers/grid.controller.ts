@@ -14,7 +14,8 @@ export const initGridController = (): void => {
     document.querySelector<HTMLDivElement>("#result-container");
 
   resultsContainer?.addEventListener("click", (e) => {
-    const target = e.target as HTMLElement;
+    if (!(e.target instanceof HTMLElement)) return;
+    const target = e.target;
 
     const btnFav = target.closest(".btn-fav");
     if (btnFav) {
@@ -41,7 +42,8 @@ export const initGridController = (): void => {
   });
 
   resultsContainer?.addEventListener("keydown", (e) => {
-    const target = e.target as HTMLElement;
+    if (!(e.target instanceof HTMLElement)) return;
+    const target = e.target;
     const btnFav = target.closest(".btn-fav");
     const btnCompare = target.closest(".btn-compare");
     if (btnFav || btnCompare) return;

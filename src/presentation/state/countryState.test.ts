@@ -263,6 +263,12 @@ describe("toggleCountryFavorite", () => {
     openCountryModal("ARG");
     expect(getSelectedCountry()?.isFavorite).toBe(false);
   });
+
+  it("should ignore an unknown country code", () => {
+    toggleCountryFavorite("ZZZ");
+
+    expect(toggleFavoritePersistence).not.toHaveBeenCalled();
+  });
 });
 
 // ====================================================
@@ -537,12 +543,16 @@ describe("comparison", () => {
       toggleComparisonCountry("COL");
       toggleComparisonCountry("ARG");
       toggleComparisonCountry("ESP");
-      // Intentar añadir un 4º (usando un código que no existe en el fixture,
-      // pero toggleComparisonCountry no valida existencia en el catálogo,
-      // solo el límite)
+      // El límite sigue aplicándose incluso cuando el cuarto código no existe.
       toggleComparisonCountry("ZZZ");
       expect(getComparisonCount()).toBe(3);
       expect(getComparisonCodes()).toEqual(["COL", "ARG", "ESP"]);
+    });
+
+    it("should ignore an unknown country code", () => {
+      toggleComparisonCountry("ZZZ");
+
+      expect(getComparisonCodes()).toEqual([]);
     });
 
     it("should report canAddToComparison correctly", () => {

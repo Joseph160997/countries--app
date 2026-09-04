@@ -3,7 +3,7 @@ import {
   setSort,
   toggleShowFavorites,
 } from "@/presentation/state/countryState";
-import type { Region } from "@/domain/country";
+import { isRegion } from "@/domain/country";
 
 /**
  * Controlador de Filtros
@@ -14,7 +14,9 @@ export const initFilterController = (): void => {
   document
     .querySelector<HTMLSelectElement>("#filter-region")
     ?.addEventListener("change", (e) => {
-      setRegionFilter((e.target as HTMLSelectElement).value as Region);
+      if (!(e.currentTarget instanceof HTMLSelectElement)) return;
+      const value = e.currentTarget.value;
+      if (isRegion(value)) setRegionFilter(value);
     });
 
   document

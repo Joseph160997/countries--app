@@ -179,6 +179,10 @@ export const setRegionFilter = (region: Region): void => {
 };
 
 export const toggleCountryFavorite = (cca3: string): void => {
+  if (!countriesStore.getState().all.some((country) => country.cca3 === cca3)) {
+    return;
+  }
+
   const nowIsFavorite = toggleFavoritePersistence(cca3);
   const { all } = countriesStore.getState();
   countriesStore.setState({
@@ -328,6 +332,10 @@ export const isInComparison = (cca3: string): boolean =>
  * - Si no hay espacio, no hace nada (el controller mostrará un toast).
  */
 export const toggleComparisonCountry = (cca3: string): void => {
+  if (!countriesStore.getState().all.some((country) => country.cca3 === cca3)) {
+    return;
+  }
+
   const { selectedCodes } = comparisonStore.getState();
   const isAlreadyIn = selectedCodes.includes(cca3);
 

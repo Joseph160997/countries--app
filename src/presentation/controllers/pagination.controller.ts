@@ -8,7 +8,8 @@ export const initPaginationController = (): void => {
   document
     .querySelector("#pagination-container")
     ?.addEventListener("click", (e) => {
-      const target = e.target as HTMLElement;
+      if (!(e.target instanceof HTMLElement)) return;
+      const target = e.target;
       const btn = target.closest<HTMLButtonElement>("[data-page]");
       if (!btn || btn.disabled) return;
 
