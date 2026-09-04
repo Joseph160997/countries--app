@@ -1,13 +1,11 @@
-import type { Country, CountryLinks, GeoPoint, Region } from "@/domain/country";
+import {
+  isRegion,
+  type Country,
+  type CountryLinks,
+  type GeoPoint,
+  type Region,
+} from "@/domain/country";
 import type { RestCountryDTO, RestCountriesResponse } from "./restCountry.dto";
-
-const VALID_REGIONS: readonly Region[] = [
-  "Africa",
-  "Americas",
-  "Asia",
-  "Europe",
-  "Oceania",
-];
 
 /**
  * Extrae el array de países desde la respuesta de la API.
@@ -78,7 +76,7 @@ function pickCapital(dto: RestCountryDTO): string {
  * Garantiza que la región pertenezca al dominio de la aplicación.
  */
 function normalizeRegion(region: string): Region {
-  return VALID_REGIONS.includes(region as Region) ? (region as Region) : "";
+  return isRegion(region) ? region : "";
 }
 
 /**

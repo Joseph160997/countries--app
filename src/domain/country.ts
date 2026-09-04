@@ -1,5 +1,16 @@
 export type Region = "Africa" | "Americas" | "Asia" | "Europe" | "Oceania" | "";
 
+export const VALID_REGIONS: readonly Region[] = [
+  "Africa",
+  "Americas",
+  "Asia",
+  "Europe",
+  "Oceania",
+];
+
+export const isRegion = (value: string): value is Region =>
+  value === "" || VALID_REGIONS.includes(value as Region);
+
 export interface GeoPoint {
   readonly lat: number;
   readonly lng: number;
